@@ -1,0 +1,136 @@
+{
+ "game": "snake",
+ "opp": "random",
+ "seed": 1,
+ "pop": 24,
+ "head": "fixed",
+ "budget": 1000000,
+ "mode": "return",
+ "bar": 5.503157499999965,
+ "curve": [
+  {
+   "gen": 4,
+   "steps": 491520,
+   "win_rate": 0.02,
+   "wins": 1,
+   "losses": 49,
+   "draws": 0,
+   "mean_return": -0.167,
+   "sec": 17.6
+  },
+  {
+   "gen": 9,
+   "steps": 983040,
+   "win_rate": 0.14,
+   "wins": 7,
+   "losses": 43,
+   "draws": 0,
+   "mean_return": 2.608,
+   "sec": 36.3
+  },
+  {
+   "gen": 10,
+   "steps": 1081344,
+   "win_rate": 0.36,
+   "wins": 18,
+   "losses": 32,
+   "draws": 0,
+   "mean_return": 4.6938,
+   "sec": 39.7
+  }
+ ],
+ "gens": {
+  "0": {
+   "steps": 98304,
+   "best": -0.6,
+   "mean": -1.0,
+   "train": 98304,
+   "eval": 0,
+   "sec": 3.9
+  },
+  "1": {
+   "steps": 196608,
+   "best": -0.56,
+   "mean": -0.89,
+   "train": 196608,
+   "eval": 0,
+   "sec": 7.2
+  },
+  "2": {
+   "steps": 294912,
+   "best": -0.5,
+   "mean": -0.69,
+   "train": 294912,
+   "eval": 0,
+   "sec": 10.7
+  },
+  "3": {
+   "steps": 393216,
+   "best": -0.38,
+   "mean": -0.55,
+   "train": 393216,
+   "eval": 0,
+   "sec": 14.2
+  },
+  "4": {
+   "steps": 491520,
+   "best": -0.19,
+   "mean": -0.39,
+   "train": 491520,
+   "eval": 0,
+   "sec": 17.5
+  },
+  "5": {
+   "steps": 589824,
+   "best": 0.05,
+   "mean": -0.18,
+   "train": 589824,
+   "eval": 0,
+   "sec": 21.2
+  },
+  "6": {
+   "steps": 688128,
+   "best": 0.23,
+   "mean": 0.06,
+   "train": 688128,
+   "eval": 0,
+   "sec": 24.7
+  },
+  "7": {
+   "steps": 786432,
+   "best": 1.1,
+   "mean": 0.31,
+   "train": 786432,
+   "eval": 0,
+   "sec": 28.0
+  },
+  "8": {
+   "steps": 884736,
+   "best": 1.96,
+   "mean": 0.96,
+   "train": 884736,
+   "eval": 0,
+   "sec": 31.6
+  },
+  "9": {
+   "steps": 983040,
+   "best": 2.81,
+   "mean": 2.05,
+   "train": 983040,
+   "eval": 0,
+   "sec": 36.2
+  },
+  "10": {
+   "steps": 1081344,
+   "best": 3.37,
+   "mean": 2.85,
+   "train": 1081344,
+   "eval": 0,
+   "sec": 39.6
+  }
+ },
+ "env_steps_relayed": 1092001,
+ "sec": 39.802735567092896,
+ "rc": 0,
+ "stderr": ""
+}

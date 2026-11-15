@@ -1,0 +1,109 @@
+{
+ "config": "ppo_pos_s3",
+ "seed": 3,
+ "steps": 1500000,
+ "sec": 7.5,
+ "rc": 0,
+ "robust": [
+  {
+   "kind": "train",
+   "noise": 0.0,
+   "delay": 0,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 1.0,
+   "ret": -1.8303
+  },
+  {
+   "kind": "noise",
+   "noise": 0.05,
+   "delay": 0,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 0.16,
+   "ret": -3.8165
+  },
+  {
+   "kind": "noise",
+   "noise": 0.1,
+   "delay": 0,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 0.02,
+   "ret": -5.4948
+  },
+  {
+   "kind": "noise",
+   "noise": 0.2,
+   "delay": 0,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 0.0,
+   "ret": -7.6497
+  },
+  {
+   "kind": "delay",
+   "noise": 0.0,
+   "delay": 1,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 1.0,
+   "ret": -1.9241
+  },
+  {
+   "kind": "delay",
+   "noise": 0.0,
+   "delay": 2,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 1.0,
+   "ret": -2.1077
+  },
+  {
+   "kind": "delay",
+   "noise": 0.0,
+   "delay": 4,
+   "mass": 1.0,
+   "fnoise": 0.0,
+   "success": 0.23,
+   "ret": -3.7904
+  },
+  {
+   "kind": "mass",
+   "noise": 0.0,
+   "delay": 0,
+   "mass": 0.5,
+   "fnoise": 0.0,
+   "success": 1.0,
+   "ret": -1.5288
+  },
+  {
+   "kind": "mass",
+   "noise": 0.0,
+   "delay": 0,
+   "mass": 1.5,
+   "fnoise": 0.0,
+   "success": 1.0,
+   "ret": -2.2144
+  },
+  {
+   "kind": "mass",
+   "noise": 0.0,
+   "delay": 0,
+   "mass": 2.0,
+   "fnoise": 0.0,
+   "success": 1.0,
+   "ret": -2.5922
+  },
+  {
+   "kind": "fnoise",
+   "noise": 0.0,
+   "delay": 0,
+   "mass": 1.0,
+   "fnoise": 0.3,
+   "success": 0.65,
+   "ret": -2.1573
+  }
+ ],
+ "err": ""
+}

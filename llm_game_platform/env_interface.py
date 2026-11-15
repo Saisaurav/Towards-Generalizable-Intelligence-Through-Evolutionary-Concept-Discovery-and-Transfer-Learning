@@ -14,7 +14,7 @@ class only implements game logic.
         # or {"type": "continuous", "dim": 2, "low": -1.0, "high": 1.0}
         "turn_based": True,               # False => several agents act per step
         "real_time": False,               # True => each step is one frame; all active agents act together
-        "max_steps": 20,                  # hard truncation limit (runtime enforced)
+        "max_steps": 20,                  # 1..10000 for turn-based; 0 for real-time (the runtime frame cap applies, see max_frames)
         # optional:
         "learner_agent": 0,               # default: first agent
         "symmetric_agents": True,         # randomise the learner's seat each episode
@@ -24,6 +24,9 @@ class only implements game logic.
         "controls": {"ArrowUp": 0},       # key -> action for human play
         "action_names": ["up", ...],
         "cooperative": False,
+        # real-time only (both optional, see "Real-time episodes" below):
+        "max_frames": 1500,               # hard frame cap; the episode is truncated (a draw). default 3000
+        "stall_frames": 150,              # truncate after this many frames without a new best cumulative return
     }
 
     class Environment:
@@ -37,17 +40,24 @@ class only implements game logic.
         def render(self): ...                    # scene dict, see render_protocol
         def render_text(self): ...               # str: plain-text picture for the CLI/text mode (strongly recommended)
         # optional:
-        def is_truncated(self): ...              # env-defined time-out (runtime also truncates at max_steps)
+        def is_truncated(self): ...              # optional env-defined stop (real-time games have no step cap)
         def scripted_action(self, agent_id): ... # hand-written rule-based opponent hook
         def clone(self): ...                     # independent copy (new lists/dicts; RNG may be shared); makes the rule-based opponent fast, deepcopy otherwise
 
 Turn-based games return one agent from ``active_agents()``. For real-time games,
-set ``real_time`` to True, set ``tick_ms`` to the desired frame interval, and
-return all agents that act during each frame from ``active_agents()``. Each
-``step()`` advances exactly one frame. ``real_time`` defaults to the inverse of
-``turn_based`` for older environments. Continuous action spaces are supported
-by the runtime and validator, but the NEAT/PPO learner currently only trains on
-discrete action spaces (see ``EnvSpec.trainable``).
+set ``real_time`` to True, set ``max_steps`` to 0, set ``tick_ms`` to the desired
+frame interval, and return all agents that act during each frame from
+``active_agents()``. Each ``step()`` advances exactly one frame, and the episode
+ends only through game rules, not a frame count. ``real_time`` defaults to the inverse of
+``turn_based``. The NEAT/PPO learner currently only trains on discrete action
+spaces (see ``EnvSpec.trainable``).
+
+Real-time episodes: rules should end the game whenever they naturally can, but the
+runtime ALSO truncates every real-time episode at ``max_frames`` (default
+``DEFAULT_REALTIME_MAX_FRAMES``) and, when ``stall_frames`` > 0, after that many
+frames without the agent's cumulative return reaching a new best. Truncation counts
+as a draw and is never a win. This guarantees that a policy which learns to survive
+forever (a Snake circling the board, a paddle that never misses) cannot hang training.
 """
 
 from __future__ import annotations
@@ -70,11 +80,13 @@ RESULT_VALUES = ("win", "loss", "draw")
 MAX_DISCRETE_ACTIONS = 128  # C++ ConceptEnv buffers legal ids in int[128]
 MAX_OBSERVATION_SIZE = 1024
 MAX_AGENTS = 8
+DEFAULT_REALTIME_MAX_FRAMES = 3000
+MAX_REALTIME_FRAMES = 100000
 
 _SPEC_FIELDS = {
     "title", "description", "agents", "observation_size", "action", "turn_based", "real_time",
     "max_steps", "learner_agent", "symmetric_agents", "noop_action", "tick_ms",
-    "controls", "action_names", "cooperative", "hold_last_action",
+    "controls", "action_names", "cooperative", "hold_last_action", "max_frames", "stall_frames",
 }
 _REQUIRED_SPEC = {
     "title", "description", "agents", "observation_size", "action", "turn_based", "max_steps"
@@ -110,6 +122,12 @@ class EnvSpec:
     action_names: tuple[str, ...] = ()
     cooperative: bool = False
     hold_last_action: bool = False
+    max_frames: int = 0    # real-time hard cap; 0 => DEFAULT_REALTIME_MAX_FRAMES
+    stall_frames: int = 0  # real-time stall truncation; 0 => off
+
+    @property
+    def frame_cap(self) -> int:
+        return self.max_frames or DEFAULT_REALTIME_MAX_FRAMES
 
     @property
     def discrete(self) -> bool:
@@ -176,7 +194,11 @@ class EnvSpec:
             raise ValueError("SPEC.real_time must be a boolean")
         if real_time and value["turn_based"]:
             raise ValueError("SPEC.real_time=True requires SPEC.turn_based=False")
-        max_steps = _int(value["max_steps"], "max_steps", 1, 10000)
+        max_steps = _int(value["max_steps"], "max_steps", 0, 10000)
+        if not real_time and max_steps == 0:
+            raise ValueError("SPEC.max_steps must be at least 1 for non-real-time environments")
+        if value.get("real_time") is True and max_steps != 0:
+            raise ValueError("SPEC.max_steps must be 0 when SPEC.real_time=True")
         learner = value.get("learner_agent", agents[0])
         if learner not in agents:
             raise ValueError("SPEC.learner_agent must be one of SPEC.agents")
@@ -191,6 +213,10 @@ class EnvSpec:
                 raise ValueError("SPEC.noop_action requires a discrete action space")
             noop = _int(noop, "noop_action", 0, n_actions - 1)
         tick_ms = _int(value.get("tick_ms", 150), "tick_ms", 20, 5000)
+        max_frames = _int(value.get("max_frames", 0), "max_frames", 0, MAX_REALTIME_FRAMES)
+        stall_frames = _int(value.get("stall_frames", 0), "stall_frames", 0, MAX_REALTIME_FRAMES)
+        if (max_frames or stall_frames) and not real_time:
+            raise ValueError("SPEC.max_frames and SPEC.stall_frames only apply when SPEC.real_time=True (use max_steps otherwise)")
         controls_in = value.get("controls", {})
         controls: dict[str, int] = {}
         if not isinstance(controls_in, Mapping) or len(controls_in) > 32:
@@ -215,6 +241,7 @@ class EnvSpec:
             max_steps=max_steps, learner_agent=learner, symmetric_agents=symmetric,
             noop_action=noop, tick_ms=tick_ms, controls=controls,
             action_names=tuple(names_in or ()), cooperative=cooperative, hold_last_action=hold_last,
+            max_frames=max_frames, stall_frames=stall_frames,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -230,6 +257,7 @@ class EnvSpec:
             "learner_agent": self.learner_agent, "symmetric_agents": self.symmetric_agents,
             "noop_action": self.noop_action, "tick_ms": self.tick_ms,
             "controls": dict(self.controls), "action_names": list(self.action_names),
-            "cooperative": self.cooperative, "hold_last_action": self.hold_last_action, "trainable": self.trainable,
+            "cooperative": self.cooperative, "hold_last_action": self.hold_last_action,
+            "max_frames": self.max_frames, "stall_frames": self.stall_frames, "trainable": self.trainable,
             "untrainable_reason": self.untrainable_reason,
         }

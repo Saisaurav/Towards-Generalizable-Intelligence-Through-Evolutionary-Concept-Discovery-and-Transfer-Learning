@@ -23,6 +23,10 @@ struct Env {
   virtual void action_tactics(int, float*) {}
   virtual bool additional_primitive(const std::string&, const std::vector<float>&, float&) const { return false; }
   virtual float step(int a,bool& done,Rng&) = 0;
+  // Continuous control: act_dim()>0 => Gaussian policy head; n_actions() must equal act_dim(), legal() returns ids 0..act_dim()-1,
+  // and the trainer calls step_cont() with act_dim() raw actions (the env clips them).
+  virtual int act_dim() const { return 0; }
+  virtual float step_cont(const float*, bool&, Rng&) { return 0.f; }
   // 1 = win, -1 = loss, 0 = draw, 2 = unavailable.
   virtual int episode_result() const { return 2; }
   virtual std::unique_ptr<Env> make() const = 0;

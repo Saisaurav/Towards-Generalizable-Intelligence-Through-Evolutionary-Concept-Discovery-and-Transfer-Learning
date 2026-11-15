@@ -188,7 +188,9 @@ class GameRequestHandler(BaseHTTPRequestHandler):
     # General-purpose generated-environment pipeline (LLM-written Python in a sandbox).
     env_service = EnvService(
         EnvGenerator(OpenAICompatibleClient()),
-        EnvTrainer(budget=int(os.getenv("GAME_ENV_TRAINING_BUDGET", "150000"))),
+        EnvTrainer(budget=int(os.getenv(
+            "GAME_ENV_MAX_STEPS", os.getenv("GAME_ENV_TRAINING_BUDGET", "0")
+        ))),
         EnvStore(),
     )
 

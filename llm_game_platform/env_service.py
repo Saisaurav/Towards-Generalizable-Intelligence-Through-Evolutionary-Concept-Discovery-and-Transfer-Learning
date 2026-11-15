@@ -40,6 +40,8 @@ class EnvSession:
     history: list[dict[str, float]] = field(default_factory=list)
     heldout: float | None = None
     target_reached: bool | None = None
+    quality_mode: str = "result"
+    success_return: float | None = None
     concepts: list[str] = field(default_factory=list)
     policy_path: Path | None = None
     opponent: str = "random"
@@ -148,6 +150,7 @@ class EnvService:
         with session.lock:
             session.concepts, session.heldout = result.concepts, result.heldout_return
             session.target_reached = result.target_reached
+            session.quality_mode, session.success_return = result.quality_mode, result.success_return
             session.policy_path, session.training_status = policy_dir / "brain.json", "ready"
             self._configure(session)
 
@@ -239,6 +242,8 @@ class EnvService:
                 "training_history": session.history[-300:],
                 "training_heldout": session.heldout,
                 "training_target_reached": session.target_reached,
+                "training_quality_mode": session.quality_mode,
+                "training_success_return": session.success_return,
                 "concepts": session.concepts,
                 "opponent": session.opponent,
                 "human_seat": session.human_seat,

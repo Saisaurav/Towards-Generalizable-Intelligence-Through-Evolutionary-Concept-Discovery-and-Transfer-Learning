@@ -1,0 +1,168 @@
+{
+ "game": "pong",
+ "opp": "random",
+ "seed": 2,
+ "pop": 8,
+ "head": "fixed",
+ "budget": 1000000,
+ "mode": "result",
+ "bar": null,
+ "curve": [
+  {
+   "gen": 4,
+   "steps": 163840,
+   "win_rate": 0.54,
+   "wins": 27,
+   "losses": 23,
+   "draws": 0,
+   "mean_return": 0.278,
+   "sec": 9.1
+  },
+  {
+   "gen": 9,
+   "steps": 327680,
+   "win_rate": 0.8,
+   "wins": 40,
+   "losses": 10,
+   "draws": 0,
+   "mean_return": 1.75,
+   "sec": 17.8
+  },
+  {
+   "gen": 14,
+   "steps": 491520,
+   "win_rate": 1.0,
+   "wins": 50,
+   "losses": 0,
+   "draws": 0,
+   "mean_return": 2.746,
+   "sec": 26.4
+  }
+ ],
+ "gens": {
+  "0": {
+   "steps": 32768,
+   "best": 0.56,
+   "mean": 0.04,
+   "train": 32768,
+   "eval": 0,
+   "sec": 1.6
+  },
+  "1": {
+   "steps": 65536,
+   "best": 0.31,
+   "mean": -0.06,
+   "train": 65536,
+   "eval": 0,
+   "sec": 3.3
+  },
+  "2": {
+   "steps": 98304,
+   "best": 0.62,
+   "mean": 0.11,
+   "train": 98304,
+   "eval": 0,
+   "sec": 5.3
+  },
+  "3": {
+   "steps": 131072,
+   "best": 0.6,
+   "mean": 0.18,
+   "train": 131072,
+   "eval": 0,
+   "sec": 7.3
+  },
+  "4": {
+   "steps": 163840,
+   "best": 1.3,
+   "mean": 0.54,
+   "train": 163840,
+   "eval": 0,
+   "sec": 8.7
+  },
+  "5": {
+   "steps": 196608,
+   "best": 0.88,
+   "mean": 0.53,
+   "train": 196608,
+   "eval": 0,
+   "sec": 10.6
+  },
+  "6": {
+   "steps": 229376,
+   "best": 0.89,
+   "mean": 0.42,
+   "train": 229376,
+   "eval": 0,
+   "sec": 12.2
+  },
+  "7": {
+   "steps": 262144,
+   "best": 0.98,
+   "mean": 0.57,
+   "train": 262144,
+   "eval": 0,
+   "sec": 13.8
+  },
+  "8": {
+   "steps": 294912,
+   "best": 1.1,
+   "mean": 0.73,
+   "train": 294912,
+   "eval": 0,
+   "sec": 15.5
+  },
+  "9": {
+   "steps": 327680,
+   "best": 1.54,
+   "mean": 1.16,
+   "train": 327680,
+   "eval": 0,
+   "sec": 17.2
+  },
+  "10": {
+   "steps": 360448,
+   "best": 1.94,
+   "mean": 1.44,
+   "train": 360448,
+   "eval": 0,
+   "sec": 19.6
+  },
+  "11": {
+   "steps": 393216,
+   "best": 2.28,
+   "mean": 1.63,
+   "train": 393216,
+   "eval": 0,
+   "sec": 21.2
+  },
+  "12": {
+   "steps": 425984,
+   "best": 2.52,
+   "mean": 2.23,
+   "train": 425984,
+   "eval": 0,
+   "sec": 22.7
+  },
+  "13": {
+   "steps": 458752,
+   "best": 2.79,
+   "mean": 2.61,
+   "train": 458752,
+   "eval": 0,
+   "sec": 24.1
+  },
+  "14": {
+   "steps": 491520,
+   "best": 2.94,
+   "mean": 2.85,
+   "train": 491520,
+   "eval": 0,
+   "sec": 25.5
+  }
+ },
+ "env_steps_relayed": 544218,
+ "sec": 27.126970767974854,
+ "rc": 0,
+ "stderr": ""
+}

@@ -35,7 +35,7 @@ natural language ──► EnvGenerator (LLM, repair loop) ──► env.py + me
 ```
 
 * **Environment logic** – generated `Environment` class (`env_interface.py` documents the contract).
-* **Environment runtime** – `sandbox_worker.py` `Runner`: contract checks, truncation at `max_steps`,
+* **Environment runtime** – `sandbox_worker.py` `Runner`: contract checks, turn-based truncation at `max_steps`,
   seat selection, opponents (random / rule-based / frozen policy), result bookkeeping.
 * **Renderer** – `render()` returns a *scene* (`render_protocol.py`); `index.html` has a generic SVG
   renderer. Scenes never reach the learner; observations never reach the renderer.
@@ -54,7 +54,7 @@ identically and different seeds differ.
 ```python
 SPEC = {"title", "description", "agents": [0, 1], "observation_size": N,
         "action": {"type": "discrete", "n": K}  # or continuous {dim, low, high}
-        "turn_based": bool, "max_steps": int,
+        "turn_based": bool, "max_steps": int,  # turn-based: 1..10000; real-time: 0 (unlimited)
         # optional: real_time, learner_agent, symmetric_agents, noop_action, tick_ms, hold_last_action,
         #           controls, action_names, cooperative
        }
@@ -67,8 +67,9 @@ class Environment:
 * Turn-based: one active agent per step. Real-time/simultaneous: all agents are active and act in one `step`.
 * Variable legal actions: `legal_actions` (action mask as an id list); the runtime refuses anything else.
 * Rewards are per-agent dicts, so competitive, cooperative and self-play views all work.
-* Termination vs truncation: `is_terminal()` is the game's own end; the runtime truncates at `max_steps`
-  (and honours optional `is_truncated()`); truncated episodes count as draws.
+* Termination vs truncation: `is_terminal()` is the game's own end; the runtime truncates turn-based
+  episodes at `max_steps` (and honours optional `is_truncated()`); truncated episodes count as draws.
+  Real-time games set `max_steps: 0` and end only through game rules, not a frame count.
 * Deterministic seeding: `reset(seed)`; `random` inside generated code only exposes `random.Random`, and
   the validator replays an episode on the same and on a fresh instance and compares trajectory hashes.
 
@@ -175,7 +176,7 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 * Training uses 1 learner thread in `ext` mode (relay is serial): ≈10–15k env steps/s for simple games; slower for
   Pong-like long episodes and for the rule-based opponent (copies the env per candidate move).
 * Opponent-in-training choices: random, rule-based, staged self-play. There is no simultaneous co-evolution of two learners.
-* Real-time environments set `real_time: True`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The learner supplies an action each frame; browser human/brain playback uses that interval. Older non-turn-based specs default to real-time behavior.
+* Real-time environments set `real_time: True` and `max_steps: 0`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The learner supplies an action each frame; browser human/brain playback uses that interval. Older non-turn-based specs default to real-time behavior.
 * The page has no *live* population view beyond per-generation fitness/species/node/connection counts parsed from the
   learner's log (the README already listed a full visualizer as not implemented).
 * Python-level sandbox limits above; the generated code was never run against a **live** LLM in this repo's tests –
@@ -188,9 +189,21 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 cd src && make && cd ..              # builds brain (now with `ext` mode)
 pip install -r requirements.txt
 export LLM_API_KEY=...               # as before (see llm_game_platform/llm.py)
-export GAME_ENV_TRAINING_BUDGET=150000   # env steps per training run (default 150000)
+export GAME_ENV_TARGET_WIN_RATE=0.90     # stop when win rate reaches 90% (fraction, default 0.90)
+export GAME_ENV_EVAL_EPISODES=100        # episodes per quality check (default 100)
+export GAME_ENV_EVAL_INTERVAL_GENERATIONS=5  # generations between checks (default 5)
+export GAME_ENV_MAX_STEPS=0              # optional cap; 0 means no step cap
+# GAME_TRAINING_TIMEOUT still applies (default 900 seconds).
 python -m llm_game_platform.server   # open the page; default tab = "Any game (generated Python)"
 python generate_env.py --acceptance ttt --train      # CLI: generate + validate + train
 python -m unittest test_generated_envs test_llm_game_platform   # ≈2 min on one core
 cd src && make test-envs             # original C++ env smoke tests
 ```
+
+## Real-time safety and learnability (Nov 2026)
+
+- **Frame cap / stall truncation.** Every real-time episode is truncated at `SPEC["max_frames"]` (default 3000) and, if `SPEC["stall_frames"]` > 0, after that many frames without a new best cumulative return. Truncation is a draw, never a win, so a policy that learns to survive forever cannot hang training.
+- **Quality metric.** Games with real win/loss outcomes keep win rate. Single-agent score games where no win is ever observed (Snake) are scored by *success rate*: an episode succeeds when its return is above a bar calibrated from random play (90th percentile, raised a quarter of the way to the scripted policy when that is clearly better). The UI labels it accordingly. Override with `GAME_ENV_QUALITY_MODE=result|return`.
+- **Learnability gate (validator).** 60 calibration episodes compare random play with `scripted_action()` (or the generic look-ahead player for turn-based games). A reward under which competent play scores significantly *worse* than random is a validation error and goes back to the LLM for repair; "not clearly better", raw-grid observations, no `scripted_action` and always-capped episodes are warnings.
+- **Training limits.** `GAME_ENV_MAX_GENERATIONS`, `GAME_ENV_MIN_GENERATIONS` (auto: 4 for real-time games with a step budget) and a soft wall-clock stop at 85% of the timeout. The soft stop is graceful: the champion is still exported instead of the run failing with a timeout. These are `brain ext` options (`--max-generations`, `--min-generations`, `--max-seconds`); rebuild `brain` / `brain.exe` to use them.
+- **Fixed output head (`--head fixed`, `GAME_ENV_HEAD=auto|per_action|fixed`).** The default per-action scorer only tells actions apart by a scalar `action_norm`, which is a hard function for a minimal NEAT net when an action's meaning depends on the state (Snake headings, Pong paddle moves). The fixed head feeds the state (plus state-level concepts) once and reads one logit per action. `auto` = fixed for real-time games, per-action for turn-based ones. Concepts that use `action_norm`, `action_wins_now`, `action_blocks_opponent` or `transition_*` are dropped under the fixed head. The exported policy carries `"head"`, and `NeatPolicy` mirrors it. Measured on the Snake fixture (one seed each): per-action head about -1.0 return for 3M steps (no learning); fixed head reached +5.2 (greedy, Python) after about 280 s / 100 generations, scripted +25, random -1.0. Pong did not show learning in 18 generations (about 9M steps).

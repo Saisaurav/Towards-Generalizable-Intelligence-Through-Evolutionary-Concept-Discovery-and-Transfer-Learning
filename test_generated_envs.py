@@ -95,9 +95,18 @@ class InterfaceTests(unittest.TestCase):
         realtime = EnvSpec.from_mapping({
             "title": "t", "description": "d", "agents": [0], "observation_size": 2,
             "action": {"type": "discrete", "n": 2}, "turn_based": False, "real_time": True,
-            "max_steps": 5, "tick_ms": 80})
+            "max_steps": 0, "tick_ms": 80})
         self.assertEqual(realtime.to_dict()["tick_ms"], 80)
         self.assertTrue(realtime.to_dict()["real_time"])
+        legacy_realtime = EnvSpec.from_mapping({
+            "title": "t", "description": "d", "agents": [0], "observation_size": 2,
+            "action": {"type": "discrete", "n": 2}, "turn_based": False, "max_steps": 1})
+        self.assertTrue(legacy_realtime.real_time)
+        with self.assertRaisesRegex(ValueError, "must be 0"):
+            EnvSpec.from_mapping({
+                "title": "t", "description": "d", "agents": [0], "observation_size": 2,
+                "action": {"type": "discrete", "n": 2}, "turn_based": False, "real_time": True,
+                "max_steps": 5})
         base = {"title": "t", "description": "d", "agents": [0], "observation_size": 4,
                 "action": {"type": "discrete", "n": 3}, "turn_based": True, "max_steps": 5}
         for bad in (dict(base, action={"type": "discrete", "n": 500}), dict(base, extra=1),
@@ -287,6 +296,34 @@ class SnakeAndPongRuleTests(unittest.TestCase):
         self.assertEqual(env.result(0), "loss")
         self.assertEqual(env.legal_actions(0), [])
 
+    def test_snake_wins_only_when_board_is_full(self):
+        snake = load_fixture("snake")
+        env = snake.Environment()
+        env.reset(3)
+        self.assertEqual(snake.SPEC["max_steps"], 0)
+        env.body = [(0, 0)] + [
+            (x, y) for y in range(snake.H) for x in range(snake.W)
+            if (x, y) not in ((0, 0), (1, 0))
+        ]
+        env.heading = 1
+        env.food = (1, 0)
+        env.step({0: 1})
+        self.assertTrue(env.is_terminal())
+        self.assertEqual(len(env.body), snake.W * snake.H)
+        self.assertIsNone(env.food)
+        self.assertEqual(env.result(0), "win")
+
+    def test_saved_snake_has_no_frame_count_win(self):
+        source = Path(__file__).parent / "generated_envs" / "bc35b744ff9244d49dad31c10fa507f1" / "env.py"
+        spec = importlib.util.spec_from_file_location("saved_snake", source)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        env = module.Environment()
+        env.reset(3)
+        env.t = 500
+        self.assertFalse(env.is_terminal())
+        self.assertEqual(module.SPEC["max_steps"], 0)
+
     def test_pong_bounce_miss_and_score(self):
         pong = load_fixture("pong")
         env = pong.Environment()
@@ -333,6 +370,22 @@ class SandboxRuntimeTests(unittest.TestCase):
             with self.assertRaises(SandboxError):
                 box.request("play", action=0)
             self.assertIn(view["results"]["0"], ("win", "loss", "draw"))
+
+    def test_real_time_runtime_ignores_legacy_frame_cap(self):
+        source = MINI.replace('"turn_based": True, "max_steps": 10',
+                              '"turn_based": False, "max_steps": 1')
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "env.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as box:
+                view = box.request("reset", seed=1, seat=0)
+                view = box.request("play", action=1)
+                self.assertFalse(view["terminal"])
+                view = box.request("play", action=1)
+                self.assertFalse(view["terminal"])
+                view = box.request("play", action=1)
+                self.assertTrue(view["terminal"])
+                self.assertEqual(view["results"]["0"], "win")
 
     def test_seeded_reset_is_deterministic_in_the_sandbox(self):
         with SandboxProcess(FIXTURES / "snake.py") as box:
@@ -478,7 +531,7 @@ class TextModeTests(unittest.TestCase):
 
 
 def small_trainer(budget=30000, population=16):
-    return EnvTrainer(budget=budget, population=population, timeout=300)
+    return EnvTrainer(budget=budget, population=population, timeout=300, min_generations=1)
 
 
 class LearnerIntegrationTests(unittest.TestCase):
@@ -489,6 +542,25 @@ class LearnerIntegrationTests(unittest.TestCase):
         with SandboxProcess(path) as box:
             spec = box.spec
         return path, spec, small_trainer(budget).train_env(path, spec, opponent, seed=seed)
+
+    def test_training_stops_when_configured_win_rate_is_met(self):
+        source = MINI.replace("else [0, 1]", "else [1]")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "always-win.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as sandbox:
+                spec = sandbox.spec
+            trainer = EnvTrainer(
+                budget=0,
+                population=2,
+                timeout=60,
+                target_win_rate=0.9,
+                evaluation_episodes=5,
+                evaluation_interval_generations=1,
+            )
+            result = trainer.train_env(path, spec, seed=17, concepts=[])
+        self.assertTrue(result.target_reached)
+        self.assertEqual(result.history[-1]["win_rate"], 1.0)
 
     def test_ttt_trains_and_python_policy_matches_cpp_heldout(self):
         path, spec, result = self.train("ttt", budget=60000)
@@ -646,8 +718,8 @@ class EnvApiTests(unittest.TestCase):
 
     def test_real_time_learner_advances_one_frame_per_action(self):
         source = MINI.replace(
-            '"turn_based": True',
-            '"turn_based": False, "real_time": True, "tick_ms": 80',
+            '"turn_based": True, "max_steps": 10',
+            '"turn_based": False, "real_time": True, "max_steps": 0, "tick_ms": 80',
         )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "realtime.py"
@@ -659,6 +731,116 @@ class EnvApiTests(unittest.TestCase):
         state_size_index = 4 + legal_count
         self.assertEqual(int(fields[state_size_index]), 1)
         self.assertAlmostEqual(float(fields[state_size_index + 1]), 1.0 / 3.0)
+
+
+SNAKE_SOURCE = (FIXTURES / "snake.py").read_text(encoding="utf-8")
+
+
+def _run_learner_episode(source: str, limit: int = 400):
+    """Drive the brain-mode text protocol with a constant action; return (frames, final outcome field)."""
+    with tempfile.TemporaryDirectory() as root:
+        path = Path(root) / "env.py"
+        path.write_text(source, encoding="utf-8")
+        with SandboxProcess(path) as box:
+            line = box.raw_line("R 4")
+            for frames in range(1, limit + 1):
+                fields = line.split()
+                line = box.raw_line(f"A {fields[4]}")
+                fields = line.split()
+                if int(fields[2]):
+                    return frames, int(fields[-1])
+    return None, None
+
+
+class RealTimeSafetyAndLearnabilityTests(unittest.TestCase):
+    IMMORTAL = SNAKE_SOURCE.replace(
+        "return not (0 <= x < W and 0 <= y < H) or cell in self.body[:-1]", "return False")
+
+    def test_spec_accepts_frame_limits_only_for_real_time(self):
+        base = dict(title="t", description="d", agents=[0], observation_size=1,
+                    action={"type": "discrete", "n": 2}, turn_based=False, max_steps=0)
+        spec = EnvSpec.from_mapping({**base, "max_frames": 50, "stall_frames": 10})
+        self.assertEqual((spec.frame_cap, spec.stall_frames), (50, 10))
+        with self.assertRaises(ValueError):
+            EnvSpec.from_mapping({**base, "turn_based": True, "max_steps": 5, "max_frames": 50})
+
+    def test_frame_cap_truncates_a_game_that_never_ends(self):
+        source = self.IMMORTAL.replace('"stall_frames": 150,', '"stall_frames": 0,').replace('"max_frames": 1500', '"max_frames": 40')
+        frames, outcome = _run_learner_episode(source)
+        self.assertEqual(frames, 40)
+        self.assertEqual(outcome, 0)  # truncation is a draw, never a win
+
+    def test_stall_limit_truncates_when_return_stops_improving(self):
+        source = (self.IMMORTAL.replace('"stall_frames": 150', '"stall_frames": 10')
+                  .replace("reward += 0.1 if new_dist < old_dist else -0.1", "reward += 0.0"))
+        frames, outcome = _run_learner_episode(source)
+        self.assertEqual(frames, 10)
+        self.assertEqual(outcome, 0)
+
+    def test_gate_rejects_reward_that_punishes_competent_play(self):
+        # Real LLM output: -0.01 per frame makes the scripted policy (which survives) score far below random.
+        source = (Path(__file__).parent / "generated_envs" / "d5acd95bfdaa4722aa8bbc0f462ee6b8" / "env.py").read_text(encoding="utf-8")
+        report = validate_environment(source)
+        self.assertFalse(report.ok)
+        self.assertTrue(any("learnability" in e and "worse than random" in e for e in report.errors), report.errors)
+
+    def test_updated_snake_fixture_passes_the_gate_without_warnings(self):
+        report = validate_environment(SNAKE_SOURCE)
+        self.assertTrue(report.ok, report.errors)
+        self.assertEqual(report.warnings, [])
+        info = report.stats["learnability"]
+        self.assertGreater(info["scripted_mean_return"], info["random_mean_return"] + 5)
+        self.assertEqual(info["quality_mode"], "return")
+
+    def test_quality_mode_is_return_for_snake_and_result_for_pong(self):
+        trainer = small_trainer()
+        for name, mode in (("snake", "return"), ("pong", "result")):
+            path = FIXTURES / name
+            path = path.with_suffix(".py")
+            with SandboxProcess(path) as box:
+                spec = box.spec
+            got, bar, _ = trainer._quality_plan(path, spec, {"kind": "random"})
+            self.assertEqual(got, mode, name)
+            self.assertEqual(bar is not None, mode == "return", name)
+
+    def test_generation_cap_stops_gracefully_and_still_returns_a_policy(self):
+        trainer = EnvTrainer(budget=0, population=12, timeout=300, max_generations=2,
+                             evaluation_episodes=10, evaluation_interval_generations=1)
+        path = FIXTURES / "snake.py"
+        with SandboxProcess(path) as box:
+            spec = box.spec
+        result = trainer.train_env(path, spec, "random", seed=2)
+        self.assertEqual(len(result.history), 2)
+        self.assertEqual(result.quality_mode, "return")
+        self.assertIsNotNone(result.heldout_return)
+        self.assertIsNotNone(result.policy)
+
+    def test_fixed_head_filters_action_and_transition_concepts(self):
+        from llm_game_platform.neat_policy import fixed_head_concepts
+        kept = fixed_head_concepts(["state_mean", "add(action_norm, state_var)", "transition_delta_mean",
+                                    "mul(state_max, state_min)", "action_wins_now"])
+        self.assertEqual(kept, ["state_mean", "mul(state_max, state_min)"])
+
+    def test_head_selection_and_python_policy_parity_inputs(self):
+        # auto => fixed head for real-time games, per-action head for turn-based ones.
+        snake = FIXTURES / "snake.py"
+        with SandboxProcess(snake) as box:
+            spec = box.spec
+        trainer = EnvTrainer(budget=0, population=12, timeout=300, max_generations=2,
+                             evaluation_episodes=10, evaluation_interval_generations=1)
+        result = trainer.train_env(snake, spec, "random", seed=4)       # default concept bank
+        self.assertEqual(result.model["head"], "fixed")
+        self.assertEqual(result.model["n_logit"], spec["action"]["n"])
+        legal = [0, 1, 3]
+        obs = [0.0] * spec["observation_size"]
+        scores = result.policy.scores(obs, legal)
+        self.assertEqual(len(scores), len(legal))
+        self.assertIn(result.policy.choose(obs, legal), legal)
+        ttt = FIXTURES / "ttt.py"
+        with SandboxProcess(ttt) as box:
+            ttt_spec = box.spec
+        other = EnvTrainer(budget=3000, population=8, timeout=300).train_env(ttt, ttt_spec, "random", seed=4)
+        self.assertEqual(other.model["head"], "per_action")
 
 
 if __name__ == "__main__":

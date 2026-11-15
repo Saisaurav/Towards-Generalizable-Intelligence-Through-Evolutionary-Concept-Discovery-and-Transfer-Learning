@@ -14,11 +14,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from . import learnability
 from .sandbox import SandboxError, SandboxProcess
 from .static_check import static_check
 
 EPISODES = 24
 VALIDATOR_VERSION = 1
+VALIDATION_STEP_LIMIT = 10000
 
 
 @dataclass
@@ -73,9 +75,13 @@ def _run_checks(sandbox: SandboxProcess) -> ValidationReport:
                 warnings.append(issue["message"])
     terminated = [e for e in episodes if e["terminal"]]
     if not terminated:
+        step_bound = (
+            "the frame cap" if spec["real_time"]
+            else f"max_steps={spec['max_steps']}"
+        )
         errors.append(
-            f"none of {EPISODES} random-play episodes reached a terminal state within max_steps={spec['max_steps']}; "
-            "either max_steps is too small or the win/loss/draw condition is unreachable"
+            f"none of {EPISODES} random-play episodes reached a terminal state within {step_bound}; "
+            "the win/loss/draw condition may be unreachable"
         )
     if not any(e["nonzero_reward"] for e in episodes):
         errors.append("every reward in every random-play episode was exactly 0; the learner needs a reward signal (e.g. +1 win, -1 loss)")
@@ -101,9 +107,10 @@ def _run_checks(sandbox: SandboxProcess) -> ValidationReport:
     # learner path (what the C++ brain talks to)
     if spec["trainable"]:
         learner_done = 0
+        learner_limit = VALIDATION_STEP_LIMIT if spec["real_time"] else spec["max_steps"] + 5
         for seed in (11, 12, 13):
             line = sandbox.raw_line(f"R {seed}")
-            for _ in range(spec["max_steps"] + 5):
+            for _ in range(learner_limit):
                 if line.startswith("ERR"):
                     errors.append(f"learner interface: {line[4:]}")
                     break
@@ -124,13 +131,28 @@ def _run_checks(sandbox: SandboxProcess) -> ValidationReport:
     if "has_render_text" in spec and not spec["has_render_text"]:
         warnings.append("no render_text(): the CLI/text mode falls back to a summary of the scene's text; add render_text() returning an ASCII picture of the state")
 
+    # learnability gate: does the reward separate competent play from random play?
+    stats = _stats(episodes, terminated, lengths)
+    if spec["trainable"] and not errors:
+        calibration = learnability.run_calibration(sandbox)
+        gate_errors, gate_warnings = learnability.findings(spec, calibration)
+        errors += gate_errors
+        warnings += [w for w in gate_warnings if w not in warnings]
+        stats["learnability"] = {
+            "random_mean_return": calibration["random"]["mean_return"],
+            "scripted_mean_return": calibration["scripted"]["mean_return"] if calibration["scripted"] else None,
+            "random_mean_length": calibration["random"]["mean_length"],
+            "quality_mode": learnability.quality_mode(spec, calibration),
+        }
+
     # human-play path (discrete games only: the browser UI sends integer actions)
     if spec["action"]["type"] != "discrete":
-        return ValidationReport(not errors, errors, warnings, spec, _stats(episodes, terminated, lengths))
+        return ValidationReport(not errors, errors, warnings, spec, stats)
     view = sandbox.request("reset", seed=5, seat=spec["agents"][-1])
     if view.get("render_error"):
         errors.append(f"render(): {view['render_error']}")
-    for _ in range(spec["max_steps"] + 2):
+    human_limit = 100 if spec["real_time"] else spec["max_steps"] + 2
+    for _ in range(human_limit):
         if view["terminal"]:
             break
         if not view["legal"] and spec["action"]["type"] == "discrete" and not view["terminal"]:
@@ -139,7 +161,7 @@ def _run_checks(sandbox: SandboxProcess) -> ValidationReport:
         action = view["legal"][0] if view["legal"] else spec.get("noop_action")
         view = sandbox.request("play", action=action)
 
-    return ValidationReport(not errors, errors, warnings, spec, _stats(episodes, terminated, lengths))
+    return ValidationReport(not errors, errors, warnings, spec, stats)
 
 
 def _stats(episodes, terminated, lengths) -> dict[str, Any]:

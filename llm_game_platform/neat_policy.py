@@ -13,9 +13,9 @@ import random
 from typing import Any, Sequence
 
 try:  # package import
-    from .policy import GridPolicy, _concept_value, _state_primitives
+    from .policy import GridPolicy, _concept_value, _state_primitives, parse_expression
 except ImportError:  # imported by path inside the sandbox worker
-    from policy import GridPolicy, _concept_value, _state_primitives  # type: ignore
+    from policy import GridPolicy, _concept_value, _state_primitives, parse_expression  # type: ignore
 
 
 def concept_features(trees: Sequence[Any], observation: Sequence[float], legal: Sequence[int],
@@ -38,12 +38,28 @@ def concept_features(trees: Sequence[Any], observation: Sequence[float], legal: 
     return rows
 
 
+_FIXED_HEAD_BANNED = ("action_norm", "action_wins_now", "action_blocks_opponent", "transition_")
+
+
+def fixed_head_concepts(concepts: Sequence[str]) -> list[str]:
+    """Concept expressions usable by the fixed head; mirrors C++ fixed_head_usable_concept()."""
+    return [c for c in concepts if not any(token in c for token in _FIXED_HEAD_BANNED)]
+
+
 class NeatPolicy(GridPolicy):
     def __init__(self, model: dict[str, Any], n_actions: int) -> None:
         super().__init__(model)
         if n_actions < 1:
             raise ValueError("n_actions must be positive")
         self.n_actions = n_actions
+        self.head = model.get("head", "per_action")
+        if self.head not in ("per_action", "fixed"):
+            raise ValueError(f"unknown policy head {self.head!r}")
+        if self.head == "fixed":
+            if self.n_logit != n_actions:
+                raise ValueError(f"fixed-head brain has {self.n_logit} outputs but the game has {n_actions} actions")
+            self.concept_expressions = fixed_head_concepts(self.concept_expressions)
+            self.concept_trees = [parse_expression(item) for item in self.concept_expressions]
 
     @classmethod
     def from_file(cls, path, n_actions: int) -> "NeatPolicy":  # type: ignore[override]
@@ -61,6 +77,13 @@ class NeatPolicy(GridPolicy):
         if not legal:
             raise ValueError("no legal actions to score")
         state = [float(v) for v in observation]
+        if self.head == "fixed":
+            prims = _state_primitives(state, len(legal))
+            prims["legal_norm"] = len(legal) / self.n_actions if self.n_actions > 1 else 1.0
+            prims["action_norm"] = 0.0
+            features = state + [_concept_value(tree, prims) for tree in self.concept_trees]
+            logits = self._scores(features)[: self.n_actions]
+            return [logits[a] for a in legal]
         rows = concept_features(self.concept_trees, state, legal, self.n_actions)
         return [self._scores(state + concepts)[0] for concepts in rows]
 

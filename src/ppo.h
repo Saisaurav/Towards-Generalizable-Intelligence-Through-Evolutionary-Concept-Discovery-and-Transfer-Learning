@@ -6,6 +6,8 @@
 struct PPOCfg {
   int iters = 2;          // PPO iterations per genome per generation (0 => pure neuroevolution)
   int rollout = 256, epochs = 4, minibatch = 64;
+  bool train_fitness = false;   // fitness = mean episode return seen during PPO rollouts (no separate eval episodes)
+  bool persist_adam = false;    // Adam moments live on the genome's connections and survive across generations
   bool greedy_eval = false;   // fitness evaluation episodes take argmax over legal actions instead of sampling
   float lr = 2e-3f, gamma = 0.99f, lam = 0.95f, clip = 0.2f, vf = 0.5f, ent = 0.01f, max_grad = 0.5f;
 };
@@ -19,12 +21,13 @@ public:
     cap = cfg.minibatch * (pa ? nact : 1);
     leg.resize(nact); z.resize(nact); p.resize(nact); lp.resize(nact); dz.resize(nact); tmp.resize(n_in);
     off.resize(cfg.minibatch);
+    ad = env->act_dim(); cont = ad > 0; act.resize(std::max(ad, 1));
   }
 
   // Evaluate an already-trained policy without further PPO updates.
   float evaluate_policy(const Genome& G, int eval_eps, uint64_t seed) {
     rng = Rng(seed); steps = train_steps = eval_steps = 0;
-    P.build(G, n_logit, cap);
+    P.build(G, n_logit, cap); load_ls(G, false);
     assert(P.n_in == n_in);
     return eval(eval_eps);
   }
@@ -39,17 +42,21 @@ public:
   };
   EvalDetail evaluate_detail(const Genome& G, int eps, uint64_t seed, bool greedy, int full_len_threshold = 500) {
     rng = Rng(seed); steps = train_steps = eval_steps = 0;
-    P.build(G, n_logit, cap); assert(P.n_in == n_in);
+    P.build(G, n_logit, cap); load_ls(G, false); assert(P.n_in == n_in);
     EvalDetail d; d.episodes = eps; double tot = 0, len_sum = 0;
     for (int e = 0; e < eps; e++) {
       env->reset(rng); bool done = false; int guard = 0, len = 0; double ret = 0;
       while (!done && guard++ < 100000) {
         int nl = env->legal(leg.data()); X.clear();
         int nr = gather(nl); load(0, nr, 0); fill_bias(nr); P.forward(nr);
-        read(0, nl, leg.data(), z.data()); softmax(nl);
+        read(0, nl, leg.data(), z.data()); if (!cont) softmax(nl);
         int j = 0;
-        if (greedy) { for (int k = 1; k < nl; k++) if (z[k] > z[j]) j = k; } else j = sample(nl);
-        ret += env->step(leg[j], done, rng); len++; eval_steps++; steps++;
+        if (cont) { draw_action(z.data(), greedy); ret += env->step_cont(act.data(), done, rng); }
+        else {
+          if (greedy) { for (int k = 1; k < nl; k++) if (z[k] > z[j]) j = k; } else j = sample(nl);
+          ret += env->step(leg[j], done, rng);
+        }
+        len++; eval_steps++; steps++;
       }
       tot += ret; len_sum += len;
       const int outcome = env->episode_result();
@@ -69,28 +76,46 @@ public:
   // Train a copy of G's weights with PPO; returns fitness (mean eval return). write_back => Lamarckian.
   float evaluate(Genome& G, bool write_back, int eval_eps, uint64_t seed, uint64_t eval_seed) {
     rng = Rng(seed); steps = train_steps = eval_steps = 0;
-    P.build(G, n_logit, cap);
+    P.build(G, n_logit, cap); load_ls(G, cfg.persist_adam);
     assert(P.n_in == n_in);
     am.assign(P.w.size(), 0.f); av.assign(P.w.size(), 0.f); at = 0;   // fresh Adam per genome
-    env->reset(rng);
+    if (cfg.persist_adam) { for (size_t e = 0; e < P.w.size(); e++) { am[e] = G.conns[P.econn[e]].am; av[e] = G.conns[P.econn[e]].av; } at = G.adam_t; }
+    env->reset(rng); ep_sum = 0; ep_n = 0; cur_ret = 0;
     for (int it = 0; it < cfg.iters; it++) { rollout(); update(); }
+    const float train_fit = ep_n > 0 ? (float)(ep_sum / ep_n) : (float)cur_ret;
     // Evaluate with a separate, common random stream so genomes in the same
     // generation face matched stochastic conditions. Restore the training RNG
     // afterwards so evaluation cannot perturb PPO training randomness.
     Rng training_rng = rng;
     rng = Rng(eval_seed);
-    float f = eval(eval_eps);
+    float f = (cfg.train_fitness && cfg.iters > 0) ? train_fit : eval(eval_eps);
     rng = training_rng;
-    if (write_back && cfg.iters > 0) P.write_back(G);
+    if (write_back && cfg.iters > 0) {
+      P.write_back(G);
+      if (cont) { G.logstd = ls; if (cfg.persist_adam) { G.ls_m = ls_m; G.ls_v = ls_v; } }
+      if (cfg.persist_adam) { for (size_t e = 0; e < P.w.size(); e++) { G.conns[P.econn[e]].am = am[e]; G.conns[P.econn[e]].av = av[e]; } G.adam_t = at; }
+    }
     return f;
   }
 
 private:
-  Phenotype P; Rng rng; bool pa; int ns, n_in, n_logit, nact, cap; long at = 0;
+  Phenotype P; Rng rng; bool pa; int ns, n_in, n_logit, nact, cap; bool cont = false; int ad = 0; std::vector<float> ls, ls_m, ls_v, ls_g, act, t_act;
+  long at = 0; double ep_sum = 0, cur_ret = 0; long ep_n = 0;
   std::vector<float> X, t_logp, t_val, t_rew, t_adv, t_ret, z, p, lp, dz, tmp, am, av;
   std::vector<int> t_row0, t_nrows, t_leg0, t_nleg, t_ch, L, leg, idx, off;
   std::vector<uint8_t> t_done;
 
+  void load_ls(const Genome& G, bool moments) {
+    if (!cont) return;
+    ls = G.logstd.size() == (size_t)ad ? G.logstd : std::vector<float>(ad, -0.7f);
+    ls_m.assign(ad, 0.f); ls_v.assign(ad, 0.f); ls_g.assign(ad, 0.f);
+    if (moments && G.ls_m.size() == (size_t)ad) { ls_m = G.ls_m; ls_v = G.ls_v; }
+  }
+  float gauss_logp(const float* a, const float* mu) const {
+    float s = 0; for (int i = 0; i < ad; i++) { float zz = (a[i] - mu[i]) / std::exp(ls[i]); s += -0.5f * zz * zz - ls[i] - 0.9189385f; }
+    return s;
+  }
+  void draw_action(const float* mu, bool greedy) { for (int i = 0; i < ad; i++) act[i] = greedy ? mu[i] : mu[i] + std::exp(ls[i]) * rng.normal(); }
   int gather(int nl) {
     env->state_feat(tmp.data());
     if (!pa) { X.insert(X.end(), tmp.begin(), tmp.begin() + n_in); return 1; }
@@ -125,19 +150,21 @@ private:
 
   void rollout() {
     X.clear(); L.clear(); t_logp.clear(); t_val.clear(); t_rew.clear(); t_done.clear();
-    t_row0.clear(); t_nrows.clear(); t_leg0.clear(); t_nleg.clear(); t_ch.clear();
+    t_row0.clear(); t_nrows.clear(); t_leg0.clear(); t_nleg.clear(); t_ch.clear(); t_act.clear();
     for (int s = 0; s < cfg.rollout; s++) {
       int nl = env->legal(leg.data());
       int r0 = (int)(X.size() / n_in), nr = gather(nl);
       load(r0, nr, 0); fill_bias(nr); P.forward(nr);
-      float v = read(0, nl, leg.data(), z.data()); softmax(nl);
-      int j = sample(nl);
+      float v = read(0, nl, leg.data(), z.data()); if (!cont) softmax(nl);
+      int j = 0; float lpj;
+      if (cont) { draw_action(z.data(), false); lpj = gauss_logp(act.data(), z.data()); t_act.insert(t_act.end(), act.begin(), act.begin() + ad); }
+      else { j = sample(nl); lpj = lp[j]; }
       t_row0.push_back(r0); t_nrows.push_back(nr); t_leg0.push_back((int)L.size()); t_nleg.push_back(nl); t_ch.push_back(j);
       L.insert(L.end(), leg.begin(), leg.begin() + nl);
-      t_logp.push_back(lp[j]); t_val.push_back(v);
-      bool done = false; float r = env->step(leg[j], done, rng); steps++; train_steps++;
-      t_rew.push_back(r); t_done.push_back(done);
-      if (done) env->reset(rng);
+      t_logp.push_back(lpj); t_val.push_back(v);
+      bool done = false; float r = cont ? env->step_cont(act.data(), done, rng) : env->step(leg[j], done, rng); steps++; train_steps++;
+      t_rew.push_back(r); t_done.push_back(done); cur_ret += r;
+      if (done) { ep_sum += cur_ret; ep_n++; cur_ret = 0; env->reset(rng); }
     }
     // bootstrap value of the state after the last step
     float boot = 0;
@@ -170,11 +197,25 @@ private:
         int M = std::min(mb, T - s), R = 0;
         for (int m = 0; m < M; m++) { int t = idx[s + m]; off[m] = R; load(t_row0[t], t_nrows[t], R); R += t_nrows[t]; }
         fill_bias(R); P.forward(R); P.begin_backward(R);
-        std::fill(P.g.begin(), P.g.end(), 0.f);
+        std::fill(P.g.begin(), P.g.end(), 0.f); if (cont) std::fill(ls_g.begin(), ls_g.end(), 0.f);
         const float inv = 1.f / M;
         for (int m = 0; m < M; m++) {
           int t = idx[s + m], nl = t_nleg[t], c = t_ch[t]; const int* lg = &L[t_leg0[t]];
-          float v = read(off[m], nl, lg, z.data()); softmax(nl);
+          float v = read(off[m], nl, lg, z.data());
+          if (cont) {
+            const float* mu = z.data(); const float* a = &t_act[(size_t)t * ad];
+            float ratio = std::exp(std::min(20.f, gauss_logp(a, mu) - t_logp[t])), A = t_adv[t];
+            bool clipped = (A >= 0 && ratio > 1 + cfg.clip) || (A < 0 && ratio < 1 - cfg.clip);
+            float g = clipped ? 0.f : -A * ratio;
+            for (int i = 0; i < ad; i++) {
+              float d = a[i] - mu[i], sd2 = std::exp(2.f * ls[i]);
+              P.D(P.out_slot[lg[i]])[off[m]] = g * d / sd2 * inv;
+              ls_g[i] += (g * (d * d / sd2 - 1.f) - cfg.ent) * inv;
+            }
+            P.D(P.out_slot[n_logit])[off[m]] = cfg.vf * (v - t_ret[t]) * inv;
+            continue;
+          }
+          softmax(nl);
           float ratio = std::exp(std::min(20.f, lp[c] - t_logp[t])), A = t_adv[t];
           bool clipped = (A >= 0 && ratio > 1 + cfg.clip) || (A < 0 && ratio < 1 - cfg.clip);
           float g = clipped ? 0.f : -A * ratio, H = 0;
@@ -189,13 +230,18 @@ private:
           }
         }
         P.backward(R);
-        double n2 = 0; for (float x : P.g) n2 += (double)x * x;
+        double n2 = 0; for (float x : P.g) n2 += (double)x * x; if (cont) for (float x : ls_g) n2 += (double)x * x;
         float sc = (float)std::sqrt(n2); sc = sc > cfg.max_grad ? cfg.max_grad / sc : 1.f;
         at++; float b1 = 0.9f, b2 = 0.999f, c1 = 1.f - std::pow(b1, (float)at), c2 = 1.f - std::pow(b2, (float)at);
         for (size_t e = 0; e < P.w.size(); e++) {
           float gj = P.g[e] * sc;
           am[e] = b1 * am[e] + (1 - b1) * gj; av[e] = b2 * av[e] + (1 - b2) * gj * gj;
           P.w[e] -= cfg.lr * (am[e] / c1) / (std::sqrt(av[e] / c2) + 1e-5f);
+        }
+        if (cont) for (int i = 0; i < ad; i++) {
+          float gj = ls_g[i] * sc;
+          ls_m[i] = b1 * ls_m[i] + (1 - b1) * gj; ls_v[i] = b2 * ls_v[i] + (1 - b2) * gj * gj;
+          ls[i] = std::clamp(ls[i] - cfg.lr * (ls_m[i] / c1) / (std::sqrt(ls_v[i] / c2) + 1e-5f), -3.f, 0.5f);
         }
       }
     }
@@ -208,9 +254,13 @@ private:
       while (!done && guard++ < 100000) {
         int nl = env->legal(leg.data()); X.clear();
         int nr = gather(nl); load(0, nr, 0); fill_bias(nr); P.forward(nr);
-        read(0, nl, leg.data(), z.data()); softmax(nl);
-        int aj = 0; if (cfg.greedy_eval) { for (int k = 1; k < nl; k++) if (z[k] > z[aj]) aj = k; } else aj = sample(nl);
-        tot += env->step(leg[aj], done, rng); steps++; eval_steps++;
+        read(0, nl, leg.data(), z.data()); if (!cont) softmax(nl);
+        if (cont) { draw_action(z.data(), cfg.greedy_eval); tot += env->step_cont(act.data(), done, rng); }
+        else {
+          int aj = 0; if (cfg.greedy_eval) { for (int k = 1; k < nl; k++) if (z[k] > z[aj]) aj = k; } else aj = sample(nl);
+          tot += env->step(leg[aj], done, rng);
+        }
+        steps++; eval_steps++;
       }
     }
     return (float)(tot / std::max(1, eps));

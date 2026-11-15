@@ -7,9 +7,12 @@ SPEC = {
     "observation_size": 11,
     "action": {"type": "discrete", "n": 4},
     "turn_based": False,
-    "max_steps": 300,
+    "real_time": True,
+    "max_steps": 0,
     "noop_action": 1,
     "tick_ms": 180,
+    "max_frames": 1500,
+    "stall_frames": 150,
     "hold_last_action": True,
     "controls": {"ArrowUp": 0, "ArrowRight": 1, "ArrowDown": 2, "ArrowLeft": 3, "w": 0, "d": 1, "s": 2, "a": 3},
     "action_names": ["up", "right", "down", "left"],
@@ -68,7 +71,7 @@ class Environment:
             return {0: -1.0}
         old_dist = abs(self.food[0] - hx) + abs(self.food[1] - hy) if self.food else 0
         self.body.insert(0, new)
-        reward = -0.01
+        reward = -0.001
         if new == self.food:
             self.score += 1
             reward += 1.0
@@ -77,8 +80,21 @@ class Environment:
             self.body.pop()
             if self.food:
                 new_dist = abs(self.food[0] - new[0]) + abs(self.food[1] - new[1])
-                reward += 0.02 if new_dist < old_dist else -0.02
+                reward += 0.1 if new_dist < old_dist else -0.1
         return {0: reward}
+
+    def scripted_action(self, agent_id):
+        hx, hy = self.body[0]
+        best, best_dist = None, None
+        for a in self.legal_actions(agent_id):
+            dx, dy = DIRS[a]
+            cell = (hx + dx, hy + dy)
+            if self._blocked(cell):
+                continue
+            dist = abs(self.food[0] - cell[0]) + abs(self.food[1] - cell[1]) if self.food else 0
+            if best is None or dist < best_dist:
+                best, best_dist = a, dist
+        return best if best is not None else self.heading
 
     def is_terminal(self):
         return self.dead or self.food is None

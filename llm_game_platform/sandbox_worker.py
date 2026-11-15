@@ -34,6 +34,7 @@ import types
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+VALIDATION_STEP_LIMIT = 10000
 
 import render_protocol  # noqa: E402  (stdlib only)
 from env_interface import RESULT_VALUES, EnvSpec  # noqa: E402
@@ -139,21 +140,38 @@ class Runner:
         self.brain = None
         self.last_rewards: dict[int, float] = {}
         self.log: list[dict] = []
+        # cumulative return bookkeeping (stall truncation + return-based success)
+        self.cum: dict[int, float] = {a: 0.0 for a in spec.agents}
+        self.best: dict[int, float] = {a: 0.0 for a in spec.agents}
+        self.since_best: dict[int, int] = {a: 0 for a in spec.agents}
+        self.use_scripted_hook = True
+        self.success_return: float | None = None  # set => learner episodes "win" when return >= this
 
     # ---- contract-checked primitives ------------------------------------
     def reset(self, seed) -> None:
         self.env.reset(seed)
         self.steps, self.truncated, self.last_rewards = 0, False, {}
+        self.cum = {a: 0.0 for a in self.spec.agents}
+        self.best = {a: 0.0 for a in self.spec.agents}
+        self.since_best = {a: 0 for a in self.spec.agents}
         self.rng.seed((seed or 0) * 7919 + 13)
 
     def done(self) -> bool:
         if self.env.is_terminal():
             return True
-        if self.steps >= self.spec.max_steps or (
+        if (not self.spec.real_time and self.spec.max_steps and self.steps >= self.spec.max_steps) or (
             hasattr(self.env, "is_truncated") and self.env.is_truncated()
         ):
             self.truncated = True
             return True
+        if self.spec.real_time:
+            # Runtime safety net: a policy that survives forever must not hang training.
+            stalled = self.spec.stall_frames and all(
+                self.since_best[a] >= self.spec.stall_frames for a in self.spec.agents
+            )
+            if self.steps >= self.spec.frame_cap or stalled:
+                self.truncated = True
+                return True
         return False
 
     def active(self) -> list[int]:
@@ -239,6 +257,12 @@ class Runner:
                 rewards[key] = float(value)
         self.steps += 1
         self.last_rewards = rewards
+        for agent, value in rewards.items():
+            self.cum[agent] += value
+            if self.cum[agent] > self.best[agent] + 1e-9:
+                self.best[agent], self.since_best[agent] = self.cum[agent], 0
+            else:
+                self.since_best[agent] += 1
         return rewards
 
     def result(self, agent: int) -> str:
@@ -269,7 +293,7 @@ class Runner:
         legal = self.legal(agent)
         if not self.spec.discrete or len(legal) <= 1:
             return legal[0] if legal else self._random_action(agent)
-        if hasattr(self.env, "scripted_action"):
+        if self.use_scripted_hook and hasattr(self.env, "scripted_action"):
             action = self.env.scripted_action(agent)
             if action in legal:
                 return action
@@ -359,7 +383,14 @@ class Runner:
     def brain_line(self, reward: float, done: bool) -> str:
         obs = self.observe(self.learner)
         legal = [] if done else self.legal(self.learner)
-        outcome = {"win": 1, "loss": -1, "draw": 0}[self.result(self.learner)] if done else 2
+        if not done:
+            outcome = 2
+        elif self.success_return is not None:
+            # return-based quality: an episode succeeds when the learner truly wins or beats the calibrated bar
+            won = self.result(self.learner) == "win"
+            outcome = 1 if won or self.cum[self.learner] > self.success_return else -1
+        else:
+            outcome = {"win": 1, "loss": -1, "draw": 0}[self.result(self.learner)]
         return (
             f"S {reward:.9g} {int(done)} {len(legal)} {' '.join(map(str, legal))} "
             f"{len(obs)} {_fmt(obs)} {outcome}"
@@ -369,6 +400,7 @@ class Runner:
         """Play full episodes with `learner_cfg` as the learner against the configured opponents."""
         ctrl = self.set_controller(learner_cfg)
         total, counts, lengths = 0.0, {"win": 0, "loss": 0, "draw": 0}, 0
+        returns: list[float] = []
         for episode in range(episodes):
             self.learner_reset(seed + episode * 1009)
             while not self.done():
@@ -382,8 +414,40 @@ class Runner:
                 total += reward
                 lengths += 1
             counts[self.result(self.learner)] += 1
-        return {"mean_return": total / episodes, "mean_length": lengths / episodes,
-                **{k: v / episodes for k, v in counts.items()}}
+            returns.append(self.cum[self.learner])
+        out = {"mean_return": total / episodes, "mean_length": lengths / episodes,
+               **{k: v / episodes for k, v in counts.items()}, "returns": returns}
+        if self.success_return is not None:
+            out["success_rate"] = sum(r > self.success_return for r in returns) / episodes
+        return out
+
+    def calibrate(self, episodes: int, seed: int) -> dict:
+        """Baseline returns for the learner seat: random play and (when available) the scripted/rule-based policy.
+
+        Used to pick a game-agnostic success bar and to check that the reward actually separates
+        competent play from random play (the learnability gate).
+        """
+        saved = self.success_return
+        self.success_return = None
+        try:
+            rnd = self.evaluate({"kind": "random"}, episodes, seed)
+            scripted, hook = None, hasattr(self.env_cls, "scripted_action")
+            if hook:
+                try:
+                    scripted = self.evaluate({"kind": "rule_based"}, episodes, seed)
+                except EnvContractError:
+                    raise
+                except Exception:  # noqa: BLE001 - e.g. a hook written for the opponent seat only
+                    scripted, hook = None, False
+            if scripted is None and not self.spec.real_time:
+                self.use_scripted_hook = False  # generic look-ahead player for turn-based games
+                try:
+                    scripted = self.evaluate({"kind": "rule_based"}, episodes, seed)
+                finally:
+                    self.use_scripted_hook = True
+        finally:
+            self.success_return = saved
+        return {"random": rnd, "scripted": scripted, "has_scripted_hook": hook}
 
     # ---- human / UI play ---------------------------------------------------
     def view(self) -> dict:
@@ -508,6 +572,10 @@ class Runner:
                 nonzero = nonzero or value != 0.0
             if self.steps == max(1, self.spec.max_steps // 2):
                 render_protocol.validate_scene(self.env.render())
+            if self.steps >= VALIDATION_STEP_LIMIT and not self.done():
+                raise EnvContractError(
+                    f"validation episode exceeded {VALIDATION_STEP_LIMIT} steps without a terminal state"
+                )
         terminal = bool(self.env.is_terminal())
         results = None
         if terminal:
@@ -586,6 +654,8 @@ class Server:
         if op == "configure":
             r.default_controller = r.set_controller(request.get("default"))
             r.controllers = {int(k): r.set_controller(v) for k, v in (request.get("controllers") or {}).items()}
+            sr = request.get("success_return")
+            r.success_return = None if sr is None else float(sr)
             if request.get("brain"):
                 from neat_policy import NeatPolicy
 
@@ -602,6 +672,8 @@ class Server:
             return {"ok": True, **runner.validate_episode(int(request["seed"]), int(request["action_seed"]), bool(request.get("check_illegal")))}
         if op == "evaluate":
             return {"ok": True, **r.evaluate(request.get("learner"), int(request.get("episodes", 100)), int(request.get("seed", 0)))}
+        if op == "calibrate":
+            return {"ok": True, **r.calibrate(int(request.get("episodes", 100)), int(request.get("seed", 0)))}
         if op == "quit":
             raise SystemExit(0)
         raise EnvContractError(f"unknown op {op!r}")

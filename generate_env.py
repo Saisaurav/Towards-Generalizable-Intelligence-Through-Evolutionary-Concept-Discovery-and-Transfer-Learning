@@ -26,7 +26,12 @@ def main() -> int:
     parser.add_argument("--acceptance", choices=("ttt", "snake", "pong"))
     parser.add_argument("--train", action="store_true", help="train a fresh learner after validation")
     parser.add_argument("--opponent", default="random", choices=("random", "rule_based"))
-    parser.add_argument("--budget", type=int, default=int(os.getenv("GAME_ENV_TRAINING_BUDGET", "150000")))
+    parser.add_argument(
+        "--budget",
+        type=int,
+        default=int(os.getenv("GAME_ENV_MAX_STEPS", os.getenv("GAME_ENV_TRAINING_BUDGET", "0"))),
+        help="maximum environment steps (0 runs until the win-rate target or time limit)",
+    )
     parser.add_argument("--attempts", type=int, default=4)
     args = parser.parse_args()
     prompt = args.prompt

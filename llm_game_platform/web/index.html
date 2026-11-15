@@ -413,7 +413,8 @@
       }
       const ts = env.training_status;
       const last = (env.training_history || []).slice(-1)[0];
-      const finalWinRate = last && last.win_rate !== undefined ? ` Final win rate ${(last.win_rate * 100).toFixed(1)}%.` : "";
+      const rateLabel = env.training_quality_mode === "return" ? "success rate (episode return above the random-play bar" + (env.training_success_return != null ? ` ${Number(env.training_success_return).toFixed(2)}` : "") + ")" : "win rate";
+      const finalWinRate = last && last.win_rate !== undefined ? ` Final ${rateLabel} ${(last.win_rate * 100).toFixed(1)}%.` : "";
       const targetStatus = env.training_target_reached === true ? " Target reached."
         : env.training_target_reached === false ? " Target not reached before training stopped." : "";
       $("env-training").textContent = ts === "ready" ? `Training complete (trained against: ${env.training_opponent}). Held-out return ${env.training_heldout ?? "n/a"}.${finalWinRate}${targetStatus}`
