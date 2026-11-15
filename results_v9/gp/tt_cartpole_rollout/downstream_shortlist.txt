@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+min(div(sub(div(transition_delta_max_abs,state_range),add(state_dispersion,state_var)),max(mul(state_adjacent_difference,state_mean),mul(state_median,state_entropy))),div(tanh(action_norm),state_position_moment))
+min(min(min(add(action_norm,state_median),state_max),neg(action_norm)),div(tanh(action_norm),state_position_moment))
+min(mul(abs(state_mean),transition_delta_mean),div(tanh(action_norm),state_position_moment))
+min(div(sub(div(transition_delta_max_abs,state_range),add(state_skewness,state_var)),tanh(max(action_norm,state_max))),div(tanh(action_norm),state_position_moment))

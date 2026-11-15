@@ -1,0 +1,1 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.

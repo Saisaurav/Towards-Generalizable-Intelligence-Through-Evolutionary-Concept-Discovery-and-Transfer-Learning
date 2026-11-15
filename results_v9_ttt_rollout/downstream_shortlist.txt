@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+min(action_norm,div(min(state_position_moment,state_max_abs),tanh(mul(state_magnitude,board_own_open_lines))))
+add(state_sparsity,action_norm)
+min(action_norm,div(min(sub(state_mean,board_center_control),state_max_abs),max(state_position_moment,state_negative_fraction)))

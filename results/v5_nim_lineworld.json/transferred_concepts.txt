@@ -1,0 +1,3 @@
+# Downstream-admitted concepts; primitive contract generic_state_action_v5.
+max(max(sub(state_sparsity,state_sign_change_fraction),min(state_min,state_entropy)),add(mul(state_abs_mean,state_median),sub(min(state_max_abs,action_norm),min(state_median,state_median))))
+max(max(sub(state_sparsity,state_sign_change_fraction),min(state_min,state_entropy)),add(state_positive_fraction,sub(min(state_max_abs,action_norm),min(state_median,state_median))))

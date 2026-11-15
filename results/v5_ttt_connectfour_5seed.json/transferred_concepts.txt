@@ -1,0 +1,5 @@
+# Downstream-admitted concepts; primitive contract generic_state_action_v5.
+square(div(legal_norm,action_norm))
+div(legal_norm,action_norm)
+square(div(action_norm,action_norm))
+action_norm

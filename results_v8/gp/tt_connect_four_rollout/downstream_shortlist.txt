@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+div(sub(sub(abs(action_wins_now),action_norm),action_norm),div(div(log1p(action_norm),board_opponent_open_lines),state_iqr))
+add(action_wins_now,add(div(action_norm,div(board_own_open_lines,state_sign_change_fraction)),action_blocks_opponent))
+add(neg(abs(action_norm)),sub(add(board_occupancy,action_wins_now),div(board_center_control,action_norm)))
+mul(min(state_position_moment,add(div(action_norm,state_range),legal_norm)),div(board_own_open_lines,state_sign_change_fraction))

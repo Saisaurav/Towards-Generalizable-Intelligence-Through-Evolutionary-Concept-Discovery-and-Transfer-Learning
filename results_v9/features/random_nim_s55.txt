@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+log1p(tanh(state_max_abs))
+abs(min(div(state_negative_fraction,state_magnitude),action_norm))
+sub(square(state_range),action_norm)
+log1p(div(sqrt(legal_norm),max(action_norm,state_max_abs)))

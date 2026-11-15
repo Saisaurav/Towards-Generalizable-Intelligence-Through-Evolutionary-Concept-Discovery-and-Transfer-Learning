@@ -1,0 +1,92 @@
+{
+ "ttt_to_c4_rollout": {
+  "source": {
+   "add(sub(mul(sub(action_blocks_opponent,state_entropy),state_magnitude),board_opponent_immediate_wins),action_wins_now)": 0.13052953915317983,
+   "div(sub(state_mean,sqrt(board_opponent_immediate_wins)),add(state_position_spread,action_norm))": 0.35773408727068434,
+   "sub(action_wins_now,tanh(neg(min(legal_norm,action_blocks_opponent))))": 0.11914313414846897,
+   "mul(add(sub(action_blocks_opponent,board_opponent_open_lines),action_wins_now),state_position_moment)": 0.012719145607286163
+  },
+  "target_trained": {
+   "div(sub(sub(abs(action_wins_now),action_norm),action_norm),div(div(log1p(action_norm),board_opponent_open_lines),state_iqr))": 0.1356303880324028,
+   "add(action_wins_now,add(div(action_norm,div(board_own_open_lines,state_sign_change_fraction)),action_blocks_opponent))": 0.30234189522242977,
+   "add(neg(abs(action_norm)),sub(add(board_occupancy,action_wins_now),div(board_center_control,action_norm)))": 0.5874388195967968,
+   "mul(min(state_position_moment,add(div(action_norm,state_range),legal_norm)),div(board_own_open_lines,state_sign_change_fraction))": 0.41032563874851996
+  }
+ },
+ "random_connect_four": {
+  "11": {
+   "add(state_negative_fraction,add(mul(state_position_moment,state_adjacent_difference),log1p(board_opponent_open_lines)))": 0.05772122383248895,
+   "mul(square(div(state_magnitude,state_negative_fraction)),log1p(action_blocks_opponent))": 0.18557687147451768,
+   "neg(state_var)": 0.058215595638089236,
+   "min(square(state_mean),min(add(action_wins_now,board_center_control),div(state_position_moment,state_magnitude)))": 0.04343915204973894
+  },
+  "22": {
+   "add(sub(min(state_mean,action_wins_now),log1p(state_iqr)),state_magnitude)": 0.16188953452362634,
+   "sqrt(sub(board_occupancy,mul(state_position_moment,state_sign_change_fraction)))": 0.141755255497927,
+   "div(sub(add(state_negative_fraction,board_own_immediate_wins),sqrt(action_blocks_opponent)),state_range)": 0.14027340588612375,
+   "sub(neg(state_magnitude),add(neg(state_dispersion),neg(state_min)))": 0.024587794390952357
+  },
+  "33": {
+   "min(state_dispersion,max(mul(state_negative_fraction,state_var),state_position_moment))": 0.017563912100871097,
+   "tanh(add(min(state_sparsity,board_opponent_open_lines),max(state_positive_fraction,state_range)))": 0.010966984701384703,
+   "div(log1p(board_opponent_open_lines),state_skewness)": 0.059754257144906495,
+   "max(state_dispersion,board_center_control)": 0.09263435861862361
+  },
+  "44": {
+   "div(add(log1p(state_range),min(state_magnitude,board_center_control)),sub(sub(board_own_immediate_wins,state_negative_fraction),log1p(state_magnitude)))": 0.05306928114920411,
+   "add(div(state_iqr,square(state_negative_fraction)),neg(action_blocks_opponent))": 0.37267799471367175,
+   "sub(action_wins_now,board_opponent_open_lines)": 0.06205010939210817,
+   "mul(state_iqr,max(abs(state_skewness),board_own_open_lines))": 0.21919057326585878
+  },
+  "55": {
+   "sub(max(state_position_spread,state_max_abs),tanh(state_skewness))": 0.07450166942683495,
+   "max(sqrt(log1p(board_own_immediate_wins)),min(add(action_norm,state_median),div(state_max,state_positive_fraction)))": 0.2908739012796613,
+   "div(min(min(state_abs_mean,state_abs_mean),state_entropy),board_opponent_open_lines)": 0.23072206599468445,
+   "log1p(state_position_spread)": 0.07147787941436398
+  },
+  "66": {
+   "neg(sub(board_opponent_immediate_wins,state_skewness))": 0.08197564508331504,
+   "tanh(add(board_occupancy,mul(state_iqr,action_blocks_opponent)))": 0.15497269359275587,
+   "add(sub(neg(state_iqr),max(state_abs_mean,state_var)),state_dispersion)": 0.24308146981953127,
+   "abs(abs(log1p(state_abs_mean)))": 0.07080312668566309
+  },
+  "77": {
+   "tanh(log1p(min(state_dispersion,board_own_open_lines)))": 0.04593977340140844,
+   "min(action_norm,state_skewness)": 0.540643019315081,
+   "min(min(state_median,board_opponent_open_lines),div(action_norm,max(state_min,action_norm)))": 0.4948716572653804,
+   "div(mul(max(action_norm,board_own_open_lines),board_center_control),state_median)": 0.21295885412209814
+  },
+  "88": {
+   "neg(state_position_moment)": 0.017563912100871097,
+   "max(log1p(action_blocks_opponent),mul(abs(board_occupancy),mul(state_negative_fraction,state_magnitude)))": 0.11134612334371352,
+   "max(add(state_position_moment,sqrt(state_iqr)),state_entropy)": 0.18873563678434307,
+   "max(sub(log1p(state_dispersion),tanh(state_min)),sub(state_median,div(state_entropy,board_opponent_open_lines)))": 0.07405143657181218
+  },
+  "99": {
+   "min(min(div(state_position_spread,state_max_abs),board_occupancy),board_center_control)": 0.04343915204973894,
+   "max(neg(max(board_own_immediate_wins,state_median)),min(sub(board_opponent_open_lines,board_own_open_lines),abs(action_norm)))": 0.0542549500232783,
+   "add(action_blocks_opponent,min(sub(state_dispersion,board_occupancy),state_negative_fraction))": 0.13947860671624535,
+   "abs(abs(abs(state_position_spread)))": 0.09854863729316951
+  },
+  "111": {
+   "add(sub(abs(legal_norm),log1p(state_positive_fraction)),sub(add(action_norm,state_adjacent_difference),mul(state_mean,action_norm)))": 0.26142387715487186,
+   "sqrt(action_norm)": 0.24598538506543638,
+   "tanh(max(mul(board_own_open_lines,state_sign_change_fraction),state_abs_mean))": 0.0784115420608139,
+   "sub(div(add(state_dispersion,action_wins_now),add(board_own_immediate_wins,state_skewness)),state_sign_change_fraction)": 0.122437896198904
+  }
+ },
+ "ttt_to_c4_oracle": {
+  "source": {
+   "div(sub(sub(log1p(board_center_control),abs(state_iqr)),sub(action_wins_now,add(state_mean,state_abs_mean))),sub(sub(sqrt(board_center_control),add(state_entropy,state_sparsity)),add(action_blocks_opponent,state_dispersion)))": 0.15793222749717864,
+   "sub(div(action_wins_now,state_dispersion),div(state_iqr,action_norm))": 0.3069614066909979,
+   "add(sub(square(action_wins_now),board_opponent_immediate_wins),min(add(board_own_immediate_wins,state_max_abs),sub(action_blocks_opponent,state_adjacent_difference)))": 0.1761274636950264,
+   "max(min(div(state_iqr,action_blocks_opponent),tanh(state_negative_fraction)),sub(action_wins_now,action_norm))": 0.2991837694103736
+  },
+  "target_trained": {
+   "div(sub(sub(abs(action_wins_now),action_norm),action_norm),div(div(log1p(action_norm),board_opponent_open_lines),state_iqr))": 0.1356303880324028,
+   "add(action_wins_now,add(div(action_norm,div(board_own_open_lines,state_sign_change_fraction)),action_blocks_opponent))": 0.30234189522242977,
+   "add(neg(abs(action_norm)),sub(add(board_occupancy,action_wins_now),div(board_center_control,action_norm)))": 0.5874388195967968,
+   "mul(min(state_position_moment,add(div(action_norm,state_range),legal_norm)),div(board_own_open_lines,state_sign_change_fraction))": 0.41032563874851996
+  }
+ }
+}

@@ -1,0 +1,2 @@
+# Downstream-admitted concepts; primitive contract generic_state_action_v6.
+div(state_mean,action_norm)

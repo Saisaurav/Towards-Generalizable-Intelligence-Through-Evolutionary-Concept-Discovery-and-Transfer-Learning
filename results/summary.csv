@@ -1,0 +1,8 @@
+direction,condition,n,mean_heldout_return,sd
+TicTacToe → CartPole,baseline_action_id,10,22.4281998,0.3698800037855518
+TicTacToe → CartPole,random_features,10,22.2526997,0.44057181180371857
+TicTacToe → CartPole,transferred_concepts,10,28.1939007,3.9480888588925613
+TicTacToe → CartPole,transferred_filtered,10,30.5539999,6.865408128905754
+CartPole → TicTacToe,baseline_action_id,10,0.0276,0.0392264083381478
+CartPole → TicTacToe,random_features,10,0.0309,0.05419194282055836
+CartPole → TicTacToe,transferred_to_ttt,10,0.0741,0.0553322289046407

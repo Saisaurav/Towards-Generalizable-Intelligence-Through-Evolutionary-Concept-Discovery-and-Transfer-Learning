@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+max(div(state_adjacent_difference,action_norm),add(max(add(state_position_moment,state_magnitude),legal_norm),add(state_position_moment,state_magnitude)))
+max(div(state_var,action_norm),state_sign_change_fraction)
+max(div(state_adjacent_difference,action_norm),add(state_negative_fraction,add(state_position_moment,state_magnitude)))

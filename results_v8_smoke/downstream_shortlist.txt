@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+mul(min(mul(state_max,state_positive_fraction),max(state_entropy,state_adjacent_difference)),min(legal_norm,sub(board_opponent_open_lines,action_norm)))
+sub(sub(state_positive_fraction,state_iqr),div(div(action_norm,board_own_open_lines),state_sign_change_fraction))
+mul(max(state_magnitude,min(state_mean,state_dispersion)),min(state_abs_mean,sub(board_opponent_open_lines,action_norm)))

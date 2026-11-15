@@ -1,0 +1,6 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+div(sqrt(mul(max(state_abs_mean,state_position_moment),max(state_skewness,board_center_control))),sub(state_iqr,action_norm))
+min(div(sqrt(min(action_norm,state_entropy)),sub(tanh(state_entropy),add(state_var,state_adjacent_difference))),state_sparsity)
+div(sqrt(min(action_norm,state_entropy)),sub(state_iqr,add(state_magnitude,state_adjacent_difference)))
+div(sqrt(min(action_norm,state_entropy)),sub(tanh(state_entropy),add(state_var,state_adjacent_difference)))
+div(sqrt(min(action_norm,state_entropy)),sub(state_magnitude,add(state_var,state_adjacent_difference)))

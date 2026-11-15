@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+max(state_sparsity,add(state_positive_fraction,add(state_abs_mean,state_positive_fraction)))
+mul(state_mean,min(add(state_skewness,state_abs_mean),state_max_abs))
+tanh(state_skewness)
+sub(tanh(sqrt(state_positive_fraction)),min(min(state_max,state_abs_mean),sqrt(board_own_immediate_wins)))

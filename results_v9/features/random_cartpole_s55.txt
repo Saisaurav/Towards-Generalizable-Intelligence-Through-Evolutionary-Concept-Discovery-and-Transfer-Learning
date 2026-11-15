@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+add(state_max,max(min(state_adjacent_difference,legal_norm),abs(state_entropy)))
+log1p(tanh(transition_delta_mean))
+tanh(sub(div(state_positive_fraction,transition_delta_mean),div(state_min,state_entropy)))
+square(state_dispersion)

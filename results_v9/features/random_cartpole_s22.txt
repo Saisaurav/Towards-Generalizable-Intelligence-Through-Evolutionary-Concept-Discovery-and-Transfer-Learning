@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+max(tanh(mul(state_abs_mean,state_max)),neg(state_abs_mean))
+mul(div(min(state_position_moment,state_position_moment),max(state_sparsity,state_sparsity)),min(mul(state_position_moment,state_iqr),add(state_iqr,state_position_spread)))
+min(abs(state_mean),sub(div(state_adjacent_difference,state_magnitude),min(state_adjacent_difference,state_mean)))
+div(sub(min(state_range,state_max_abs),state_max),add(div(state_negative_fraction,transition_delta_abs_mean),square(state_range)))

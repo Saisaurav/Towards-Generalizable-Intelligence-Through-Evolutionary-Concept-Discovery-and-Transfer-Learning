@@ -1,0 +1,5 @@
+gen   0 steps     33076 best    30.68 mean    22.44 sp 12 nodes  11.0 conns   6.7
+gen   1 steps     74092 best    33.15 mean    29.06 sp  5 nodes  11.0 conns   7.8
+gen   2 steps    117365 best    33.17 mean    30.94 sp  2 nodes  11.0 conns   8.1
+gen   3 steps    158145 best    29.31 mean    28.86 sp  1 nodes  11.0 conns   8.0
+HELDOUT return 30.384001 episodes 1000

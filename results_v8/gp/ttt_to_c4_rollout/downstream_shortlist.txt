@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+add(sub(mul(sub(action_blocks_opponent,state_entropy),state_magnitude),board_opponent_immediate_wins),action_wins_now)
+div(sub(state_mean,sqrt(board_opponent_immediate_wins)),add(state_position_spread,action_norm))
+sub(action_wins_now,tanh(neg(min(legal_norm,action_blocks_opponent))))
+mul(add(sub(action_blocks_opponent,board_opponent_open_lines),action_wins_now),state_position_moment)

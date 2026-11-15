@@ -1,0 +1,10 @@
+connect_four  source_oracle                greedy ret +0.974±0.007 [worst +0.960 best +0.982] W/D 0.99 (min 0.98) | stoch +0.965 | random +0.008 | vs strategic greedy +0.414 | fail 0/10
+connect_four  source_rollout               greedy ret +0.976±0.007 [worst +0.960 best +0.982] W/D 0.99 (min 0.98) | stoch +0.963 | random +0.008 | vs strategic greedy +0.397 | fail 0/10
+connect_four  random                       greedy ret +0.895±0.072 [worst +0.808 best +0.973] W/D 0.95 (min 0.90) | stoch +0.841 | random +0.008 | vs strategic greedy -0.259 | fail 0/10
+connect_four  source_oracle                greedy ret +0.974±0.007 [worst +0.960 best +0.982] W/D 0.99 (min 0.98) | stoch +0.965 | random +0.008 | vs strategic greedy +0.414 | fail 0/10
+connect_four  source_rollout               greedy ret +0.976±0.007 [worst +0.960 best +0.982] W/D 0.99 (min 0.98) | stoch +0.963 | random +0.008 | vs strategic greedy +0.397 | fail 0/10
+connect_four  random                       greedy ret +0.895±0.072 [worst +0.808 best +0.973] W/D 0.95 (min 0.90) | stoch +0.841 | random +0.008 | vs strategic greedy -0.259 | fail 0/10
+connect_four  target_trained               greedy ret +0.974±0.008 [worst +0.956 best +0.984] W/D 0.99 (min 0.98) | stoch +0.955 | random +0.008 | vs strategic greedy +0.388 | fail 0/10
+connect_four  scratch                      greedy ret +0.793±0.033 [worst +0.704 best +0.826] W/D 0.90 (min 0.85) | stoch +0.748 | random +0.008 | vs strategic greedy -0.865 | fail 0/10
+connect_four  sxa                          greedy ret +0.785±0.020 [worst +0.744 best +0.816] W/D 0.89 (min 0.87) | stoch +0.752 | random +0.008 | vs strategic greedy -0.881 | fail 0/10
+V8_MATRIX_DONE

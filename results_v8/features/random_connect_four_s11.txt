@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+add(state_negative_fraction,add(mul(state_position_moment,state_adjacent_difference),log1p(board_opponent_open_lines)))
+mul(square(div(state_magnitude,state_negative_fraction)),log1p(action_blocks_opponent))
+neg(state_var)
+min(square(state_mean),min(add(action_wins_now,board_center_control),div(state_position_moment,state_magnitude)))

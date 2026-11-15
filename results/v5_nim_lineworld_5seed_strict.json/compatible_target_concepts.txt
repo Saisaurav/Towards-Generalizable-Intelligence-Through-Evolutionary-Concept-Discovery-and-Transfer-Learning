@@ -1,0 +1,2 @@
+# Concepts admitted by fixed-budget fresh target-learner evaluation.
+sqrt(sub(action_norm,add(state_var,state_max)))

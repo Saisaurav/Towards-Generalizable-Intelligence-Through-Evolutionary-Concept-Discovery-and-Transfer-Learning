@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+neg(sqrt(mul(state_sign_change_fraction,legal_norm)))
+square(tanh(add(state_skewness,state_negative_fraction)))
+min(div(mul(state_dispersion,legal_norm),sqrt(state_adjacent_difference)),state_boundary_margin)
+sub(add(sqrt(state_negative_fraction),add(state_max_abs,state_magnitude)),add(sub(state_position_moment,state_sparsity),max(state_adjacent_difference,state_position_spread)))

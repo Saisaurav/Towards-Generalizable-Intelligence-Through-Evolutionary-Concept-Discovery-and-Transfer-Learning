@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(state_boundary_margin,state_adjacent_difference)
+sqrt(state_entropy)
+mul(transition_delta_max_abs,add(state_abs_mean,state_adjacent_difference))
+min(state_positive_fraction,sub(div(state_dispersion,transition_delta_mean),min(state_position_spread,state_max)))

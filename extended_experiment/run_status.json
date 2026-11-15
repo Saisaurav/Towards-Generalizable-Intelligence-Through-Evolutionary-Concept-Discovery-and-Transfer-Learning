@@ -1,0 +1,26 @@
+[
+  {
+    "pair": "ttt_to_cartpole",
+    "exit": 0,
+    "stdout_tail": "\"state_adjacent_difference\",\n    \"state_sign_change_fraction\",\n    \"board_own_open_lines\",\n    \"board_opponent_open_lines\",\n    \"board_own_immediate_wins\",\n    \"board_opponent_immediate_wins\",\n    \"board_center_control\",\n    \"board_occupancy\"\n  ],\n  \"available_target_primitives\": [\n    \"action_norm\",\n    \"legal_norm\",\n    \"state_abs_mean\",\n    \"state_adjacent_difference\",\n    \"state_boundary_margin\",\n    \"state_dispersion\",\n    \"state_entropy\",\n    \"state_iqr\",\n    \"state_magnitude\",\n    \"state_max\",\n    \"state_max_abs\",\n    \"state_mean\",\n    \"state_median\",\n    \"state_min\",\n    \"state_negative_fraction\",\n    \"state_position_moment\",\n    \"state_position_spread\",\n    \"state_positive_fraction\",\n    \"state_range\",\n    \"state_sign_change_fraction\",\n    \"state_skewness\",\n    \"state_sparsity\",\n    \"state_var\",\n    \"transition_delta_abs_mean\",\n    \"transition_delta_max_abs\",\n    \"transition_delta_mean\",\n    \"transition_state_alignment\"\n  ],\n  \"final_pareto_front_size\": 21,\n  \"concepts\": []\n}\n",
+    "stderr_tail": ""
+  },
+  {
+    "pair": "cartpole_to_ttt",
+    "exit": 0,
+    "stdout_tail": "    \"admission_status\": \"admitted\",\n      \"downstream_utility\": {\n        \"target_game\": \"TicTacToe\",\n        \"budget_steps\": 5000,\n        \"population\": 8,\n        \"seeds\": [\n          11,\n          22,\n          33,\n          44,\n          55\n        ],\n        \"baseline_returns\": {\n          \"11\": -0.028,\n          \"22\": -0.055,\n          \"33\": 0.045,\n          \"44\": 0.054,\n          \"55\": -0.021\n        },\n        \"candidate_returns\": {\n          \"11\": 0.079,\n          \"22\": 0.006,\n          \"33\": 0.045,\n          \"44\": 0.054,\n          \"55\": -0.018\n        },\n        \"paired_differences\": {\n          \"11\": 0.107,\n          \"22\": 0.061,\n          \"33\": 0.0,\n          \"44\": 0.0,\n          \"55\": 0.0030000000000000027\n        },\n        \"mean_paired_difference\": 0.034199999999999994,\n        \"minimum_improvement\": 0.0,\n        \"median_paired_difference\": 0.0030000000000000027,\n        \"win_fraction\": 0.6,\n        \"minimum_win_fraction\": 0.6,\n        \"passed\": true\n      }\n    }\n  ]\n}\n",
+    "stderr_tail": ""
+  },
+  {
+    "pair": "connect_four_to_nim",
+    "exit": 0,
+    "stdout_tail": "ion\": 2\n      },\n      \"depth\": 5,\n      \"admission_status\": \"admitted\",\n      \"downstream_utility\": {\n        \"target_game\": \"Nim\",\n        \"budget_steps\": 5000,\n        \"population\": 8,\n        \"seeds\": [\n          11,\n          22,\n          33,\n          44,\n          55\n        ],\n        \"baseline_returns\": {\n          \"11\": 0.006,\n          \"22\": 0.092,\n          \"33\": 0.064,\n          \"44\": -0.134,\n          \"55\": 0.006\n        },\n        \"candidate_returns\": {\n          \"11\": 0.128,\n          \"22\": -0.062,\n          \"33\": 0.064,\n          \"44\": 0.102,\n          \"55\": 0.094\n        },\n        \"paired_differences\": {\n          \"11\": 0.122,\n          \"22\": -0.154,\n          \"33\": 0.0,\n          \"44\": 0.236,\n          \"55\": 0.088\n        },\n        \"mean_paired_difference\": 0.058399999999999994,\n        \"minimum_improvement\": 0.0,\n        \"median_paired_difference\": 0.088,\n        \"win_fraction\": 0.6,\n        \"minimum_win_fraction\": 0.6,\n        \"passed\": true\n      }\n    }\n  ]\n}\n",
+    "stderr_tail": ""
+  },
+  {
+    "pair": "nim_to_lineworld",
+    "exit": 0,
+    "stdout_tail": "ive_fraction\",\n    \"state_negative_fraction\",\n    \"state_sparsity\",\n    \"state_median\",\n    \"state_iqr\",\n    \"state_skewness\",\n    \"state_entropy\",\n    \"state_position_moment\",\n    \"state_position_spread\",\n    \"state_adjacent_difference\",\n    \"state_sign_change_fraction\"\n  ],\n  \"available_target_primitives\": [\n    \"action_norm\",\n    \"legal_norm\",\n    \"state_abs_mean\",\n    \"state_adjacent_difference\",\n    \"state_dispersion\",\n    \"state_entropy\",\n    \"state_iqr\",\n    \"state_magnitude\",\n    \"state_max\",\n    \"state_max_abs\",\n    \"state_mean\",\n    \"state_median\",\n    \"state_min\",\n    \"state_negative_fraction\",\n    \"state_position_moment\",\n    \"state_position_spread\",\n    \"state_positive_fraction\",\n    \"state_range\",\n    \"state_sign_change_fraction\",\n    \"state_skewness\",\n    \"state_sparsity\",\n    \"state_var\",\n    \"transition_delta_abs_mean\",\n    \"transition_delta_max_abs\",\n    \"transition_delta_mean\",\n    \"transition_state_alignment\"\n  ],\n  \"final_pareto_front_size\": 19,\n  \"concepts\": []\n}\n",
+    "stderr_tail": ""
+  }
+]

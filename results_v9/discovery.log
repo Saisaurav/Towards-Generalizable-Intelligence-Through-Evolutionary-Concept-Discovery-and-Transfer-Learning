@@ -1,0 +1,10 @@
+ttt_to_cartpole_rollout rc=0
+ttt_to_cartpole_oracle rc=0
+ttt_to_c4_rollout rc=0
+ttt_to_c4_oracle rc=0
+c4_to_nim_rollout rc=0
+tt_cartpole_rollout rc=0
+tt_connect_four_rollout rc=0
+tt_nim_rollout rc=0
+tt_nim_oracle rc=0
+DISCOVERY_DONE

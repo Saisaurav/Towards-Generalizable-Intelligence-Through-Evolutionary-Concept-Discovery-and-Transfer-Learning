@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+neg(sqrt(mul(board_own_open_lines,legal_norm)))
+square(tanh(add(state_entropy,state_sparsity)))
+sub(add(sqrt(state_sparsity),add(state_max_abs,state_magnitude)),add(sub(state_position_spread,state_median),max(state_sign_change_fraction,state_adjacent_difference)))
+min(max(state_position_moment,neg(state_positive_fraction)),square(div(state_dispersion,state_iqr)))

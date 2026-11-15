@@ -1,0 +1,317 @@
+{
+  "experiment": "five_seed_forced_stagnation_restart_vs_no_restart",
+  "source": "nim",
+  "target": "lineworld",
+  "gp_seeds": [
+    731,
+    732,
+    733
+  ],
+  "target_paired_seeds": [
+    11,
+    22,
+    33
+  ],
+  "population": 20,
+  "generations": 14,
+  "downstream_budget_per_learner": 3000,
+  "downstream_population": 8,
+  "forced_stagnation_protocol": "Initial population is 20 copies of action_norm; novelty monitor is pre-seeded with its fingerprint. Restart arm uses a 1-generation stagnation threshold; control uses 999.",
+  "target_baseline_returns": {
+    "11": 0.85595,
+    "22": -0.14848,
+    "33": -0.12787
+  },
+  "discovery_by_seed": [
+    {
+      "seed": 731,
+      "restart": {
+        "restarts_triggered": 3,
+        "successful_restarts": 2,
+        "unsuccessful_restarts": 0,
+        "unique_structures": 99,
+        "unique_behaviours": 49,
+        "candidate_count": 12,
+        "candidate": {
+          "expression": "sub(max(sub(state_dispersion,action_norm),div(mul(state_abs_mean,state_abs_mean),sub(state_magnitude,state_dispersion))),state_max_abs)",
+          "source_validation_abs_corr": 0.13149129724212696,
+          "source_test_abs_corr": 0.05480887318405384,
+          "target_output_std": 0.2226559625938204,
+          "dependencies": [
+            "action_norm",
+            "state_abs_mean",
+            "state_dispersion",
+            "state_magnitude",
+            "state_max_abs"
+          ]
+        }
+      },
+      "control": {
+        "restarts_triggered": 0,
+        "successful_restarts": 0,
+        "unsuccessful_restarts": 0,
+        "unique_structures": 44,
+        "unique_behaviours": 28,
+        "candidate_count": 8,
+        "candidate": {
+          "expression": "min(action_norm,sub(state_var,legal_norm))",
+          "source_validation_abs_corr": 0.283145472556302,
+          "source_test_abs_corr": 0.23269633150782837,
+          "target_output_std": 0.10093186798692355,
+          "dependencies": [
+            "action_norm",
+            "legal_norm",
+            "state_var"
+          ]
+        }
+      }
+    },
+    {
+      "seed": 732,
+      "restart": {
+        "restarts_triggered": 2,
+        "successful_restarts": 2,
+        "unsuccessful_restarts": 0,
+        "unique_structures": 90,
+        "unique_behaviours": 48,
+        "candidate_count": 16,
+        "candidate": {
+          "expression": "div(add(min(action_norm,action_norm),state_abs_mean),state_abs_mean)",
+          "source_validation_abs_corr": 0.052681005015046994,
+          "source_test_abs_corr": 0.11560958273456445,
+          "target_output_std": 0.8221530658632666,
+          "dependencies": [
+            "action_norm",
+            "state_abs_mean"
+          ]
+        }
+      },
+      "control": {
+        "restarts_triggered": 0,
+        "successful_restarts": 0,
+        "unsuccessful_restarts": 0,
+        "unique_structures": 49,
+        "unique_behaviours": 30,
+        "candidate_count": 17,
+        "candidate": {
+          "expression": "sub(add(state_var,min(max(state_mean,state_max_abs),action_norm)),mul(action_norm,action_norm))",
+          "source_validation_abs_corr": 0.05715257061289371,
+          "source_test_abs_corr": 0.11502196355979229,
+          "target_output_std": 0.3996208767139006,
+          "dependencies": [
+            "action_norm",
+            "state_max_abs",
+            "state_mean",
+            "state_var"
+          ]
+        }
+      }
+    },
+    {
+      "seed": 733,
+      "restart": {
+        "restarts_triggered": 1,
+        "successful_restarts": 1,
+        "unsuccessful_restarts": 0,
+        "unique_structures": 77,
+        "unique_behaviours": 44,
+        "candidate_count": 19,
+        "candidate": {
+          "expression": "div(add(state_abs_mean,state_max_abs),add(mul(min(state_abs_mean,action_norm),sub(state_var,legal_norm)),action_norm))",
+          "source_validation_abs_corr": 0.2723838094612275,
+          "source_test_abs_corr": 0.10116617437077417,
+          "target_output_std": 0.9582022160240362,
+          "dependencies": [
+            "action_norm",
+            "legal_norm",
+            "state_abs_mean",
+            "state_max_abs",
+            "state_var"
+          ]
+        }
+      },
+      "control": {
+        "restarts_triggered": 0,
+        "successful_restarts": 0,
+        "unsuccessful_restarts": 0,
+        "unique_structures": 53,
+        "unique_behaviours": 38,
+        "candidate_count": 15,
+        "candidate": {
+          "expression": "sub(legal_norm,div(state_max_abs,add(state_mean,action_norm)))",
+          "source_validation_abs_corr": 0.17152530175906353,
+          "source_test_abs_corr": 0.08923056652661003,
+          "target_output_std": 0.2569493548945925,
+          "dependencies": [
+            "action_norm",
+            "legal_norm",
+            "state_max_abs",
+            "state_mean"
+          ]
+        }
+      }
+    }
+  ],
+  "downstream_by_candidate": [
+    {
+      "gp_seed": 731,
+      "condition": "restart",
+      "expression": "sub(max(sub(state_dispersion,action_norm),div(mul(state_abs_mean,state_abs_mean),sub(state_magnitude,state_dispersion))),state_max_abs)",
+      "source_validation_abs_corr": 0.13149129724212696,
+      "source_test_abs_corr": 0.05480887318405384,
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": 0.26858,
+        "33": -0.0252
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.41706,
+        "33": 0.10267000000000001
+      },
+      "mean_paired_difference": 0.17324333333333333
+    },
+    {
+      "gp_seed": 731,
+      "condition": "control",
+      "expression": "min(action_norm,sub(state_var,legal_norm))",
+      "source_validation_abs_corr": 0.283145472556302,
+      "source_test_abs_corr": 0.23269633150782837,
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": -0.15558,
+        "33": -0.09497
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": -0.007099999999999995,
+        "33": 0.03290000000000001
+      },
+      "mean_paired_difference": 0.008600000000000005
+    },
+    {
+      "gp_seed": 732,
+      "condition": "restart",
+      "expression": "div(add(min(action_norm,action_norm),state_abs_mean),state_abs_mean)",
+      "source_validation_abs_corr": 0.052681005015046994,
+      "source_test_abs_corr": 0.11560958273456445,
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": 0.92106
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.0,
+        "33": 1.04893
+      },
+      "mean_paired_difference": 0.3496433333333333
+    },
+    {
+      "gp_seed": 732,
+      "condition": "control",
+      "expression": "sub(add(state_var,min(max(state_mean,state_max_abs),action_norm)),mul(action_norm,action_norm))",
+      "source_validation_abs_corr": 0.05715257061289371,
+      "source_test_abs_corr": 0.11502196355979229,
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": 0.89821
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.0,
+        "33": 1.0260799999999999
+      },
+      "mean_paired_difference": 0.34202666666666665
+    },
+    {
+      "gp_seed": 733,
+      "condition": "restart",
+      "expression": "div(add(state_abs_mean,state_max_abs),add(mul(min(state_abs_mean,action_norm),sub(state_var,legal_norm)),action_norm))",
+      "source_validation_abs_corr": 0.2723838094612275,
+      "source_test_abs_corr": 0.10116617437077417,
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": 0.92513
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.0,
+        "33": 1.053
+      },
+      "mean_paired_difference": 0.351
+    },
+    {
+      "gp_seed": 733,
+      "condition": "control",
+      "expression": "sub(legal_norm,div(state_max_abs,add(state_mean,action_norm)))",
+      "source_validation_abs_corr": 0.17152530175906353,
+      "source_test_abs_corr": 0.08923056652661003,
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": 0.41477,
+        "33": -0.0044
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.56325,
+        "33": 0.12347000000000001
+      },
+      "mean_paired_difference": 0.22890666666666667
+    }
+  ],
+  "downstream_aggregate": {
+    "restart": {
+      "n_gp_seeds_with_candidates": 3,
+      "mean_of_gp_seed_mean_improvements": 0.29129555555555553,
+      "sd_across_gp_seed_mean_improvements": 0.10223847375041752,
+      "all_gp_seed_improvements": [
+        0.17324333333333333,
+        0.3496433333333333,
+        0.351
+      ]
+    },
+    "control": {
+      "n_gp_seeds_with_candidates": 3,
+      "mean_of_gp_seed_mean_improvements": 0.19317777777777778,
+      "sd_across_gp_seed_mean_improvements": 0.16956046307154576,
+      "all_gp_seed_improvements": [
+        0.008600000000000005,
+        0.34202666666666665,
+        0.22890666666666667
+      ]
+    }
+  }
+}

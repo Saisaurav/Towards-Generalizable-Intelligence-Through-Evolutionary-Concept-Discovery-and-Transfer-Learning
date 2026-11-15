@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+add(sub(min(state_mean,action_wins_now),log1p(state_iqr)),state_magnitude)
+sqrt(sub(board_occupancy,mul(state_position_moment,state_sign_change_fraction)))
+div(sub(add(state_negative_fraction,board_own_immediate_wins),sqrt(action_blocks_opponent)),state_range)
+sub(neg(state_magnitude),add(neg(state_dispersion),neg(state_min)))

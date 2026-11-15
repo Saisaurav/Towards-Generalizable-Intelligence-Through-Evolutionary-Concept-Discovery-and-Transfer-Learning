@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+add(sub(add(sub(state_range,state_range),div(state_median,action_norm)),max(state_max_abs,state_abs_mean)),max(max(state_var,state_median),action_norm))
+state_median
+sqrt(sub(action_norm,add(state_var,state_max)))
+add(state_skewness,legal_norm)

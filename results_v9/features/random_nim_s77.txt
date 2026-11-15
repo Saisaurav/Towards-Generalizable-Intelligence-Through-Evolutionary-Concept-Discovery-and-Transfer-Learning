@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+max(state_sign_change_fraction,add(add(legal_norm,state_min),state_max_abs))
+add(state_mean,state_negative_fraction)
+neg(legal_norm)
+mul(add(add(state_var,state_magnitude),mul(state_negative_fraction,state_iqr)),state_magnitude)

@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+sub(max(state_position_spread,state_max_abs),tanh(state_skewness))
+max(sqrt(log1p(board_own_immediate_wins)),min(add(action_norm,state_median),div(state_max,state_positive_fraction)))
+div(min(min(state_abs_mean,state_abs_mean),state_entropy),board_opponent_open_lines)
+log1p(state_position_spread)

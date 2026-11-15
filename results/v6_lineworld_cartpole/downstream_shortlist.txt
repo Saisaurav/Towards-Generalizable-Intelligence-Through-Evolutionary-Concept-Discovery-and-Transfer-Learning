@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+div(min(state_entropy,square(state_mean)),action_norm)
+mul(add(sub(transition_delta_abs_mean,neg(action_norm)),add(state_min,square(state_magnitude))),max(state_max,mul(mul(state_magnitude,state_position_moment),div(transition_delta_mean,state_sparsity))))
+div(action_norm,transition_state_alignment)
+div(state_max,max(state_skewness,action_norm))

@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+log1p(state_entropy)
+min(sub(state_max,mul(state_sparsity,state_boundary_margin)),abs(state_skewness))
+add(state_range,sub(add(state_sign_change_fraction,state_var),state_min))
+mul(state_dispersion,div(max(state_min,state_sign_change_fraction),state_var))

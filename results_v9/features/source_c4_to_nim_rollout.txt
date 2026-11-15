@@ -1,0 +1,5 @@
+# v9 GP concepts discovered on the source game
+square(square(sub(div(state_sparsity,action_norm),action_norm)))
+neg(mul(action_norm,div(square(state_abs_mean),state_range)))
+add(div(legal_norm,log1p(action_norm)),state_iqr)
+max(action_norm,sqrt(div(state_position_spread,action_norm)))

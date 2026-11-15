@@ -1,0 +1,369 @@
+{
+  "version": 3,
+  "primitive_contract": "generic_state_action_v2",
+  "created_utc": "2026-11-14T06:42:15+00:00",
+  "note": "Regenerated after the constant-concept repair. v1 bank preserved at results/concept_bank_v1_backup.json. All concepts were verified non-constant on the target game (std >= 0.01). None were admitted: transfer showed no measured benefit.",
+  "concepts": [
+    {
+      "id": "ttt_gp_1",
+      "expression": "state_max_abs",
+      "canonical": "state_max_abs",
+      "formula": "state_max_abs",
+      "source_environment": "TicTacToe",
+      "evaluated_target_environment": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "state_max_abs"
+      ],
+      "target_output_std": 0.20580030417397463,
+      "grid_probe_output_std": 0.04468655118348004,
+      "discovery_fitness": {
+        "source_training_abs_corr": 2.401920796723627e-18,
+        "behavioral_novelty": 0.6373705839764081
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 9.826803482104881e-18,
+        "source_test_abs_corr": 4.158434567655042e-18
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean episode length (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 333.53159999999997,
+        "source_concepts_mean": 283.2823,
+        "mean_difference": -50.2493,
+        "ci95": [
+          -145.34683500000003,
+          53.231939999999994
+        ],
+        "permutation_p": 0.37543122843857807
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 1,
+      "depth": 1,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "ttt_gp_2",
+      "expression": "div(max(action_norm,div(state_dispersion,action_norm)),sub(sub(mul(state_mean,action_norm),action_norm),mul(legal_norm,sub(state_abs_mean,state_dispersion))))",
+      "canonical": "div(max(action_norm,div(state_dispersion,action_norm)),sub(sub(mul(action_norm,state_mean),action_norm),mul(legal_norm,sub(state_abs_mean,state_dispersion))))",
+      "formula": "div(max(action_norm,div(state_dispersion,action_norm)),sub(sub(mul(state_mean,action_norm),action_norm),mul(legal_norm,sub(state_abs_mean,state_dispersion))))",
+      "source_environment": "TicTacToe",
+      "evaluated_target_environment": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm",
+        "state_abs_mean",
+        "state_dispersion",
+        "state_mean"
+      ],
+      "target_output_std": 0.3018849487388069,
+      "grid_probe_output_std": 0.212484270417566,
+      "discovery_fitness": {
+        "source_training_abs_corr": 0.1483345415271478,
+        "behavioral_novelty": 0.030027444126862292
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 0.39965439540846864,
+        "source_test_abs_corr": 0.045581298098895474
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean episode length (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 333.53159999999997,
+        "source_concepts_mean": 283.2823,
+        "mean_difference": -50.2493,
+        "ci95": [
+          -145.34683500000003,
+          53.231939999999994
+        ],
+        "permutation_p": 0.37543122843857807
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 17,
+      "depth": 5,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "ttt_gp_3",
+      "expression": "div(div(sub(state_var,state_mean),div(add(state_abs_mean,state_max_abs),min(action_norm,state_max_abs))),sub(max(action_norm,max(state_abs_mean,state_max_abs)),div(mul(action_norm,action_norm),state_magnitude)))",
+      "canonical": "div(div(sub(state_var,state_mean),div(add(state_abs_mean,state_max_abs),min(action_norm,state_max_abs))),sub(max(action_norm,max(state_abs_mean,state_max_abs)),div(mul(action_norm,action_norm),state_magnitude)))",
+      "formula": "div(div(sub(state_var,state_mean),div(add(state_abs_mean,state_max_abs),min(action_norm,state_max_abs))),sub(max(action_norm,max(state_abs_mean,state_max_abs)),div(mul(action_norm,action_norm),state_magnitude)))",
+      "source_environment": "TicTacToe",
+      "evaluated_target_environment": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_abs_mean",
+        "state_magnitude",
+        "state_max_abs",
+        "state_mean",
+        "state_var"
+      ],
+      "target_output_std": 0.18044395184565898,
+      "grid_probe_output_std": 0.1342751610277645,
+      "discovery_fitness": {
+        "source_training_abs_corr": 0.006541254846994665,
+        "behavioral_novelty": 0.7875906419674235
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 0.13580814651396217,
+        "source_test_abs_corr": 0.030555743119853766
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean episode length (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 333.53159999999997,
+        "source_concepts_mean": 283.2823,
+        "mean_difference": -50.2493,
+        "ci95": [
+          -145.34683500000003,
+          53.231939999999994
+        ],
+        "permutation_p": 0.37543122843857807
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 23,
+      "depth": 5,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "ttt_gp_4",
+      "expression": "div(max(action_norm,div(state_dispersion,action_norm)),sub(state_var,action_norm))",
+      "canonical": "div(max(action_norm,div(state_dispersion,action_norm)),sub(state_var,action_norm))",
+      "formula": "div(max(action_norm,div(state_dispersion,action_norm)),sub(state_var,action_norm))",
+      "source_environment": "TicTacToe",
+      "evaluated_target_environment": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_dispersion",
+        "state_var"
+      ],
+      "target_output_std": 0.3108228642662983,
+      "grid_probe_output_std": 0.25627164354213827,
+      "discovery_fitness": {
+        "source_training_abs_corr": 0.15338261200131664,
+        "behavioral_novelty": 0.01998357876122947
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 0.38700053700854137,
+        "source_test_abs_corr": 0.05874277314249296
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean episode length (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 333.53159999999997,
+        "source_concepts_mean": 283.2823,
+        "mean_difference": -50.2493,
+        "ci95": [
+          -145.34683500000003,
+          53.231939999999994
+        ],
+        "permutation_p": 0.37543122843857807
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 9,
+      "depth": 4,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "connect_four_gp_1",
+      "expression": "max(div(mul(sub(action_norm,state_var),div(state_mean,state_magnitude)),add(sub(legal_norm,state_abs_mean),min(state_abs_mean,action_norm))),div(mul(legal_norm,state_var),action_norm))",
+      "canonical": "max(div(mul(div(state_mean,state_magnitude),sub(action_norm,state_var)),add(min(action_norm,state_abs_mean),sub(legal_norm,state_abs_mean))),div(mul(legal_norm,state_var),action_norm))",
+      "formula": "max(div(mul(sub(action_norm,state_var),div(state_mean,state_magnitude)),add(sub(legal_norm,state_abs_mean),min(state_abs_mean,action_norm))),div(mul(legal_norm,state_var),action_norm))",
+      "source_environment": "ConnectFour",
+      "evaluated_target_environment": "Nim",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm",
+        "state_abs_mean",
+        "state_magnitude",
+        "state_mean",
+        "state_var"
+      ],
+      "target_output_std": 0.40420988752471143,
+      "grid_probe_output_std": 0.4107405139807161,
+      "discovery_fitness": {
+        "source_training_abs_corr": 0.14207536472854207,
+        "behavioral_novelty": 0.16758477848376413
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 0.3616996169879417,
+        "source_test_abs_corr": 0.19672509820048115
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean return vs random (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 0.2512,
+        "source_concepts_mean": 0.2512,
+        "mean_difference": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "permutation_p": 1.0
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 21,
+      "depth": 5,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "connect_four_gp_2",
+      "expression": "state_magnitude",
+      "canonical": "state_magnitude",
+      "formula": "state_magnitude",
+      "source_environment": "ConnectFour",
+      "evaluated_target_environment": "Nim",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "state_magnitude"
+      ],
+      "target_output_std": 0.23257692953029965,
+      "grid_probe_output_std": 0.08032467476965616,
+      "discovery_fitness": {
+        "source_training_abs_corr": 1.2099283764080737e-17,
+        "behavioral_novelty": 0.4762309933330859
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 1.0306067044702242e-17,
+        "source_test_abs_corr": 5.500689993602748e-18
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean return vs random (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 0.2512,
+        "source_concepts_mean": 0.2512,
+        "mean_difference": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "permutation_p": 1.0
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 1,
+      "depth": 1,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "connect_four_gp_3",
+      "expression": "div(max(action_norm,div(state_dispersion,div(state_dispersion,action_norm))),sub(mul(sub(state_var,state_max_abs),state_magnitude),action_norm))",
+      "canonical": "div(max(action_norm,div(state_dispersion,div(state_dispersion,action_norm))),sub(mul(state_magnitude,sub(state_var,state_max_abs)),action_norm))",
+      "formula": "div(max(action_norm,div(state_dispersion,div(state_dispersion,action_norm))),sub(mul(sub(state_var,state_max_abs),state_magnitude),action_norm))",
+      "source_environment": "ConnectFour",
+      "evaluated_target_environment": "Nim",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_dispersion",
+        "state_magnitude",
+        "state_max_abs",
+        "state_var"
+      ],
+      "target_output_std": 0.2936474406170201,
+      "grid_probe_output_std": 0.708302741546369,
+      "discovery_fitness": {
+        "source_training_abs_corr": 0.29723704511609483,
+        "behavioral_novelty": 0.13770526724115836
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 0.2039842784730275,
+        "source_test_abs_corr": 0.08808726368877615
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean return vs random (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 0.2512,
+        "source_concepts_mean": 0.2512,
+        "mean_difference": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "permutation_p": 1.0
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 15,
+      "depth": 5,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    },
+    {
+      "id": "connect_four_gp_4",
+      "expression": "div(state_mean,sub(div(sub(state_max_abs,state_dispersion),legal_norm),div(state_mean,sub(action_norm,state_var))))",
+      "canonical": "div(state_mean,sub(div(sub(state_max_abs,state_dispersion),legal_norm),div(state_mean,sub(action_norm,state_var))))",
+      "formula": "div(state_mean,sub(div(sub(state_max_abs,state_dispersion),legal_norm),div(state_mean,sub(action_norm,state_var))))",
+      "source_environment": "ConnectFour",
+      "evaluated_target_environment": "Nim",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm",
+        "state_dispersion",
+        "state_max_abs",
+        "state_mean",
+        "state_var"
+      ],
+      "target_output_std": 0.4019066208900778,
+      "grid_probe_output_std": 0.37846874190564267,
+      "discovery_fitness": {
+        "source_training_abs_corr": 0.05067347857352301,
+        "behavioral_novelty": 0.7355030135122139
+      },
+      "validation_performance": {
+        "source_validation_abs_corr": 0.03493447178256759,
+        "source_test_abs_corr": 0.026299670780381017
+      },
+      "transfer_performance": {
+        "scope": "pair-level: all 4 shortlisted source concepts of this pair were added together; per-concept effect not measured",
+        "target_metric": "mean return vs random (greedy, 1000 held-out eps)",
+        "n_seeds": 10,
+        "scratch_mean": 0.2512,
+        "source_concepts_mean": 0.2512,
+        "mean_difference": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "permutation_p": 1.0
+      },
+      "discovery_seed": 2026,
+      "created_utc": "2026-11-14T06:42:15+00:00",
+      "complexity": 13,
+      "depth": 5,
+      "admission_status": "not_admitted",
+      "admission_reason": "no measured benefit over from-scratch learning in the 10-seed transfer matrix (see results_v2/transfer_analysis.json)",
+      "admitted_into_target": false
+    }
+  ]
+}

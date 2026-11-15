@@ -1,0 +1,3 @@
+# Downstream-admitted concepts; primitive contract generic_state_action_v5.
+add(sub(add(sub(state_range,state_range),div(state_median,action_norm)),max(state_max_abs,state_abs_mean)),max(max(state_var,state_median),action_norm))
+sqrt(sub(action_norm,add(state_var,state_max)))

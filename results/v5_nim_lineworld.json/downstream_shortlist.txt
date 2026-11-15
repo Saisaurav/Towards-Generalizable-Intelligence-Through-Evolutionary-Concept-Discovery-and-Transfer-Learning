@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+max(max(sub(state_sparsity,state_sign_change_fraction),min(state_min,state_entropy)),add(mul(state_abs_mean,state_median),sub(min(state_max_abs,action_norm),min(state_median,state_median))))
+sub(square(add(state_max_abs,state_entropy)),state_max_abs)
+max(max(sub(state_sparsity,state_sign_change_fraction),min(state_min,state_entropy)),add(state_positive_fraction,sub(min(state_max_abs,action_norm),min(state_median,state_median))))

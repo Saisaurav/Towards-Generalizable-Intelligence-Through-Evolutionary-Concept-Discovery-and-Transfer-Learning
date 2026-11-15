@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "primitive_contract": "generic_state_action_v2",
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    }
+  },
+  "concepts": []
+}

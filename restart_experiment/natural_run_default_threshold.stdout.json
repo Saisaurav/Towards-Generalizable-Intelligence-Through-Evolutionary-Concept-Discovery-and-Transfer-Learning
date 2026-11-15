@@ -1,0 +1,133 @@
+{
+  "generations_run": 30,
+  "stopped_for_stagnation": false,
+  "stopped_after_unsuccessful_restarts": false,
+  "final_stagnant_generations": 0,
+  "restart_summary": {
+    "restarts_triggered": 0,
+    "successful_restarts": 0,
+    "unsuccessful_restarts": 0,
+    "consecutive_unsuccessful_restarts": 0,
+    "max_unsuccessful_restarts": 3,
+    "stopped_after_unsuccessful_restarts": false,
+    "events": []
+  },
+  "unique_structures": 199,
+  "unique_behaviors": 98,
+  "shortlist_size": 4,
+  "concepts_admitted": 0,
+  "downstream_evaluation_enabled": false,
+  "source_game": "Nim",
+  "target_game": "LineWorld",
+  "primitive_contract": "generic_state_action_v2",
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    }
+  },
+  "available_source_primitives": [
+    "state_mean",
+    "state_abs_mean",
+    "state_var",
+    "state_max_abs",
+    "action_norm",
+    "legal_norm",
+    "state_magnitude",
+    "state_dispersion"
+  ],
+  "available_target_primitives": [
+    "action_norm",
+    "legal_norm",
+    "state_abs_mean",
+    "state_dispersion",
+    "state_magnitude",
+    "state_max_abs",
+    "state_mean",
+    "state_var"
+  ],
+  "final_pareto_front_size": 25,
+  "concepts": []
+}

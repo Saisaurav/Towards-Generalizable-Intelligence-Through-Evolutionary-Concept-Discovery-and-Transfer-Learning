@@ -1,0 +1,7 @@
+grid          demo_1_open_field_without    greedy ret -0.640±0.000 [worst -0.640 best -0.640] W/D 0.00 (min 0.00) | stoch -0.468 | random -0.992 | vs strategic greedy -0.640 | fail 0/10
+grid          demo_1_open_field_with       greedy ret +0.600±0.620 [worst -0.640 best +0.910] W/D 0.80 (min 0.00) | stoch +0.588 | random -0.992 | vs strategic greedy +0.600 | fail 0/10
+grid          demo_2_wall_maze_without     greedy ret -0.740±0.000 [worst -0.740 best -0.740] W/D 0.00 (min 0.00) | stoch -0.742 | random -0.798 | vs strategic greedy -0.740 | fail 0/10
+grid          demo_2_wall_maze_with        greedy ret -0.576±0.492 [worst -0.740 best +0.900] W/D 0.10 (min 0.00) | stoch -0.595 | random -0.798 | vs strategic greedy -0.576 | fail 0/10
+grid          demo_3_hazard_corridor_without greedy ret -0.531±0.477 [worst -0.690 best +0.900] W/D 0.10 (min 0.00) | stoch -0.315 | random -1.037 | vs strategic greedy -0.531 | fail 0/10
+grid          demo_3_hazard_corridor_with  greedy ret +0.741±0.477 [worst -0.690 best +0.900] W/D 0.90 (min 0.00) | stoch +0.712 | random -1.037 | vs strategic greedy +0.741 | fail 0/10
+DEMOS_DONE

@@ -1,0 +1,5 @@
+# random algebraic features (control)
+sub(legal_norm,min(legal_norm,action_norm))
+mul(add(state_var,action_norm),sub(max(state_magnitude,state_mean),mul(action_norm,state_max_abs)))
+mul(state_magnitude,legal_norm)
+div(max(state_mean,max(legal_norm,state_max_abs)),state_max_abs)

@@ -1,0 +1,5 @@
+# GP concepts discovered on the target game itself
+div(state_dispersion,state_abs_mean)
+min(state_boundary_margin,div(state_mean,sub(action_norm,state_boundary_margin)))
+min(mul(min(state_max_abs,state_boundary_margin),max(add(action_norm,state_max_abs),mul(action_norm,state_magnitude))),mul(div(add(action_norm,action_norm),state_mean),state_var))
+div(div(min(max(state_magnitude,state_mean),max(state_var,state_mean)),action_norm),state_mean)

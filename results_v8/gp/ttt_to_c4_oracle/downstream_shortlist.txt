@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+div(sub(sub(log1p(board_center_control),abs(state_iqr)),sub(action_wins_now,add(state_mean,state_abs_mean))),sub(sub(sqrt(board_center_control),add(state_entropy,state_sparsity)),add(action_blocks_opponent,state_dispersion)))
+sub(div(action_wins_now,state_dispersion),div(state_iqr,action_norm))
+add(sub(square(action_wins_now),board_opponent_immediate_wins),min(add(board_own_immediate_wins,state_max_abs),sub(action_blocks_opponent,state_adjacent_difference)))
+max(min(div(state_iqr,action_blocks_opponent),tanh(state_negative_fraction)),sub(action_wins_now,action_norm))

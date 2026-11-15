@@ -1,0 +1,456 @@
+{
+  "version": 2,
+  "primitive_contract": "generic_state_action_v7",
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    },
+    "state_min": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Minimum normalized state value."
+    },
+    "state_max": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum normalized state value."
+    },
+    "state_range": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum minus minimum normalized state value."
+    },
+    "state_positive_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values greater than zero."
+    },
+    "state_negative_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values less than zero."
+    },
+    "state_sparsity": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values with absolute value at most 1e-6."
+    },
+    "state_median": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Median of normalized state values."
+    },
+    "state_iqr": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "75th minus 25th percentile of normalized state values."
+    },
+    "state_skewness": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standardized third central moment; zero for near-constant states."
+    },
+    "state_entropy": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Normalized Shannon entropy of absolute state-value mass; zero for all-zero states."
+    },
+    "state_position_moment": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Signed first moment of values over normalized feature index; order-sensitive."
+    },
+    "state_position_spread": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Absolute-mass-weighted spread over normalized feature index; order-sensitive."
+    },
+    "state_adjacent_difference": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute difference between adjacent normalized state features; order-sensitive."
+    },
+    "state_sign_change_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of adjacent feature pairs with opposite nonzero signs; order-sensitive."
+    },
+    "transition_delta_mean": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Mean normalized observation change from the previous environment step; zero before the first transition."
+    },
+    "transition_delta_abs_mean": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized observation change from the previous environment step."
+    },
+    "transition_delta_max_abs": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized observation change from the previous environment step."
+    },
+    "transition_state_alignment": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Cosine alignment between current normalized observation and its previous-step change; zero when either vector has negligible norm."
+    },
+    "board_own_open_lines": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of winning lines containing own marks and no opponent marks."
+    },
+    "board_opponent_open_lines": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of winning lines containing opponent marks and no own marks."
+    },
+    "board_own_immediate_wins": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of distinct empty cells that complete an own winning line in one move."
+    },
+    "board_opponent_immediate_wins": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of distinct empty cells that complete an opponent winning line in one move."
+    },
+    "board_center_control": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Normalized own-minus-opponent occupancy in the center cell/columns."
+    },
+    "board_occupancy": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of board cells occupied by either player."
+    }
+  },
+  "target_game": "Nim",
+  "downstream_evaluation_enabled": false,
+  "candidates": [
+    {
+      "id": "nim_gp_1",
+      "expression": "sub(abs(add(neg(state_max),action_norm)),add(sqrt(state_max_abs),sub(min(state_dispersion,state_positive_fraction),state_positive_fraction)))",
+      "canonical": "sub(abs(add(action_norm,neg(state_max))),add(sqrt(state_max_abs),sub(min(state_dispersion,state_positive_fraction),state_positive_fraction)))",
+      "source_game": "Nim",
+      "target_game": "Nim",
+      "primitive_contract": "generic_state_action_v7",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_dispersion",
+        "state_max",
+        "state_max_abs",
+        "state_positive_fraction"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": 0.04783806191039191,
+      "source_validation_signed_corr": 0.04783806191039191,
+      "source_generalization_consistency": -0.0011289494355816027,
+      "source_test_abs_corr": 0.033242210354098946,
+      "behavioral_novelty": 0.15886518525181462,
+      "target_output_std": 0.21084939567121258,
+      "complexity": 14,
+      "source_data_protocol": "exact_oracle_labels_v1",
+      "teacher_policy": "oracle",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 4
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "nim_gp_2",
+      "expression": "sub(abs(add(neg(state_max),action_norm)),div(abs(sub(state_positive_fraction,legal_norm)),state_median))",
+      "canonical": "sub(abs(add(action_norm,neg(state_max))),div(abs(sub(state_positive_fraction,legal_norm)),state_median))",
+      "source_game": "Nim",
+      "target_game": "Nim",
+      "primitive_contract": "generic_state_action_v7",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm",
+        "state_max",
+        "state_median",
+        "state_positive_fraction"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": 0.06091592603863549,
+      "source_validation_signed_corr": 0.07350240229342121,
+      "source_generalization_consistency": -0.01258647625478572,
+      "source_test_abs_corr": 0.02951861892678939,
+      "behavioral_novelty": 0.24916414470284134,
+      "target_output_std": 0.4977008455186518,
+      "complexity": 12,
+      "source_data_protocol": "exact_oracle_labels_v1",
+      "teacher_policy": "oracle",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 4
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "nim_gp_3",
+      "expression": "square(min(legal_norm,square(min(action_norm,state_sparsity))))",
+      "canonical": "square(min(legal_norm,square(min(action_norm,state_sparsity))))",
+      "source_game": "Nim",
+      "target_game": "Nim",
+      "primitive_contract": "generic_state_action_v7",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm",
+        "state_sparsity"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": 0.04136037303227707,
+      "source_validation_signed_corr": 0.06932000777672435,
+      "source_generalization_consistency": -0.027959634744447286,
+      "source_test_abs_corr": 0.04336131241462246,
+      "behavioral_novelty": 0.1040225068455154,
+      "target_output_std": 0.348672884054949,
+      "complexity": 7,
+      "source_data_protocol": "exact_oracle_labels_v1",
+      "teacher_policy": "oracle",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 4
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "nim_gp_4",
+      "expression": "sub(sub(sub(action_norm,log1p(state_positive_fraction)),state_max_abs),div(state_min,max(state_mean,state_mean)))",
+      "canonical": "sub(sub(sub(action_norm,log1p(state_positive_fraction)),state_max_abs),div(state_min,max(state_mean,state_mean)))",
+      "source_game": "Nim",
+      "target_game": "Nim",
+      "primitive_contract": "generic_state_action_v7",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_max_abs",
+        "state_mean",
+        "state_min",
+        "state_positive_fraction"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": 0.02397781688856664,
+      "source_validation_signed_corr": 0.02397781688856664,
+      "source_generalization_consistency": -0.0005431088125212452,
+      "source_test_abs_corr": 0.04302496605249844,
+      "behavioral_novelty": 0.13867711005030853,
+      "target_output_std": 0.08665551790727237,
+      "complexity": 12,
+      "source_data_protocol": "exact_oracle_labels_v1",
+      "teacher_policy": "oracle",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 4
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    }
+  ]
+}

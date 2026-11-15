@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+min(min(div(state_position_spread,state_max_abs),board_occupancy),board_center_control)
+max(neg(max(board_own_immediate_wins,state_median)),min(sub(board_opponent_open_lines,board_own_open_lines),abs(action_norm)))
+add(action_blocks_opponent,min(sub(state_dispersion,board_occupancy),state_negative_fraction))
+abs(abs(abs(state_position_spread)))

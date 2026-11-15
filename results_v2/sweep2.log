@@ -1,0 +1,13 @@
+nim           onehot_it8                   greedy ret +0.135±0.093 [worst +0.006 best +0.282] W/D 0.57 (min 0.50) | stoch +0.170 | random -0.007 | vs strategic greedy -0.939 | fail 0/10
+ttt           onehot_it8                   greedy ret +0.516±0.030 [worst +0.460 best +0.566] W/D 0.79 (min 0.75) | stoch +0.380 | random +0.003 | vs strategic greedy -0.670 | fail 0/10
+cartpole      onehot_it8                   len greedy 145.9 (500-rate 0.00) stoch 33.6 (500-rate 0.00) | random 22.5 | fail 0/10
+connect_four  onehot_it8                   greedy ret +0.778±0.029 [worst +0.702 best +0.808] W/D 0.89 (min 0.85) | stoch +0.565 | random +0.008 | vs strategic greedy -0.900 | fail 0/10
+nim           onehot_it32                  greedy ret +0.217±0.088 [worst +0.056 best +0.316] W/D 0.61 (min 0.53) | stoch +0.172 | random -0.007 | vs strategic greedy -0.931 | fail 0/10
+ttt           onehot_it32                  greedy ret +0.532±0.036 [worst +0.476 best +0.594] W/D 0.80 (min 0.76) | stoch +0.440 | random +0.003 | vs strategic greedy -0.599 | fail 0/10
+cartpole      onehot_it32                  len greedy 196.3 (500-rate 0.03) stoch 35.5 (500-rate 0.00) | random 22.5 | fail 0/10
+connect_four  onehot_it32                  greedy ret +0.757±0.041 [worst +0.692 best +0.824] W/D 0.88 (min 0.85) | stoch +0.608 | random +0.008 | vs strategic greedy -0.931 | fail 0/10
+ttt           fixed_it8                    greedy ret +0.589±0.036 [worst +0.517 best +0.644] W/D 0.82 (min 0.79) | stoch +0.419 | random +0.003 | vs strategic greedy -0.570 | fail 0/10
+cartpole      fixed_it8                    len greedy 377.7 (500-rate 0.51) stoch 125.3 (500-rate 0.01) | random 22.5 | fail 0/10
+ttt           fixed_it32                   greedy ret +0.588±0.041 [worst +0.511 best +0.673] W/D 0.82 (min 0.80) | stoch +0.459 | random +0.003 | vs strategic greedy -0.650 | fail 0/10
+cartpole      fixed_it32                   len greedy 274.1 (500-rate 0.15) stoch 79.3 (500-rate 0.00) | random 22.5 | fail 0/10
+SWEEP2_DONE

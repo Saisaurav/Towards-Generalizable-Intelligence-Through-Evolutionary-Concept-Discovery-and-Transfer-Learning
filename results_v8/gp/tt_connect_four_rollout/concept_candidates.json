@@ -1,0 +1,459 @@
+{
+  "version": 2,
+  "primitive_contract": "generic_state_action_v8",
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    },
+    "state_min": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Minimum normalized state value."
+    },
+    "state_max": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum normalized state value."
+    },
+    "state_range": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum minus minimum normalized state value."
+    },
+    "state_positive_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values greater than zero."
+    },
+    "state_negative_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values less than zero."
+    },
+    "state_sparsity": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values with absolute value at most 1e-6."
+    },
+    "state_median": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Median of normalized state values."
+    },
+    "state_iqr": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "75th minus 25th percentile of normalized state values."
+    },
+    "state_skewness": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standardized third central moment; zero for near-constant states."
+    },
+    "state_entropy": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Normalized Shannon entropy of absolute state-value mass; zero for all-zero states."
+    },
+    "state_position_moment": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Signed first moment of values over normalized feature index; order-sensitive."
+    },
+    "state_position_spread": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Absolute-mass-weighted spread over normalized feature index; order-sensitive."
+    },
+    "state_adjacent_difference": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute difference between adjacent normalized state features; order-sensitive."
+    },
+    "state_sign_change_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of adjacent feature pairs with opposite nonzero signs; order-sensitive."
+    },
+    "transition_delta_mean": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Mean normalized observation change from the previous environment step; zero before the first transition."
+    },
+    "transition_delta_abs_mean": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized observation change from the previous environment step."
+    },
+    "transition_delta_max_abs": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized observation change from the previous environment step."
+    },
+    "transition_state_alignment": {
+      "available_in": [
+        "cartpole",
+        "lineworld"
+      ],
+      "definition": "Cosine alignment between current normalized observation and its previous-step change; zero when either vector has negligible norm."
+    },
+    "board_own_open_lines": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of winning lines containing own marks and no opponent marks."
+    },
+    "board_opponent_open_lines": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of winning lines containing opponent marks and no own marks."
+    },
+    "board_own_immediate_wins": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of distinct empty cells that complete an own winning line in one move."
+    },
+    "board_opponent_immediate_wins": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of distinct empty cells that complete an opponent winning line in one move."
+    },
+    "board_center_control": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Normalized own-minus-opponent occupancy in the center cell/columns."
+    },
+    "board_occupancy": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Fraction of board cells occupied by either player."
+    },
+    "action_wins_now": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Afterstate lookahead (supplied knowledge): 1 if this action completes an own winning line immediately, else 0."
+    },
+    "action_blocks_opponent": {
+      "available_in": [
+        "ttt",
+        "connect_four"
+      ],
+      "definition": "Afterstate lookahead (supplied knowledge): 1 if the opponent would win by playing this action, so playing it blocks that win, else 0."
+    }
+  },
+  "target_game": "ConnectFour",
+  "downstream_evaluation_enabled": false,
+  "candidates": [
+    {
+      "id": "connect_four_gp_1",
+      "expression": "div(sub(sub(abs(action_wins_now),action_norm),action_norm),div(div(log1p(action_norm),board_opponent_open_lines),state_iqr))",
+      "canonical": "div(sub(sub(abs(action_wins_now),action_norm),action_norm),div(div(log1p(action_norm),board_opponent_open_lines),state_iqr))",
+      "source_game": "ConnectFour",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v8",
+      "primitive_dependencies": [
+        "action_norm",
+        "action_wins_now",
+        "board_opponent_open_lines",
+        "state_iqr"
+      ],
+      "compatible_games": [
+        "ttt",
+        "connect_four"
+      ],
+      "source_robust_signed_corr": 0.2685717039421302,
+      "source_validation_signed_corr": 0.30241934642836177,
+      "source_generalization_consistency": -0.033847642486231566,
+      "source_test_abs_corr": 0.0873871655169768,
+      "behavioral_novelty": 0.2214055787852589,
+      "target_output_std": 0.10845754555190698,
+      "complexity": 13,
+      "source_data_protocol": "game_calibrated_rollout_seeds_v3",
+      "teacher_policy": "rollout",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 2
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "connect_four_gp_2",
+      "expression": "add(action_wins_now,add(div(action_norm,div(board_own_open_lines,state_sign_change_fraction)),action_blocks_opponent))",
+      "canonical": "add(action_wins_now,add(action_blocks_opponent,div(action_norm,div(board_own_open_lines,state_sign_change_fraction))))",
+      "source_game": "ConnectFour",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v8",
+      "primitive_dependencies": [
+        "action_blocks_opponent",
+        "action_norm",
+        "action_wins_now",
+        "board_own_open_lines",
+        "state_sign_change_fraction"
+      ],
+      "compatible_games": [
+        "ttt",
+        "connect_four"
+      ],
+      "source_robust_signed_corr": 0.07376956488310706,
+      "source_validation_signed_corr": 0.45698271932328577,
+      "source_generalization_consistency": -0.3832131544401787,
+      "source_test_abs_corr": 0.2661526314076965,
+      "behavioral_novelty": 0.19246357005514075,
+      "target_output_std": 0.4303594866086749,
+      "complexity": 9,
+      "source_data_protocol": "game_calibrated_rollout_seeds_v3",
+      "teacher_policy": "rollout",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 2
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "connect_four_gp_3",
+      "expression": "add(neg(abs(action_norm)),sub(add(board_occupancy,action_wins_now),div(board_center_control,action_norm)))",
+      "canonical": "add(neg(abs(action_norm)),sub(add(action_wins_now,board_occupancy),div(board_center_control,action_norm)))",
+      "source_game": "ConnectFour",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v8",
+      "primitive_dependencies": [
+        "action_norm",
+        "action_wins_now",
+        "board_center_control",
+        "board_occupancy"
+      ],
+      "compatible_games": [
+        "ttt",
+        "connect_four"
+      ],
+      "source_robust_signed_corr": 0.09384164680612975,
+      "source_validation_signed_corr": 0.18302383380518195,
+      "source_generalization_consistency": -0.0891821869990522,
+      "source_test_abs_corr": 0.26772615512516434,
+      "behavioral_novelty": 0.37030193725032046,
+      "target_output_std": 0.361798518648618,
+      "complexity": 11,
+      "source_data_protocol": "game_calibrated_rollout_seeds_v3",
+      "teacher_policy": "rollout",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 2
+      },
+      "depth": 4,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "connect_four_gp_4",
+      "expression": "mul(min(state_position_moment,add(div(action_norm,state_range),legal_norm)),div(board_own_open_lines,state_sign_change_fraction))",
+      "canonical": "mul(div(board_own_open_lines,state_sign_change_fraction),min(add(div(action_norm,state_range),legal_norm),state_position_moment))",
+      "source_game": "ConnectFour",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v8",
+      "primitive_dependencies": [
+        "action_norm",
+        "board_own_open_lines",
+        "legal_norm",
+        "state_position_moment",
+        "state_range",
+        "state_sign_change_fraction"
+      ],
+      "compatible_games": [
+        "ttt",
+        "connect_four"
+      ],
+      "source_robust_signed_corr": 0.11116704098147683,
+      "source_validation_signed_corr": 0.11116704098147683,
+      "source_generalization_consistency": -0.0011093586120823201,
+      "source_test_abs_corr": 0.25347900132931334,
+      "behavioral_novelty": 0.3958041070627856,
+      "target_output_std": 0.4510786669563604,
+      "complexity": 11,
+      "source_data_protocol": "game_calibrated_rollout_seeds_v3",
+      "teacher_policy": "rollout",
+      "source_data_config": {
+        "train_states": 60,
+        "rollouts_per_action": 2
+      },
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    }
+  ]
+}

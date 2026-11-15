@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prompt-to-Game</title>
+  <style>
+    :root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #101721; color: #e8eef5; }
+    body { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+    h1 { margin-bottom: .35rem; }
+    p { color: #b7c4d2; }
+    textarea { box-sizing: border-box; width: 100%; min-height: 7rem; padding: .8rem; border-radius: .6rem; }
+    button { border: 0; border-radius: .45rem; padding: .65rem 1rem; margin: .25rem; cursor: pointer; color: #101721; background: #82d5bb; font-weight: 650; }
+    button:disabled { opacity: .4; cursor: default; }
+    #board { display: grid; gap: .3rem; width: min(90vw, 480px); margin: 1rem 0; }
+    .cell { display: grid; place-items: center; aspect-ratio: 1; background: #263545; border-radius: .35rem; font-size: clamp(1rem, 5vw, 2rem); }
+    .wall { background: #647184; } .hazard { background: #853e49; } .goal { background: #3a795a; }
+    #status { min-height: 1.5rem; color: #f0cf75; }
+    #runtime-status, #training-status { min-height: 1.25rem; }
+    .controls { display: grid; grid-template-columns: repeat(3, 3.5rem); }
+    #error { color: #ff9a9a; white-space: pre-wrap; }
+    #generation-status { min-height: 1.5rem; color: #f0cf75; }
+    .loading::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .55rem; border: 2px solid #718398; border-top-color: #82d5bb; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    body[data-theme="forest"] { background: #101721; }
+    body[data-theme="neon"] { background: #171126; }
+    body[data-theme="paper"] { background: #25231e; }
+    body[data-theme="paper"] .cell { background: #49463e; }
+    .tabs { display: flex; gap: .4rem; margin-bottom: 1rem; }
+    .tabs button { background: #263545; color: #e8eef5; }
+    .tabs button.active { background: #82d5bb; color: #101721; }
+    .row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin: .5rem 0; }
+    select { padding: .5rem; border-radius: .45rem; background: #1b2735; color: #e8eef5; border: 1px solid #3b4d60; }
+    #env-scene { width: min(94vw, 560px); background: #18232f; border-radius: .6rem; touch-action: manipulation; }
+    #env-scene svg { display: block; width: 100%; height: auto; border-radius: .6rem; }
+    #env-scene .clickable { cursor: pointer; } #env-scene .clickable:hover { filter: brightness(1.35); }
+    .fx-pulse { animation: fxpulse 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .fx-fade { animation: fxfade 1.6s ease-in-out infinite; }
+    .fx-shake { animation: fxshake .35s linear infinite; }
+    @keyframes fxpulse { 50% { transform: scale(1.18); } }
+    @keyframes fxfade { 50% { opacity: .35; } }
+    @keyframes fxshake { 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+    #env-chart { width: min(94vw, 560px); height: 150px; background: #18232f; border-radius: .6rem; }
+    .legend span { margin-right: 1rem; } .legend .best { color: #82d5bb; } .legend .mean { color: #f0cf75; }
+    details { margin: .6rem 0; } pre { overflow: auto; max-height: 18rem; background: #18232f; padding: .7rem; border-radius: .5rem; font-size: .8rem; }
+    .muted { color: #8fa1b4; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <div class="tabs" role="tablist">
+    <button id="tab-env" class="active" type="button">Any game (generated Python)</button>
+    <button id="tab-legacy" type="button">Grid maze (legacy contract)</button>
+    <a id="tab-research" href="/research" target="_blank" rel="noopener" style="align-self:center;margin-left:auto;color:#82d5bb;font-size:.9rem">Research results &#8599;</a>
+  </div>
+  <div id="env-mode">
+    <h1>Describe a game</h1>
+    <p>A language model writes the game as Python. It is validated in an isolated process, then a fresh learner trains on it through a common interface. Any game or simulation can be described; grids are not required.</p>
+    <form id="env-form">
+      <label for="env-prompt">Game or simulation</label>
+      <textarea id="env-prompt" required maxlength="4000" placeholder="Tic-tac-toe on a 3x3 board for two players, X moves first, three in a row wins"></textarea>
+      <div class="row">
+        <label for="env-train-opp">Train against</label>
+        <select id="env-train-opp"><option value="random">random opponent</option><option value="rule_based">rule-based opponent</option><option value="self_play">staged self-play (fresh learner vs frozen champion)</option></select>
+        <button id="env-create" type="submit">Generate environment</button>
+        <select id="env-saved" aria-label="Saved environments"><option value="">Saved environments...</option></select>
+        <button id="env-load" type="button">Load</button>
+      </div>
+    </form>
+    <p id="env-error" role="alert" style="color:#ff9a9a;white-space:pre-wrap"></p>
+    <section id="env-panel" hidden>
+      <h2 id="env-title"></h2>
+      <p id="env-description"></p>
+      <p id="env-gen-status" aria-live="polite" style="color:#f0cf75"></p>
+      <p id="env-validation" class="muted"></p>
+      <div class="row">
+        <label for="env-seat">You play</label><select id="env-seat"></select>
+        <label for="env-opp">Opponent</label>
+        <select id="env-opp"><option value="random">random</option><option value="rule_based">rule-based</option><option value="brain" disabled>trained brain</option></select>
+      </div>
+      <label class="muted"><input type="checkbox" id="env-textmode"> Text mode (no graphics)</label>
+      <div id="env-scene" aria-label="Game view"></div>
+      <pre id="env-text" hidden aria-live="polite"></pre>
+      <form id="env-textform" class="row" hidden>
+        <input id="env-textinput" autocomplete="off" aria-label="Your move" placeholder="type a move number or name, Enter = default move">
+        <button type="submit">Send</button>
+      </form>
+      <p id="env-hud" aria-live="polite" style="color:#f0cf75;min-height:1.5rem"></p>
+      <div class="row">
+        <button id="env-play" type="button" hidden>Play</button>
+        <button id="env-brain" type="button" disabled>Let brain play my seat</button>
+        <button id="env-restart" type="button">Restart</button>
+      </div>
+      <h3>Learning</h3>
+      <p id="env-training" aria-live="polite"></p>
+      <svg id="env-chart" viewBox="0 0 560 150" preserveAspectRatio="none" aria-label="Fitness per generation"></svg>
+      <p class="legend muted"><span class="best">&#9632; best fitness</span><span class="mean">&#9632; population mean</span><span id="env-popinfo"></span></p>
+      <details id="env-concept-box"><summary id="env-concept-summary">Concepts available to the learner</summary><pre id="env-concepts"></pre></details>
+      <details id="env-source-box"><summary>Generated Python source</summary><pre id="env-source"></pre></details>
+    </section>
+  </div>
+  <div id="legacy-mode" hidden>
+  <h1>Describe a game</h1>
+  <p>A language model creates a bounded grid-game specification. A trusted local engine validates and runs it.</p>
+  <form id="create-form">
+    <label for="prompt">Game idea</label>
+    <textarea id="prompt" required maxlength="4000" placeholder="Create a maze with a few hazards and a clear goal"></textarea>
+    <button id="create-button" type="submit">Generate game</button>
+  </form>
+  <p id="error" role="alert"></p>
+  <section id="game" hidden>
+    <h2 id="title"></h2>
+    <p id="description"></p>
+    <p id="generation-status" role="status" aria-live="polite"></p>
+    <p id="runtime-status" aria-live="polite"></p>
+    <p id="training-status" aria-live="polite"></p>
+    <div id="board" aria-label="Game board"></div>
+    <div class="controls" aria-label="Move">
+      <span></span><button data-action="up" aria-label="Move up">↑</button><span></span>
+      <button data-action="left" aria-label="Move left">←</button>
+      <button data-action="down" aria-label="Move down">↓</button>
+      <button data-action="right" aria-label="Move right">→</button>
+    </div>
+    <p id="status" aria-live="polite"></p>
+    <button id="agent-button" type="button" disabled>Let brain play</button>
+    <button id="reset-button" type="button">Restart</button>
+  </section>
+  </div>
+  <script>
+    let currentGame = null;
+    let agentPlaying = false;
+    const form = document.querySelector("#create-form");
+    const errorBox = document.querySelector("#error");
+    const gamePanel = document.querySelector("#game");
+
+    async function request(url, data, method = "POST") {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: method === "GET" ? {} : { "Content-Type": "application/json" },
+          body: method === "GET" ? undefined : JSON.stringify(data),
+          signal: controller.signal
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
+        return payload;
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("The game server did not respond. Check its PowerShell window and try again.");
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function render(payload) {
+      currentGame = payload;
+      const { spec, state } = payload;
+      gamePanel.hidden = false;
+      const generationStatus = document.querySelector("#generation-status");
+      if (payload.generation_status !== "ready") {
+        document.querySelector("#title").textContent =
+          payload.generation_status === "failed" ? "Game generation failed" : "Creating your game...";
+        document.querySelector("#description").textContent = "";
+        generationStatus.textContent = payload.generation_status === "failed"
+          ? "The game contract could not be generated."
+          : "Asking the LLM to create and validate the game rules...";
+        generationStatus.classList.toggle("loading", payload.generation_status !== "failed");
+        document.querySelector("#runtime-status").textContent = "Waiting for the game contract.";
+        document.querySelector("#training-status").textContent = "Waiting for the game contract.";
+        document.querySelector("#board").replaceChildren();
+        document.querySelector("#status").textContent = "";
+        document.querySelectorAll("[data-action]").forEach((button) => { button.disabled = true; });
+        document.querySelector("#agent-button").disabled = true;
+        document.querySelector("#reset-button").disabled = true;
+        if (payload.generation_status === "failed") {
+          errorBox.textContent = payload.generation_error || "Unknown game generation error.";
+        }
+        return;
+      }
+      generationStatus.classList.remove("loading");
+      generationStatus.textContent = "Game rules validated.";
+      errorBox.textContent = "";
+      const runtime = payload.runtime || {
+        theme: "forest",
+        player_symbol: "●",
+        goal_symbol: "★",
+        wall_symbol: "■",
+        hazard_symbol: "!",
+        instructions: "Reach the goal and avoid hazards."
+      };
+      document.body.dataset.theme = runtime.theme;
+      document.querySelector("#title").textContent = spec.title;
+      document.querySelector("#description").textContent = spec.description;
+      const runtimeStatus = payload.runtime_status === "ready"
+        ? runtime.instructions
+        : payload.runtime_status === "failed"
+          ? `Runtime generation failed; using the trusted default renderer. ${payload.runtime_error}`
+          : `Creating game presentation (${payload.runtime_status})...`;
+      document.querySelector("#runtime-status").textContent = runtimeStatus;
+      const trainingStatus = payload.training_status === "ready"
+        ? "Brain training complete."
+        : payload.training_status === "failed"
+          ? `Brain training failed: ${payload.training_error}`
+          : `Brain training ${payload.training_status}...`;
+      document.querySelector("#training-status").textContent = trainingStatus;
+      const board = document.querySelector("#board");
+      board.replaceChildren();
+      board.style.gridTemplateColumns = `repeat(${spec.width}, 1fr)`;
+      for (let y = 0; y < spec.height; y++) {
+        for (let x = 0; x < spec.width; x++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          const point = `${x},${y}`;
+          if (spec.walls.some(([wx, wy]) => `${wx},${wy}` === point)) {
+            cell.classList.add("wall");
+            cell.textContent = runtime.wall_symbol;
+          } else if (spec.hazards.some(([hx, hy]) => `${hx},${hy}` === point)) {
+            cell.classList.add("hazard");
+            cell.textContent = runtime.hazard_symbol;
+          } else if (x === spec.goal[0] && y === spec.goal[1]) {
+            cell.classList.add("goal");
+            cell.textContent = runtime.goal_symbol;
+          }
+          if (x === state.position[0] && y === state.position[1]) cell.textContent = runtime.player_symbol;
+          board.append(cell);
+        }
+      }
+      const status = state.done
+        ? `${state.outcome.replaceAll("_", " ")} after ${state.turns} turns`
+        : `Turn ${state.turns} of ${spec.max_turns}`;
+      document.querySelector("#status").textContent = status;
+      document.querySelectorAll("[data-action]").forEach((button) => {
+        button.disabled = agentPlaying || state.done || !state.legal_actions.includes(button.dataset.action);
+      });
+      document.querySelector("#agent-button").disabled =
+        agentPlaying || state.done || payload.training_status !== "ready";
+      document.querySelector("#reset-button").disabled = agentPlaying;
+    }
+
+    async function pollStatus(gameId) {
+      while (currentGame && currentGame.id === gameId) {
+        const generationFailed = currentGame.generation_status === "failed";
+        const complete = generationFailed
+          || (currentGame.generation_status === "ready"
+            && ["ready", "failed"].includes(currentGame.runtime_status)
+            && ["ready", "failed"].includes(currentGame.training_status));
+        if (complete) return;
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        if (!currentGame || currentGame.id !== gameId) return;
+        try {
+          render(await request(`/api/games/${gameId}/status`, null, "GET"));
+        } catch (error) {
+          errorBox.textContent = error.message;
+          return;
+        }
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      errorBox.textContent = "";
+      const createButton = document.querySelector("#create-button");
+      const prompt = document.querySelector("#prompt").value;
+      createButton.disabled = true;
+      createButton.textContent = "Starting...";
+      gamePanel.hidden = false;
+      document.querySelector("#title").textContent = "Starting game generation...";
+      document.querySelector("#generation-status").textContent = "Contacting the local game server...";
+      document.querySelector("#generation-status").classList.add("loading");
+      try {
+        const game = await request("/api/games", { prompt });
+        render(game);
+        void pollStatus(currentGame.id);
+      } catch (error) {
+        errorBox.textContent = error.message;
+        document.querySelector("#generation-status").textContent = "";
+        document.querySelector("#generation-status").classList.remove("loading");
+      } finally {
+        createButton.disabled = false;
+        createButton.textContent = "Generate game";
+      }
+    });
+
+    document.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (!currentGame || agentPlaying) return;
+        try {
+          render(await request(`/api/games/${currentGame.id}/actions`, { action: button.dataset.action }));
+          errorBox.textContent = "";
+        } catch (error) {
+          errorBox.textContent = error.message;
+        }
+      });
+    });
+
+    document.querySelector("#agent-button").addEventListener("click", async () => {
+      if (!currentGame || currentGame.training_status !== "ready" || agentPlaying) return;
+      agentPlaying = true;
+      render(currentGame);
+      try {
+        while (currentGame && !currentGame.state.done) {
+          const gameId = currentGame.id;
+          render(await request(`/api/games/${gameId}/agent`, {}));
+          await new Promise((resolve) => setTimeout(resolve, 150));
+        }
+      } catch (error) {
+        errorBox.textContent = error.message;
+      } finally {
+        agentPlaying = false;
+        if (currentGame) render(currentGame);
+      }
+    });
+
+    document.querySelector("#reset-button").addEventListener("click", async () => {
+      if (!currentGame) return;
+      try {
+        render(await request(`/api/games/${currentGame.id}/reset`, {}));
+        errorBox.textContent = "";
+      } catch (error) {
+        errorBox.textContent = error.message;
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const actions = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
+      const action = actions[event.key];
+      if (action) document.querySelector(`[data-action="${action}"]`).click();
+    });
+  </script>
+
+  <script>
+  (() => {
+    const $ = (id) => document.getElementById(id);
+    const NS = "http://www.w3.org/2000/svg";
+    let env = null, busy = false, loopTimer = null, loopMode = null, pollToken = 0, heldAction = null, started = false;
+
+    document.querySelector("#tab-env").onclick = () => showMode("env");
+    document.querySelector("#tab-legacy").onclick = () => showMode("legacy");
+    function showMode(mode) {
+      $("env-mode").hidden = mode !== "env"; $("legacy-mode").hidden = mode !== "legacy";
+      $("tab-env").classList.toggle("active", mode === "env"); $("tab-legacy").classList.toggle("active", mode === "legacy");
+    }
+    showMode("env");
+
+    const fail = (error) => { $("env-error").textContent = error.message || String(error); };
+    const svgEl = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) if (v !== undefined && v !== null) e.setAttribute(k, String(v)); return e; };
+
+    function drawItem(item, legal, interactive) {
+      const n = (v) => Number(v);
+      let node, cx, cy;
+      if (item.type === "rect") { node = svgEl("rect", { x: n(item.x), y: n(item.y), width: n(item.w), height: n(item.h), rx: item.radius }); cx = item.x + item.w / 2; cy = item.y + item.h / 2; }
+      else if (item.type === "circle") { node = svgEl("circle", { cx: n(item.x), cy: n(item.y), r: n(item.r) }); cx = item.x; cy = item.y; }
+      else if (item.type === "line") { node = svgEl("line", { x1: n(item.x1), y1: n(item.y1), x2: n(item.x2), y2: n(item.y2), "stroke-linecap": "round" }); cx = (item.x1 + item.x2) / 2; cy = (item.y1 + item.y2) / 2; }
+      else if (item.type === "polygon") { node = svgEl("polygon", { points: item.points.map((p) => `${n(p[0])},${n(p[1])}`).join(" ") }); cx = item.points.reduce((a, p) => a + p[0], 0) / item.points.length; cy = item.points.reduce((a, p) => a + p[1], 0) / item.points.length; }
+      else { node = svgEl("text", { x: n(item.x), y: n(item.y), "text-anchor": item.anchor || "middle", "dominant-baseline": "middle", "font-size": item.size || 16, "font-family": "system-ui, sans-serif" }); node.textContent = item.text; cx = item.x; cy = item.y; }
+      const isLine = item.type === "line", isText = item.type === "text";
+      node.setAttribute("fill", item.fill || (isText ? "#e8eef5" : "none"));
+      if (item.stroke || isLine) { node.setAttribute("stroke", item.stroke || "#e8eef5"); node.setAttribute("stroke-width", item.stroke_width || 2); }
+      if (item.opacity !== undefined) node.setAttribute("opacity", item.opacity);
+      if (item.rotation) node.setAttribute("transform", `rotate(${n(item.rotation)} ${cx} ${cy})`);
+      if (item.effect) node.classList.add(`fx-${item.effect}`);
+      if (item.action !== undefined && interactive && legal.includes(item.action)) {
+        node.classList.add("clickable");
+        node.addEventListener("click", () => sendAction(item.action));
+      }
+      return node;
+    }
+
+    function renderScene(view, interactive) {
+      const host = $("env-scene");
+      if (!view || !view.scene) { host.textContent = view && view.render_error ? `Render error: ${view.render_error}` : ""; return; }
+      const scene = view.scene;
+      const svg = svgEl("svg", { viewBox: `0 0 ${scene.width} ${scene.height}`, role: "img" });
+      if (scene.background) svg.style.background = scene.background;
+      for (const item of scene.items) svg.append(drawItem(item, view.legal || [], interactive));
+      host.replaceChildren(svg);
+    }
+
+    function renderChart(history) {
+      const svg = $("env-chart"); svg.replaceChildren();
+      if (history.length < 2) return;
+      const all = history.flatMap((h) => [h.best, h.mean]); let lo = Math.min(...all), hi = Math.max(...all);
+      if (hi - lo < 1e-6) { hi += 0.5; lo -= 0.5; }
+      const x = (i) => 10 + (540 * i) / (history.length - 1), y = (v) => 140 - (130 * (v - lo)) / (hi - lo);
+      svg.append(svgEl("line", { x1: 10, y1: y(0) > 140 || y(0) < 10 ? 140 : y(0), x2: 550, y2: y(0) > 140 || y(0) < 10 ? 140 : y(0), stroke: "#3b4d60", "stroke-dasharray": "4 4" }));
+      for (const [key, color] of [["mean", "#f0cf75"], ["best", "#82d5bb"]]) {
+        svg.append(svgEl("polyline", { points: history.map((h, i) => `${x(i)},${y(h[key])}`).join(" "), fill: "none", stroke: color, "stroke-width": 2 }));
+      }
+    }
+
+    function apply(snapshot) {
+      env = snapshot;
+      const spec = env.spec, view = env.view;
+      $("env-panel").hidden = false;
+      const ready = env.generation_status === "ready";
+      $("env-title").textContent = spec ? spec.title : (env.generation_status === "failed" ? "Environment generation failed" : "Creating your environment...");
+      $("env-description").textContent = spec ? spec.description : "";
+      const notes = (env.generation_notes || []).slice(-1)[0] || "";
+      $("env-gen-status").textContent = env.generation_status === "failed" ? "" : (ready ? "Environment generated and validated." : `${notes || "Waiting..."}`);
+      $("env-gen-status").classList.toggle("loading", !ready && env.generation_status !== "failed");
+      if (env.generation_status === "failed") $("env-error").textContent = env.generation_error || "Unknown generation error.";
+      const v = env.validation;
+      $("env-validation").textContent = v ? `Validated in a sandbox on ${v.stats.episodes} random episodes (${v.stats.terminated} reached a terminal state, ${env.attempts} generation attempt${env.attempts === 1 ? "" : "s"}).${v.warnings.length ? " Warnings: " + v.warnings.join("; ") : ""}` : "";
+      if (spec) {
+        const seat = $("env-seat");
+        if (seat.options.length !== spec.agents.length) seat.replaceChildren(...spec.agents.map((a) => new Option(`Player ${a}`, a)));
+        if (env.human_seat !== null) seat.value = String(env.human_seat);
+        $("env-opp").value = env.opponent; $("env-opp").querySelector('[value="brain"]').disabled = !env.brain_ready;
+        $("env-play").hidden = spec.turn_based;
+      }
+      const ts = env.training_status;
+      const last = (env.training_history || []).slice(-1)[0];
+      const finalWinRate = last && last.win_rate !== undefined ? ` Final win rate ${(last.win_rate * 100).toFixed(1)}%.` : "";
+      const targetStatus = env.training_target_reached === true ? " Target reached."
+        : env.training_target_reached === false ? " Target not reached before training stopped." : "";
+      $("env-training").textContent = ts === "ready" ? `Training complete (trained against: ${env.training_opponent}). Held-out return ${env.training_heldout ?? "n/a"}.${finalWinRate}${targetStatus}`
+        : ts === "failed" ? `Training failed: ${env.training_error}` : ts === "skipped" ? `Training skipped: ${env.training_error || "no environment"}` : ts === "waiting" ? "" : `Training ${ts}...`;
+      renderChart(env.training_history || []);
+      $("env-popinfo").textContent = last ? `gen ${last.gen} | ${last.steps} env steps | ${last.species} species | ${last.nodes.toFixed(1)} nodes, ${last.conns.toFixed(1)} connections (population avg)` : "";
+      $("env-concept-summary").textContent = `Concepts available to the learner (${(env.concepts || []).length})`;
+      $("env-concepts").textContent = (env.concepts || []).join("\n") || "Concepts appear after training starts. Only these GP expressions transfer between games; every game's learner starts from scratch.";
+      const interactive = !!view && !view.terminal && loopMode !== "brain";
+      renderScene(view, interactive);
+      const textMode = $("env-textmode").checked;
+      $("env-scene").hidden = textMode; $("env-text").hidden = !textMode; $("env-textform").hidden = !textMode;
+      $("env-text").textContent = view ? (view.text || "(no text view)") : "";
+      let hud = view && view.scene && view.scene.hud ? view.scene.hud : "";
+      if (view && view.terminal && view.results && env.human_seat !== null) hud += ` - You ${({ win: "won", loss: "lost", draw: "drew" })[view.results[String(env.human_seat)]] || ""}.`;
+      $("env-hud").textContent = hud;
+      $("env-brain").disabled = !env.brain_ready || !view || view.terminal || !!(spec && !spec.trainable);
+      $("env-brain").textContent = loopMode === "brain" ? "Stop brain" : "Let brain play my seat";
+      $("env-play").textContent = loopMode === "human" ? "Pause" : "Play";
+      if (view && view.terminal) stopLoop();
+    }
+
+    async function poll(id) {
+      const token = ++pollToken;
+      while (token === pollToken) {
+        try { apply(await request(`/api/envs/${id}/status`, null, "GET")); } catch (e) { fail(e); return; }
+        if (env.generation_status === "ready" && !started) { started = true; try { apply(await request(`/api/envs/${id}/reset`, {})); } catch (e) { fail(e); } }
+        const trainingDone = ["ready", "failed", "skipped"].includes(env.training_status);
+        if (env.generation_status === "failed" || (env.generation_status === "ready" && trainingDone)) return;
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+    }
+
+    async function sendAction(action) {
+      if (busy || !env || !env.view || env.view.terminal) return;
+      busy = true;
+      try { apply(await request(`/api/envs/${env.id}/action`, { action })); $("env-error").textContent = ""; } catch (e) { fail(e); stopLoop(); } finally { busy = false; }
+    }
+    async function brainStep() {
+      if (busy || !env || !env.view || env.view.terminal) return;
+      busy = true;
+      try { apply(await request(`/api/envs/${env.id}/agent`, {})); } catch (e) { fail(e); stopLoop(); } finally { busy = false; }
+    }
+    function stopLoop() { if (loopTimer) clearInterval(loopTimer); loopTimer = null; loopMode = null; if (env) { $("env-brain").textContent = "Let brain play my seat"; $("env-play").textContent = "Play"; } }
+    function startLoop(mode) {
+      stopLoop(); loopMode = mode; const spec = env.spec;
+      const interval = spec.real_time ? spec.tick_ms : 450;
+      loopTimer = setInterval(() => (mode === "brain" ? brainStep() : sendAction(heldAction)), interval);
+      apply(env);
+    }
+
+    async function restart(extra = {}) {
+      if (!env || env.generation_status !== "ready") return;
+      stopLoop(); heldAction = null;
+      try { apply(await request(`/api/envs/${env.id}/reset`, extra)); $("env-error").textContent = ""; } catch (e) { fail(e); }
+    }
+
+    $("env-form").addEventListener("submit", async (event) => {
+      event.preventDefault(); $("env-error").textContent = ""; stopLoop(); started = false;
+      $("env-create").disabled = true;
+      try {
+        const snapshot = await request("/api/envs", { prompt: $("env-prompt").value, training_opponent: $("env-train-opp").value });
+        env = null; apply(snapshot); poll(snapshot.id);
+      } catch (e) { fail(e); } finally { $("env-create").disabled = false; }
+    });
+    $("env-restart").onclick = () => restart();
+    $("env-textmode").onchange = () => { if (env) apply(env); if ($("env-textmode").checked) $("env-textinput").focus(); };
+    $("env-textform").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!env || !env.spec || !env.view || env.view.terminal) return;
+      const raw = $("env-textinput").value.trim().toLowerCase(); $("env-textinput").value = "";
+      const names = (env.spec.action_names || []).map((n) => n.toLowerCase());
+      let action = /^\d+$/.test(raw) ? Number(raw) : names.indexOf(raw);
+      if (raw === "") action = null;
+      else if (!env.view.legal.includes(action)) { $("env-error").textContent = `Not allowed. Legal moves: ${env.view.legal.join(", ")}`; return; }
+      $("env-error").textContent = "";
+      sendAction(action);
+    });
+    $("env-seat").onchange = () => restart({ seat: Number($("env-seat").value) });
+    $("env-opp").onchange = () => restart({ opponent: $("env-opp").value });
+    $("env-brain").onclick = () => (loopMode === "brain" ? stopLoop() : startLoop("brain"));
+    $("env-play").onclick = () => (loopMode === "human" ? stopLoop() : startLoop("human"));
+    $("env-source-box").addEventListener("toggle", async () => {
+      if ($("env-source-box").open && env && env.generation_status === "ready") {
+        try { const r = await fetch(`/api/envs/${env.id}/source`); $("env-source").textContent = await r.text(); } catch (e) { fail(e); }
+      }
+    });
+    $("env-load").onclick = async () => {
+      const id = $("env-saved").value; if (!id) return;
+      try { started = true; stopLoop(); const snap = await request("/api/envs/load", { id }); env = null; apply(snap); apply(await request(`/api/envs/${id}/reset`, {})); poll(id); } catch (e) { fail(e); }
+    };
+    request("/api/envs", null, "GET").then((r) => { for (const item of r.environments) $("env-saved").append(new Option(`${item.title} (${item.created.slice(0, 16)})`, item.id)); }).catch(() => {});
+
+    document.addEventListener("keydown", (event) => {
+      if (!env || !env.spec || $("env-mode").hidden || /^(TEXTAREA|INPUT|SELECT)$/.test(event.target.tagName)) return;
+      const action = env.spec.controls[event.key];
+      if (action === undefined) return;
+      event.preventDefault();
+      if (env.spec.turn_based) sendAction(action); else { heldAction = action; if (!loopMode) startLoop("human"); }
+    });
+    document.addEventListener("keyup", (event) => {
+      if (!env || !env.spec || env.spec.hold_last_action) return;
+      if (env.spec.controls[event.key] === heldAction) heldAction = null;
+    });
+  })();
+  </script>
+</body>
+</html>

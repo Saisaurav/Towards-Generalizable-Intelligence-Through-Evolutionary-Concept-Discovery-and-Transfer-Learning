@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+state_max_abs
+div(max(action_norm,div(state_dispersion,action_norm)),sub(sub(mul(state_mean,action_norm),action_norm),mul(legal_norm,sub(state_abs_mean,state_dispersion))))
+div(div(sub(state_var,state_mean),div(add(state_abs_mean,state_max_abs),min(action_norm,state_max_abs))),sub(max(action_norm,max(state_abs_mean,state_max_abs)),div(mul(action_norm,action_norm),state_magnitude)))
+div(max(action_norm,div(state_dispersion,action_norm)),sub(state_var,action_norm))

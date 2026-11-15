@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+max(div(min(board_opponent_immediate_wins,state_adjacent_difference),add(state_var,action_norm)),mul(board_opponent_open_lines,sub(state_range,state_max)))
+sub(sqrt(div(div(state_abs_mean,action_norm),state_magnitude)),state_skewness)
+div(state_abs_mean,action_norm)

@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+neg(sub(board_opponent_immediate_wins,state_skewness))
+tanh(add(board_occupancy,mul(state_iqr,action_blocks_opponent)))
+add(sub(neg(state_iqr),max(state_abs_mean,state_var)),state_dispersion)
+abs(abs(log1p(state_abs_mean)))

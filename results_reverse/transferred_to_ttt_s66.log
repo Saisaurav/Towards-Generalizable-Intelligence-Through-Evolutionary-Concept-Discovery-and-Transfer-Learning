@@ -1,0 +1,16 @@
+gen   0 steps     10704 best     0.13 mean     0.07 sp  1 nodes  26.0 conns  14.3
+gen   1 steps     21455 best     0.07 mean    -0.06 sp  4 nodes  26.0 conns  12.2
+gen   2 steps     32119 best     0.03 mean    -0.01 sp  3 nodes  26.0 conns  15.2
+gen   3 steps     42802 best     0.20 mean     0.00 sp  2 nodes  26.0 conns  10.6
+gen   4 steps     53541 best     0.09 mean     0.03 sp  2 nodes  26.0 conns  10.3
+gen   5 steps     64193 best     0.07 mean    -0.07 sp  2 nodes  26.0 conns  13.2
+gen   6 steps     74866 best     0.19 mean     0.08 sp  4 nodes  26.1 conns  11.2
+gen   7 steps     85516 best     0.04 mean    -0.05 sp  2 nodes  26.0 conns  11.0
+gen   8 steps     96218 best     0.23 mean     0.06 sp  3 nodes  26.0 conns  14.1
+gen   9 steps    106846 best     0.18 mean    -0.02 sp  4 nodes  26.0 conns  14.0
+gen  10 steps    117597 best     0.09 mean    -0.04 sp  3 nodes  26.1 conns  11.5
+gen  11 steps    128389 best     0.13 mean    -0.01 sp  3 nodes  26.2 conns  13.0
+gen  12 steps    139143 best     0.07 mean    -0.05 sp  4 nodes  26.1 conns  14.5
+gen  13 steps    149820 best     0.09 mean     0.04 sp  4 nodes  26.5 conns  11.9
+gen  14 steps    160557 best     0.13 mean     0.00 sp  4 nodes  26.2 conns  12.5
+HELDOUT return 0.082000 episodes 1000

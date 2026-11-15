@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+abs(sub(mul(state_negative_fraction,state_dispersion),log1p(state_max)))
+mul(sqrt(add(state_abs_mean,state_iqr)),add(add(state_min,state_position_spread),add(state_dispersion,state_dispersion)))
+div(legal_norm,min(sub(state_range,state_median),state_position_spread))
+div(tanh(state_min),add(min(state_position_moment,action_norm),mul(state_mean,action_norm)))

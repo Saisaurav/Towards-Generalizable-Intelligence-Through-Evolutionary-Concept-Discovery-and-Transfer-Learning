@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+min(state_dispersion,max(mul(state_negative_fraction,state_var),state_position_moment))
+tanh(add(min(state_sparsity,board_opponent_open_lines),max(state_positive_fraction,state_range)))
+div(log1p(board_opponent_open_lines),state_skewness)
+max(state_dispersion,board_center_control)

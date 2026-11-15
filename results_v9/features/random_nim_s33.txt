@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(state_min,state_sign_change_fraction)
+square(state_min)
+max(tanh(legal_norm),state_dispersion)
+sub(min(legal_norm,legal_norm),state_magnitude)

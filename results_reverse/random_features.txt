@@ -1,0 +1,6 @@
+# Action identity plus four fixed random algebraic features.
+action_norm
+add(state_mean,action_norm)
+mul(state_var,action_norm)
+sub(state_abs_mean,legal_norm)
+max(state_max_abs,legal_norm)

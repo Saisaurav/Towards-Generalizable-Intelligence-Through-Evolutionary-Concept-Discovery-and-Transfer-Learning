@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+tanh(log1p(min(state_dispersion,board_own_open_lines)))
+min(action_norm,state_skewness)
+min(min(state_median,board_opponent_open_lines),div(action_norm,max(state_min,action_norm)))
+div(mul(max(action_norm,board_own_open_lines),board_center_control),state_median)

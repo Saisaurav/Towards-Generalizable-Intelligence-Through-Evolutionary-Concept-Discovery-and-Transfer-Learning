@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+add(sub(abs(legal_norm),log1p(state_positive_fraction)),sub(add(action_norm,state_adjacent_difference),mul(state_mean,action_norm)))
+sqrt(action_norm)
+tanh(max(mul(board_own_open_lines,state_sign_change_fraction),state_abs_mean))
+sub(div(add(state_dispersion,action_wins_now),add(board_own_immediate_wins,state_skewness)),state_sign_change_fraction)

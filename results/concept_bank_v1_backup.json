@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "primitive_contract": "generic_state_action_v1",
+  "concepts": [
+    {
+      "id": "ttt_gp_1",
+      "expression": "div(action_norm,action_norm)",
+      "canonical": "div(action_norm,action_norm)",
+      "source_game": "TicTacToe",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v1",
+      "primitive_dependencies": [
+        "action_norm"
+      ],
+      "source_screen_fitness": 0.26781571860188863,
+      "source_heldout_abs_corr": 0.10824141758855778,
+      "target_heldout_abs_corr": 0.0,
+      "target_output_std": 2.220446049250313e-16,
+      "complexity": 3,
+      "depth": 2,
+      "tested_games": [
+        "TicTacToe",
+        "CartPole"
+      ]
+    },
+    {
+      "id": "ttt_gp_2",
+      "expression": "div(div(action_norm,action_norm),legal_norm)",
+      "canonical": "div(div(action_norm,action_norm),legal_norm)",
+      "source_game": "TicTacToe",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v1",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm"
+      ],
+      "source_screen_fitness": 0.2534847442307765,
+      "source_heldout_abs_corr": 0.10169232184442663,
+      "target_heldout_abs_corr": 0.0,
+      "target_output_std": 2.220446049250313e-16,
+      "complexity": 5,
+      "depth": 3,
+      "tested_games": [
+        "TicTacToe",
+        "CartPole"
+      ]
+    },
+    {
+      "id": "ttt_gp_3",
+      "expression": "div(min(add(state_var,state_abs_mean),mul(state_max_abs,state_abs_mean)),action_norm)",
+      "canonical": "div(min(add(state_abs_mean,state_var),mul(state_abs_mean,state_max_abs)),action_norm)",
+      "source_game": "TicTacToe",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v1",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_abs_mean",
+        "state_max_abs",
+        "state_var"
+      ],
+      "source_screen_fitness": 0.18988045937599163,
+      "source_heldout_abs_corr": 0.12774753027843289,
+      "target_heldout_abs_corr": 0.12752172206060103,
+      "target_output_std": 0.19193223499401937,
+      "complexity": 9,
+      "depth": 4,
+      "tested_games": [
+        "TicTacToe",
+        "CartPole"
+      ]
+    },
+    {
+      "id": "ttt_gp_4",
+      "expression": "div(sub(max(legal_norm,action_norm),add(legal_norm,state_mean)),action_norm)",
+      "canonical": "div(sub(max(action_norm,legal_norm),add(legal_norm,state_mean)),action_norm)",
+      "source_game": "TicTacToe",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v1",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm",
+        "state_mean"
+      ],
+      "source_screen_fitness": 0.18260987800982176,
+      "source_heldout_abs_corr": 0.1478942317819274,
+      "target_heldout_abs_corr": 0.08912010969851324,
+      "target_output_std": 0.13742936337252137,
+      "complexity": 9,
+      "depth": 4,
+      "tested_games": [
+        "TicTacToe",
+        "CartPole"
+      ]
+    }
+  ]
+}

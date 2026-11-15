@@ -1,0 +1,10 @@
+nim           onehot_pop6                  greedy ret +0.256±0.027 [worst +0.210 best +0.316] W/D 0.63 (min 0.60) | stoch +0.256 | random -0.007 | vs strategic greedy -0.932 | fail 0/10
+ttt           onehot_pop6                  greedy ret +0.644±0.046 [worst +0.549 best +0.735] W/D 0.84 (min 0.79) | stoch +0.574 | random +0.003 | vs strategic greedy -0.636 | fail 0/10
+cartpole      onehot_pop6                  len greedy 366.6 (500-rate 0.43) stoch 133.8 (500-rate 0.00) | random 22.5 | fail 0/10
+connect_four  onehot_pop6                  greedy ret +0.770±0.040 [worst +0.684 best +0.824] W/D 0.89 (min 0.84) | stoch +0.700 | random +0.008 | vs strategic greedy -0.889 | fail 0/10
+ttt           fixed_pop6                   greedy ret +0.724±0.037 [worst +0.663 best +0.764] W/D 0.88 (min 0.84) | stoch +0.621 | random +0.003 | vs strategic greedy -0.557 | fail 0/10
+cartpole      fixed_pop6                   len greedy 298.1 (500-rate 0.16) stoch 146.2 (500-rate 0.01) | random 22.5 | fail 0/10
+nim           onehot_pop48                 greedy ret +0.134±0.123 [worst -0.106 best +0.316] W/D 0.57 (min 0.45) | stoch +0.102 | random -0.007 | vs strategic greedy -0.930 | fail 0/10
+ttt           onehot_pop48                 greedy ret +0.406±0.109 [worst +0.260 best +0.548] W/D 0.75 (min 0.67) | stoch +0.145 | random +0.003 | vs strategic greedy -0.702 | fail 0/10
+cartpole      onehot_pop48                 len greedy 27.8 (500-rate 0.00) stoch 23.7 (500-rate 0.00) | random 22.5 | fail 0/10
+[sweep stopped manually after cartpole onehot_pop48; connect_four onehot_pop48 and fixed_pop48 NOT completed]

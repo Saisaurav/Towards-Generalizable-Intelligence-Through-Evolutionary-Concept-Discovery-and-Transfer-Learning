@@ -1,0 +1,4 @@
+# Compatible nonconstant, behaviorally distinct concepts; no target reward labels used for filtering.
+mul(min(state_mean,div(state_mean,state_abs_mean)),action_norm)
+mul(min(add(add(state_abs_mean,state_mean),state_mean),div(state_mean,state_abs_mean)),add(action_norm,state_var))
+mul(min(div(state_mean,state_abs_mean),div(state_mean,state_abs_mean)),action_norm)

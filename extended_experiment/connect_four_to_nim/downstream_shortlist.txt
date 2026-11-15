@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+mul(add(log1p(state_positive_fraction),state_abs_mean),add(div(state_positive_fraction,action_norm),state_sign_change_fraction))
+mul(add(log1p(log1p(state_positive_fraction)),min(state_max_abs,state_mean)),action_norm)
+add(add(div(state_abs_mean,action_norm),state_sign_change_fraction),sub(min(state_sparsity,state_max_abs),div(state_var,state_position_moment)))

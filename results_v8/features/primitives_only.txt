@@ -1,0 +1,3 @@
+# primitives-only control: the two supplied action primitives, no GP, no transfer
+action_wins_now
+action_blocks_opponent

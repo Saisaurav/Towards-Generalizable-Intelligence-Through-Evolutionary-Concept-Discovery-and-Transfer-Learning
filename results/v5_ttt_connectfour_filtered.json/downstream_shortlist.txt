@@ -1,0 +1,2 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+square(log1p(abs(div(state_position_moment,action_norm))))

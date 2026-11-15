@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+mul(state_position_moment,div(state_entropy,sub(action_norm,board_own_open_lines)))
+min(square(neg(state_abs_mean)),max(mul(state_mean,state_position_moment),sqrt(state_sparsity)))
+sqrt(min(div(state_dispersion,state_var),square(board_opponent_immediate_wins)))
+div(max(mul(state_magnitude,legal_norm),tanh(state_adjacent_difference)),min(mul(state_entropy,board_center_control),add(board_occupancy,board_own_immediate_wins)))

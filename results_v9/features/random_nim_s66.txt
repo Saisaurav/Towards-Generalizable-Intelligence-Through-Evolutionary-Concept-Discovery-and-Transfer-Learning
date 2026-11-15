@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(max(tanh(state_negative_fraction),state_max_abs),state_sign_change_fraction)
+sub(add(add(state_position_moment,state_positive_fraction),mul(state_mean,state_position_spread)),max(sub(state_skewness,state_magnitude),add(state_position_moment,state_min)))
+abs(neg(neg(action_norm)))
+sqrt(sqrt(max(state_iqr,legal_norm)))

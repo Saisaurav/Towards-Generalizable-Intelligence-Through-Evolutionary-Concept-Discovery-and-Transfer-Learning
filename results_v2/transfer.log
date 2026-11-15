@@ -1,0 +1,14 @@
+cartpole      scratch                      len greedy 333.5 (500-rate 0.24) stoch 117.2 (500-rate 0.00) | random 22.5 | fail 0/10
+cartpole      source                       len greedy 283.3 (500-rate 0.27) stoch 109.8 (500-rate 0.00) | random 22.5 | fail 0/10
+cartpole      random                       len greedy 294.6 (500-rate 0.28) stoch 102.8 (500-rate 0.00) | random 22.5 | fail 0/10
+cartpole      scratch                      len greedy 333.5 (500-rate 0.24) stoch 117.2 (500-rate 0.00) | random 22.5 | fail 0/10
+cartpole      source                       len greedy 283.3 (500-rate 0.27) stoch 109.8 (500-rate 0.00) | random 22.5 | fail 0/10
+cartpole      random                       len greedy 294.6 (500-rate 0.28) stoch 102.8 (500-rate 0.00) | random 22.5 | fail 0/10
+cartpole      sxa                          len greedy 477.1 (500-rate 0.84) stoch 219.1 (500-rate 0.06) | random 22.5 | fail 0/10
+cartpole      target_trained               len greedy 500.0 (500-rate 1.00) stoch 173.8 (500-rate 0.11) | random 22.5 | fail 0/10
+nim           scratch                      greedy ret +0.251±0.037 [worst +0.162 best +0.316] W/D 0.63 (min 0.58) | stoch +0.236 | random -0.007 | vs strategic greedy -0.925 | fail 0/10
+nim           source                       greedy ret +0.251±0.037 [worst +0.162 best +0.316] W/D 0.63 (min 0.58) | stoch +0.247 | random -0.007 | vs strategic greedy -0.925 | fail 0/10
+nim           random                       greedy ret +0.251±0.037 [worst +0.162 best +0.316] W/D 0.63 (min 0.58) | stoch +0.248 | random -0.007 | vs strategic greedy -0.925 | fail 0/10
+nim           sxa                          greedy ret +0.251±0.037 [worst +0.162 best +0.316] W/D 0.63 (min 0.58) | stoch +0.256 | random -0.007 | vs strategic greedy -0.925 | fail 0/10
+nim           target_trained               greedy ret +0.251±0.037 [worst +0.162 best +0.316] W/D 0.63 (min 0.58) | stoch +0.232 | random -0.007 | vs strategic greedy -0.925 | fail 0/10
+MATRIX_DONE

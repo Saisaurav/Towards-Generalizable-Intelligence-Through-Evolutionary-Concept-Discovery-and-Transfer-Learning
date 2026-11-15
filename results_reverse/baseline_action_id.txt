@@ -1,0 +1,6 @@
+# Action identity plus four zero-valued padding features; no evolved concepts.
+action_norm
+sub(state_mean,state_mean)
+sub(state_var,state_var)
+sub(state_abs_mean,state_abs_mean)
+sub(state_max_abs,state_max_abs)

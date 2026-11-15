@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+log1p(tanh(board_opponent_open_lines))
+sub(neg(log1p(state_abs_mean)),state_iqr)
+sub(min(square(state_adjacent_difference),board_opponent_immediate_wins),state_sign_change_fraction)
+min(add(state_position_moment,max(board_opponent_immediate_wins,legal_norm)),sub(state_entropy,div(action_norm,legal_norm)))

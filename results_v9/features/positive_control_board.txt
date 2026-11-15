@@ -1,0 +1,5 @@
+# positive control: hand-supplied board tactics (NOT discovered, NOT transferred)
+board_own_immediate_wins
+board_opponent_immediate_wins
+board_own_open_lines
+board_opponent_open_lines

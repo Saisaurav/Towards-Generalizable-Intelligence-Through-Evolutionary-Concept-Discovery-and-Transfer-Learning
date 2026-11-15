@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+sub(abs(add(neg(state_max),action_norm)),add(sqrt(state_max_abs),sub(min(state_dispersion,state_positive_fraction),state_positive_fraction)))
+sub(abs(add(neg(state_max),action_norm)),div(abs(sub(state_positive_fraction,legal_norm)),state_median))
+square(min(legal_norm,square(min(action_norm,state_sparsity))))
+sub(sub(sub(action_norm,log1p(state_positive_fraction)),state_max_abs),div(state_min,max(state_mean,state_mean)))

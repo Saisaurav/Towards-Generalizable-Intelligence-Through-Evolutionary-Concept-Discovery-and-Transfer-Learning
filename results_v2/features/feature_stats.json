@@ -1,0 +1,154 @@
+{
+ "ttt_to_cartpole": {
+  "source": {
+   "state_max_abs": 0.20580030417397463,
+   "div(max(action_norm,div(state_dispersion,action_norm)),sub(sub(mul(state_mean,action_norm),action_norm),mul(legal_norm,sub(state_abs_mean,state_dispersion))))": 0.3018849487388069,
+   "div(div(sub(state_var,state_mean),div(add(state_abs_mean,state_max_abs),min(action_norm,state_max_abs))),sub(max(action_norm,max(state_abs_mean,state_max_abs)),div(mul(action_norm,action_norm),state_magnitude)))": 0.18044395184565898,
+   "div(max(action_norm,div(state_dispersion,action_norm)),sub(state_var,action_norm))": 0.3108228642662983
+  },
+  "target_trained": {
+   "div(state_dispersion,state_abs_mean)": 0.03285671703429309,
+   "min(state_boundary_margin,div(state_mean,sub(action_norm,state_boundary_margin)))": 0.2995850756086994,
+   "min(mul(min(state_max_abs,state_boundary_margin),max(add(action_norm,state_max_abs),mul(action_norm,state_magnitude))),mul(div(add(action_norm,action_norm),state_mean),state_var))": 0.5064501616542809,
+   "div(div(min(max(state_magnitude,state_mean),max(state_var,state_mean)),action_norm),state_mean)": 0.728220294620664
+  },
+  "random": {
+   "11": {
+    "max(div(state_boundary_margin,state_max_abs),state_magnitude)": 0.20291994670019398,
+    "sub(add(add(action_norm,state_boundary_margin),min(action_norm,state_magnitude)),add(state_boundary_margin,state_magnitude))": 0.8692354420416483,
+    "max(sub(div(state_max_abs,action_norm),max(state_dispersion,state_abs_mean)),state_magnitude)": 0.15305612918358746,
+    "min(min(add(legal_norm,action_norm),div(state_boundary_margin,state_dispersion)),max(state_max_abs,max(action_norm,state_abs_mean)))": 0.36745968659723205
+   },
+   "22": {
+    "max(state_mean,state_max_abs)": 0.20580030417397463,
+    "max(div(add(state_mean,legal_norm),action_norm),state_dispersion)": 0.2930899745217223,
+    "add(mul(min(state_mean,state_max_abs),mul(action_norm,state_magnitude)),state_abs_mean)": 0.14054512571509675,
+    "add(action_norm,max(div(action_norm,action_norm),div(state_max_abs,state_var)))": 0.028900735669714815
+   },
+   "33": {
+    "min(min(min(legal_norm,state_boundary_margin),mul(state_var,state_magnitude)),sub(div(state_var,state_max_abs),state_boundary_margin))": 0.2622905490849138,
+    "div(div(div(state_dispersion,state_boundary_margin),state_max_abs),div(sub(legal_norm,action_norm),state_magnitude))": 0.4474098072599559,
+    "div(mul(add(state_dispersion,action_norm),sub(action_norm,legal_norm)),max(sub(state_mean,state_max_abs),add(state_abs_mean,state_var)))": 0.4906435313167233,
+    "max(action_norm,max(state_max_abs,state_dispersion))": 0.25156398084063414
+   },
+   "44": {
+    "max(div(min(legal_norm,legal_norm),sub(legal_norm,state_var)),min(state_boundary_margin,legal_norm))": 0.046413955474421696,
+    "sub(min(state_boundary_margin,div(state_var,legal_norm)),div(div(action_norm,state_dispersion),max(state_dispersion,state_boundary_margin)))": 0.9979139885346492,
+    "sub(legal_norm,state_var)": 0.0652254554910054,
+    "max(state_dispersion,sub(state_max_abs,max(action_norm,state_var)))": 0.15717161575835215
+   },
+   "55": {
+    "add(state_mean,state_abs_mean)": 0.1695749863707143,
+    "sub(min(max(state_magnitude,state_dispersion),state_abs_mean),mul(max(state_max_abs,state_magnitude),mul(state_mean,state_abs_mean)))": 0.13786705371466404,
+    "div(state_abs_mean,min(mul(state_boundary_margin,state_var),add(action_norm,action_norm)))": 0.5521446108535317,
+    "min(sub(state_max_abs,state_var),sub(state_max_abs,div(action_norm,legal_norm)))": 0.44663682891805534
+   },
+   "66": {
+    "div(max(state_mean,min(state_var,state_boundary_margin)),state_mean)": 0.6958652090134286,
+    "max(action_norm,state_dispersion)": 0.2897584650394792,
+    "sub(add(state_abs_mean,action_norm),mul(state_abs_mean,div(state_dispersion,state_boundary_margin)))": 0.7645046158717498,
+    "max(sub(min(state_boundary_margin,state_abs_mean),div(state_var,action_norm)),div(state_dispersion,min(state_abs_mean,state_dispersion)))": 0.03285671703429309
+   },
+   "77": {
+    "mul(legal_norm,add(state_var,div(state_abs_mean,state_boundary_margin)))": 0.31697669978717824,
+    "min(legal_norm,min(sub(state_abs_mean,state_max_abs),div(state_var,action_norm)))": 0.12513135941540252,
+    "div(sub(mul(state_abs_mean,state_dispersion),sub(state_var,action_norm)),min(sub(state_boundary_margin,state_max_abs),legal_norm))": 0.9244584256216118,
+    "add(add(sub(action_norm,state_dispersion),max(state_dispersion,state_dispersion)),div(action_norm,mul(state_magnitude,state_var)))": 0.9999315496687872
+   },
+   "88": {
+    "div(state_abs_mean,add(sub(state_max_abs,action_norm),min(state_var,state_max_abs)))": 0.3762799967278935,
+    "min(max(max(state_var,legal_norm),sub(state_abs_mean,state_var)),add(action_norm,state_magnitude))": 0.697757453200832,
+    "mul(min(mul(state_max_abs,legal_norm),state_boundary_margin),sub(legal_norm,state_max_abs))": 0.06923272776600836,
+    "sub(add(add(state_boundary_margin,state_mean),min(state_abs_mean,state_magnitude)),state_dispersion)": 0.21362703270171146
+   },
+   "99": {
+    "max(div(div(action_norm,legal_norm),sub(state_mean,state_magnitude)),add(sub(state_magnitude,state_max_abs),state_dispersion))": 0.4573451232890385,
+    "add(mul(state_mean,sub(state_dispersion,state_magnitude)),mul(div(state_magnitude,state_magnitude),state_var))": 0.10626429796288715,
+    "sub(mul(state_magnitude,state_mean),state_magnitude)": 0.15305796705262203,
+    "add(min(legal_norm,max(state_dispersion,state_var)),mul(state_dispersion,max(state_dispersion,state_max_abs)))": 0.2325742274695141
+   },
+   "111": {
+    "mul(add(add(state_boundary_margin,state_dispersion),add(legal_norm,state_max_abs)),mul(max(state_dispersion,state_magnitude),mul(state_abs_mean,state_mean)))": 0.09615408912806772,
+    "sub(sub(sub(legal_norm,legal_norm),state_dispersion),state_dispersion)": 0.2187510553692493,
+    "mul(min(legal_norm,state_boundary_margin),legal_norm)": 0.19777268124246936,
+    "add(state_var,action_norm)": 0.7574616118284418
+   }
+  }
+ },
+ "c4_to_nim": {
+  "source": {
+   "max(div(mul(sub(action_norm,state_var),div(state_mean,state_magnitude)),add(sub(legal_norm,state_abs_mean),min(state_abs_mean,action_norm))),div(mul(legal_norm,state_var),action_norm))": 0.40420988752471143,
+   "state_magnitude": 0.23257692953029965,
+   "div(max(action_norm,div(state_dispersion,div(state_dispersion,action_norm))),sub(mul(sub(state_var,state_max_abs),state_magnitude),action_norm))": 0.2936474406170201,
+   "div(state_mean,sub(div(sub(state_max_abs,state_dispersion),legal_norm),div(state_mean,sub(action_norm,state_var))))": 0.4019066208900778
+  },
+  "target_trained": {
+   "div(min(mul(state_max_abs,div(state_max_abs,state_max_abs)),sub(legal_norm,state_max_abs)),sub(div(max(state_abs_mean,state_var),max(action_norm,state_magnitude)),max(add(legal_norm,state_abs_mean),state_abs_mean)))": 0.3237547996892506,
+   "sub(min(add(action_norm,legal_norm),state_dispersion),legal_norm)": 0.02540971592205095,
+   "legal_norm": 0.08287334735301854,
+   "max(sub(legal_norm,state_abs_mean),mul(sub(state_mean,state_var),add(state_abs_mean,state_var)))": 0.11830599959047663
+  },
+  "random": {
+   "11": {
+    "max(min(min(legal_norm,state_abs_mean),max(action_norm,state_magnitude)),div(max(state_max_abs,legal_norm),min(action_norm,state_abs_mean)))": 0.301112949032322,
+    "add(action_norm,max(state_var,sub(state_magnitude,action_norm)))": 0.24728879792916003,
+    "add(add(state_abs_mean,max(legal_norm,state_max_abs)),mul(div(state_dispersion,state_abs_mean),min(state_magnitude,state_magnitude)))": 0.11638938477838766,
+    "sub(max(mul(state_var,state_magnitude),add(state_mean,state_magnitude)),mul(mul(state_var,state_magnitude),state_magnitude))": 0.27458891601521324
+   },
+   "22": {
+    "max(state_mean,state_max_abs)": 0.23257692953029965,
+    "max(div(add(state_mean,legal_norm),action_norm),state_dispersion)": 0.4605038930995269,
+    "add(mul(min(state_mean,state_max_abs),mul(action_norm,state_magnitude)),state_abs_mean)": 0.29635650744632935,
+    "max(max(add(action_norm,state_mean),min(state_dispersion,state_dispersion)),div(mul(state_max_abs,action_norm),sub(state_magnitude,state_var)))": 0.3932759020474929
+   },
+   "33": {
+    "max(max(state_mean,max(legal_norm,state_max_abs)),state_max_abs)": 0.08287334735301854,
+    "max(div(add(legal_norm,state_var),min(state_abs_mean,legal_norm)),legal_norm)": 0.08681542043272635,
+    "div(mul(add(state_dispersion,action_norm),sub(action_norm,legal_norm)),max(sub(state_mean,state_max_abs),add(state_abs_mean,state_var)))": 0.47642985286644324,
+    "max(action_norm,max(state_max_abs,state_dispersion))": 0.24728879792916003
+   },
+   "44": {
+    "max(action_norm,state_magnitude)": 0.24728879792916003,
+    "add(state_abs_mean,div(max(state_max_abs,action_norm),sub(state_abs_mean,state_dispersion)))": 0.06489398009792409,
+    "mul(min(sub(state_mean,action_norm),state_var),state_abs_mean)": 0.08320265472951663,
+    "max(min(state_mean,state_var),action_norm)": 0.3520058631352055
+   },
+   "55": {
+    "add(state_mean,state_abs_mean)": 0.27458891601521324,
+    "sub(min(max(state_magnitude,state_dispersion),state_abs_mean),mul(max(state_max_abs,state_magnitude),mul(state_mean,state_abs_mean)))": 0.11032046885942311,
+    "div(state_abs_mean,min(mul(state_var,state_var),action_norm))": 0.7007078192250124,
+    "mul(sub(state_max_abs,legal_norm),state_max_abs)": 0.07661285787366262
+   },
+   "66": {
+    "div(max(state_mean,min(state_var,state_abs_mean)),mul(max(action_norm,state_abs_mean),add(state_mean,state_magnitude)))": 0.21703161368991156,
+    "sub(add(state_dispersion,min(state_var,state_var)),legal_norm)": 0.08287334735301854,
+    "max(action_norm,state_dispersion)": 0.3520058631352055,
+    "sub(add(state_abs_mean,action_norm),mul(state_abs_mean,div(state_dispersion,state_magnitude)))": 0.5943968378278014
+   },
+   "77": {
+    "mul(legal_norm,add(state_var,div(state_abs_mean,state_abs_mean)))": 0.08287334735301854,
+    "min(state_magnitude,state_magnitude)": 0.23257692953029965,
+    "add(state_var,div(sub(state_magnitude,legal_norm),max(state_magnitude,state_abs_mean)))": 0.38439113793139557,
+    "sub(max(min(state_max_abs,state_mean),legal_norm),mul(state_abs_mean,min(action_norm,state_max_abs)))": 0.2287750672474964
+   },
+   "88": {
+    "div(state_abs_mean,add(sub(state_max_abs,action_norm),min(state_var,state_max_abs)))": 0.6205264070411992,
+    "min(max(max(state_var,legal_norm),sub(state_abs_mean,state_var)),add(action_norm,state_magnitude))": 0.5490601718072816,
+    "sub(mul(min(state_magnitude,state_dispersion),mul(action_norm,action_norm)),max(div(state_dispersion,state_dispersion),mul(state_abs_mean,state_magnitude)))": 0.2709934865140993,
+    "max(action_norm,state_dispersion)": 0.3520058631352055
+   },
+   "99": {
+    "max(div(div(action_norm,legal_norm),sub(state_mean,state_magnitude)),add(sub(state_magnitude,state_max_abs),state_dispersion))": 0.46219611709385866,
+    "add(mul(state_mean,sub(state_dispersion,state_magnitude)),mul(div(state_magnitude,state_magnitude),state_var))": 0.2709934865140993,
+    "sub(mul(state_magnitude,state_mean),state_magnitude)": 0.073656361479523,
+    "min(sub(state_dispersion,max(state_abs_mean,state_dispersion)),div(sub(legal_norm,state_mean),state_dispersion))": 0.23257692953029965
+   },
+   "111": {
+    "sub(legal_norm,min(legal_norm,action_norm))": 0.40602464571002356,
+    "mul(add(state_var,action_norm),sub(max(state_magnitude,state_mean),mul(action_norm,state_max_abs)))": 0.35688897991068913,
+    "mul(state_magnitude,legal_norm)": 0.2364322740518646,
+    "div(max(state_mean,max(legal_norm,state_max_abs)),state_max_abs)": 0.08681542043272635
+   }
+  }
+ }
+}

@@ -1,0 +1,5 @@
+# random v8-vocabulary features (control)
+neg(state_position_moment)
+max(log1p(action_blocks_opponent),mul(abs(board_occupancy),mul(state_negative_fraction,state_magnitude)))
+max(add(state_position_moment,sqrt(state_iqr)),state_entropy)
+max(sub(log1p(state_dispersion),tanh(state_min)),sub(state_median,div(state_entropy,board_opponent_open_lines)))

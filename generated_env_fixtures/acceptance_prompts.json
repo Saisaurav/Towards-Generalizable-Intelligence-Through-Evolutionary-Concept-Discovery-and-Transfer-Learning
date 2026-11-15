@@ -1,0 +1,5 @@
+{
+  "ttt": "Tic-tac-toe on a 3x3 board for two players. Players alternate placing their mark; the first to get three in a row (row, column or diagonal) wins, and a full board with no line is a draw. Occupied cells cannot be chosen.",
+  "snake": "Classic Snake on a small square board. The snake moves one cell per tick in one of four directions, grows when it eats food, food respawns on a free cell, and the game ends when it hits a wall or itself. Score is the number of foods eaten.",
+  "pong": "Two-player Pong. Each player controls a paddle on the left or right side (up, stay, down). A ball bounces off the top and bottom walls and off paddles, speeding up slightly. Missing the ball gives the opponent a point; first to 3 points wins."
+}

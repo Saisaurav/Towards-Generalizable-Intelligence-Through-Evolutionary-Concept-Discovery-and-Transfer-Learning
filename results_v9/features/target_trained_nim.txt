@@ -1,0 +1,5 @@
+# v9 GP concepts discovered on the target game itself
+sub(neg(add(log1p(state_median),state_max)),log1p(min(state_max_abs,action_norm)))
+sub(mul(sub(log1p(state_max_abs),square(state_skewness)),square(state_min)),max(log1p(action_norm),max(log1p(action_norm),state_mean)))
+min(sub(min(state_sparsity,state_median),legal_norm),action_norm)
+min(sub(abs(state_position_moment),legal_norm),add(state_mean,action_norm))

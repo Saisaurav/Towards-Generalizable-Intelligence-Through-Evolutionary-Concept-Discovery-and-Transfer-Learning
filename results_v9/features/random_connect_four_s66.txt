@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+mul(log1p(sub(state_position_spread,board_own_immediate_wins)),sub(add(state_max_abs,state_max),log1p(state_positive_fraction)))
+max(min(max(state_position_spread,state_adjacent_difference),neg(state_adjacent_difference)),abs(abs(state_entropy)))
+min(add(log1p(state_sign_change_fraction),min(action_norm,state_sign_change_fraction)),add(action_norm,mul(board_opponent_immediate_wins,board_own_open_lines)))
+max(tanh(add(board_own_immediate_wins,state_positive_fraction)),sub(mul(state_median,state_abs_mean),state_sparsity))

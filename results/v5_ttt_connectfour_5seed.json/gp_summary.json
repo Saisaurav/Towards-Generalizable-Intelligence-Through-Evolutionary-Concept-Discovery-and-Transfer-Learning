@@ -1,0 +1,577 @@
+{
+  "generations_run": 6,
+  "stopped_for_stagnation": false,
+  "stopped_after_unsuccessful_restarts": false,
+  "final_stagnant_generations": 0,
+  "restart_summary": {
+    "restarts_triggered": 0,
+    "successful_restarts": 0,
+    "unsuccessful_restarts": 0,
+    "consecutive_unsuccessful_restarts": 0,
+    "max_unsuccessful_restarts": 3,
+    "stopped_after_unsuccessful_restarts": false,
+    "events": []
+  },
+  "unique_structures": 75,
+  "unique_behaviors": 50,
+  "shortlist_size": 4,
+  "concepts_admitted": 4,
+  "downstream_evaluation_enabled": true,
+  "source_game": "TicTacToe",
+  "target_game": "ConnectFour",
+  "primitive_contract": "generic_state_action_v5",
+  "fitness_version": "signed_robust_v1",
+  "dataset_overrides": {
+    "nstates": 45,
+    "rollouts": 3
+  },
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    },
+    "state_min": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Minimum normalized state value."
+    },
+    "state_max": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum normalized state value."
+    },
+    "state_range": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum minus minimum normalized state value."
+    },
+    "state_positive_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values greater than zero."
+    },
+    "state_negative_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values less than zero."
+    },
+    "state_sparsity": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values with absolute value at most 1e-6."
+    },
+    "state_median": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Median of normalized state values."
+    },
+    "state_iqr": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "75th minus 25th percentile of normalized state values."
+    },
+    "state_skewness": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standardized third central moment; zero for near-constant states."
+    },
+    "state_entropy": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Normalized Shannon entropy of absolute state-value mass; zero for all-zero states."
+    },
+    "state_position_moment": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Signed first moment of values over normalized feature index; order-sensitive."
+    },
+    "state_position_spread": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Absolute-mass-weighted spread over normalized feature index; order-sensitive."
+    },
+    "state_adjacent_difference": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute difference between adjacent normalized state features; order-sensitive."
+    },
+    "state_sign_change_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of adjacent feature pairs with opposite nonzero signs; order-sensitive."
+    }
+  },
+  "available_source_primitives": [
+    "state_mean",
+    "state_abs_mean",
+    "state_var",
+    "state_max_abs",
+    "action_norm",
+    "legal_norm",
+    "state_magnitude",
+    "state_dispersion",
+    "state_min",
+    "state_max",
+    "state_range",
+    "state_positive_fraction",
+    "state_negative_fraction",
+    "state_sparsity",
+    "state_median",
+    "state_iqr",
+    "state_skewness",
+    "state_entropy",
+    "state_position_moment",
+    "state_position_spread",
+    "state_adjacent_difference",
+    "state_sign_change_fraction"
+  ],
+  "available_target_primitives": [
+    "action_norm",
+    "legal_norm",
+    "state_abs_mean",
+    "state_adjacent_difference",
+    "state_dispersion",
+    "state_entropy",
+    "state_iqr",
+    "state_magnitude",
+    "state_max",
+    "state_max_abs",
+    "state_mean",
+    "state_median",
+    "state_min",
+    "state_negative_fraction",
+    "state_position_moment",
+    "state_position_spread",
+    "state_positive_fraction",
+    "state_range",
+    "state_sign_change_fraction",
+    "state_skewness",
+    "state_sparsity",
+    "state_var"
+  ],
+  "final_pareto_front_size": 22,
+  "concepts": [
+    {
+      "id": "ttt_gp_1",
+      "expression": "square(div(legal_norm,action_norm))",
+      "canonical": "square(div(legal_norm,action_norm))",
+      "source_game": "TicTacToe",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v5",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": 0.07103187495188583,
+      "source_validation_signed_corr": 0.07103187495188583,
+      "source_generalization_consistency": -0.015075300436491648,
+      "source_test_abs_corr": 0.027462124903380094,
+      "behavioral_novelty": 0.5496216650653251,
+      "target_output_std": 0.11275905711109861,
+      "complexity": 4,
+      "source_data_config": {
+        "train_states": 45,
+        "rollouts_per_action": 3
+      },
+      "depth": 3,
+      "admission_status": "admitted",
+      "downstream_utility": {
+        "target_game": "ConnectFour",
+        "budget_steps": 3000,
+        "population": 8,
+        "seeds": [
+          11,
+          22,
+          33,
+          44,
+          55
+        ],
+        "baseline_returns": {
+          "11": -0.05,
+          "22": 0.138,
+          "33": 0.056,
+          "44": 0.102,
+          "55": 0.024
+        },
+        "candidate_returns": {
+          "11": -0.047,
+          "22": 0.138,
+          "33": 0.021,
+          "44": 0.142,
+          "55": 0.024
+        },
+        "paired_differences": {
+          "11": 0.0030000000000000027,
+          "22": 0.0,
+          "33": -0.035,
+          "44": 0.039999999999999994,
+          "55": 0.0
+        },
+        "mean_paired_difference": 0.0015999999999999986,
+        "minimum_improvement": 0.0,
+        "passed": true
+      }
+    },
+    {
+      "id": "ttt_gp_2",
+      "expression": "div(legal_norm,action_norm)",
+      "canonical": "div(legal_norm,action_norm)",
+      "source_game": "TicTacToe",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v5",
+      "primitive_dependencies": [
+        "action_norm",
+        "legal_norm"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": 0.061888887679977744,
+      "source_validation_signed_corr": 0.14057735309470265,
+      "source_generalization_consistency": -0.0786884654147249,
+      "source_test_abs_corr": 0.02577244944625277,
+      "behavioral_novelty": 0.5606591058168441,
+      "target_output_std": 0.8924557937821722,
+      "complexity": 3,
+      "source_data_config": {
+        "train_states": 45,
+        "rollouts_per_action": 3
+      },
+      "depth": 2,
+      "admission_status": "admitted",
+      "downstream_utility": {
+        "target_game": "ConnectFour",
+        "budget_steps": 3000,
+        "population": 8,
+        "seeds": [
+          11,
+          22,
+          33,
+          44,
+          55
+        ],
+        "baseline_returns": {
+          "11": -0.05,
+          "22": 0.138,
+          "33": 0.056,
+          "44": 0.102,
+          "55": 0.024
+        },
+        "candidate_returns": {
+          "11": 0.033,
+          "22": 0.138,
+          "33": 0.073,
+          "44": 0.172,
+          "55": 0.024
+        },
+        "paired_differences": {
+          "11": 0.083,
+          "22": 0.0,
+          "33": 0.016999999999999994,
+          "44": 0.06999999999999999,
+          "55": 0.0
+        },
+        "mean_paired_difference": 0.033999999999999996,
+        "minimum_improvement": 0.0,
+        "passed": true
+      }
+    },
+    {
+      "id": "ttt_gp_3",
+      "expression": "square(div(action_norm,action_norm))",
+      "canonical": "square(div(action_norm,action_norm))",
+      "source_game": "TicTacToe",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v5",
+      "primitive_dependencies": [
+        "action_norm"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": -0.23864290913023406,
+      "source_validation_signed_corr": -0.23864290913023406,
+      "source_generalization_consistency": -0.0725442279125679,
+      "source_test_abs_corr": 0.11227451101274158,
+      "behavioral_novelty": 0.7524764119169103,
+      "target_output_std": 0.26810228654913076,
+      "complexity": 4,
+      "source_data_config": {
+        "train_states": 45,
+        "rollouts_per_action": 3
+      },
+      "depth": 3,
+      "admission_status": "admitted",
+      "downstream_utility": {
+        "target_game": "ConnectFour",
+        "budget_steps": 3000,
+        "population": 8,
+        "seeds": [
+          11,
+          22,
+          33,
+          44,
+          55
+        ],
+        "baseline_returns": {
+          "11": -0.05,
+          "22": 0.138,
+          "33": 0.056,
+          "44": 0.102,
+          "55": 0.024
+        },
+        "candidate_returns": {
+          "11": 0.133,
+          "22": 0.19,
+          "33": 0.09,
+          "44": 0.067,
+          "55": 0.024
+        },
+        "paired_differences": {
+          "11": 0.183,
+          "22": 0.05199999999999999,
+          "33": 0.033999999999999996,
+          "44": -0.03499999999999999,
+          "55": 0.0
+        },
+        "mean_paired_difference": 0.046799999999999994,
+        "minimum_improvement": 0.0,
+        "passed": true
+      }
+    },
+    {
+      "id": "ttt_gp_4",
+      "expression": "action_norm",
+      "canonical": "action_norm",
+      "source_game": "TicTacToe",
+      "target_game": "ConnectFour",
+      "primitive_contract": "generic_state_action_v5",
+      "primitive_dependencies": [
+        "action_norm"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": -0.01785385672227142,
+      "source_validation_signed_corr": 0.0007846974273700422,
+      "source_generalization_consistency": -0.018638554149641464,
+      "source_test_abs_corr": 0.005636553094763989,
+      "behavioral_novelty": 0.574501818801176,
+      "target_output_std": 0.5399420658897157,
+      "complexity": 1,
+      "source_data_config": {
+        "train_states": 45,
+        "rollouts_per_action": 3
+      },
+      "depth": 1,
+      "admission_status": "admitted",
+      "downstream_utility": {
+        "target_game": "ConnectFour",
+        "budget_steps": 3000,
+        "population": 8,
+        "seeds": [
+          11,
+          22,
+          33,
+          44,
+          55
+        ],
+        "baseline_returns": {
+          "11": -0.05,
+          "22": 0.138,
+          "33": 0.056,
+          "44": 0.102,
+          "55": 0.024
+        },
+        "candidate_returns": {
+          "11": 0.117,
+          "22": 0.138,
+          "33": 0.073,
+          "44": 0.057,
+          "55": 0.024
+        },
+        "paired_differences": {
+          "11": 0.167,
+          "22": 0.0,
+          "33": 0.016999999999999994,
+          "44": -0.04499999999999999,
+          "55": 0.0
+        },
+        "mean_paired_difference": 0.027800000000000002,
+        "minimum_improvement": 0.0,
+        "passed": true
+      }
+    }
+  ]
+}

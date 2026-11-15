@@ -1,0 +1,439 @@
+{
+  "generations_run": 5,
+  "stopped_for_stagnation": false,
+  "stopped_after_unsuccessful_restarts": false,
+  "final_stagnant_generations": 0,
+  "restart_summary": {
+    "restarts_triggered": 0,
+    "successful_restarts": 0,
+    "unsuccessful_restarts": 0,
+    "consecutive_unsuccessful_restarts": 0,
+    "max_unsuccessful_restarts": 3,
+    "stopped_after_unsuccessful_restarts": false,
+    "events": []
+  },
+  "unique_structures": 56,
+  "unique_behaviors": 17,
+  "shortlist_size": 3,
+  "concepts_admitted": 2,
+  "downstream_evaluation_enabled": true,
+  "source_game": "Nim",
+  "target_game": "LineWorld",
+  "primitive_contract": "generic_state_action_v5",
+  "fitness_version": "signed_robust_v1",
+  "dataset_overrides": {
+    "nstates": 30,
+    "rollouts": 3
+  },
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    },
+    "state_min": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Minimum normalized state value."
+    },
+    "state_max": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum normalized state value."
+    },
+    "state_range": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum minus minimum normalized state value."
+    },
+    "state_positive_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values greater than zero."
+    },
+    "state_negative_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values less than zero."
+    },
+    "state_sparsity": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of normalized state values with absolute value at most 1e-6."
+    },
+    "state_median": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Median of normalized state values."
+    },
+    "state_iqr": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "75th minus 25th percentile of normalized state values."
+    },
+    "state_skewness": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standardized third central moment; zero for near-constant states."
+    },
+    "state_entropy": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Normalized Shannon entropy of absolute state-value mass; zero for all-zero states."
+    },
+    "state_position_moment": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Signed first moment of values over normalized feature index; order-sensitive."
+    },
+    "state_position_spread": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Absolute-mass-weighted spread over normalized feature index; order-sensitive."
+    },
+    "state_adjacent_difference": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute difference between adjacent normalized state features; order-sensitive."
+    },
+    "state_sign_change_fraction": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of adjacent feature pairs with opposite nonzero signs; order-sensitive."
+    }
+  },
+  "available_source_primitives": [
+    "state_mean",
+    "state_abs_mean",
+    "state_var",
+    "state_max_abs",
+    "action_norm",
+    "legal_norm",
+    "state_magnitude",
+    "state_dispersion",
+    "state_min",
+    "state_max",
+    "state_range",
+    "state_positive_fraction",
+    "state_negative_fraction",
+    "state_sparsity",
+    "state_median",
+    "state_iqr",
+    "state_skewness",
+    "state_entropy",
+    "state_position_moment",
+    "state_position_spread",
+    "state_adjacent_difference",
+    "state_sign_change_fraction"
+  ],
+  "available_target_primitives": [
+    "action_norm",
+    "legal_norm",
+    "state_abs_mean",
+    "state_adjacent_difference",
+    "state_dispersion",
+    "state_entropy",
+    "state_iqr",
+    "state_magnitude",
+    "state_max",
+    "state_max_abs",
+    "state_mean",
+    "state_median",
+    "state_min",
+    "state_negative_fraction",
+    "state_position_moment",
+    "state_position_spread",
+    "state_positive_fraction",
+    "state_range",
+    "state_sign_change_fraction",
+    "state_skewness",
+    "state_sparsity",
+    "state_var"
+  ],
+  "final_pareto_front_size": 18,
+  "concepts": [
+    {
+      "id": "nim_gp_1",
+      "expression": "max(max(sub(state_sparsity,state_sign_change_fraction),min(state_min,state_entropy)),add(mul(state_abs_mean,state_median),sub(min(state_max_abs,action_norm),min(state_median,state_median))))",
+      "canonical": "max(add(mul(state_abs_mean,state_median),sub(min(action_norm,state_max_abs),min(state_median,state_median))),max(min(state_entropy,state_min),sub(state_sparsity,state_sign_change_fraction)))",
+      "source_game": "Nim",
+      "target_game": "LineWorld",
+      "primitive_contract": "generic_state_action_v5",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_abs_mean",
+        "state_entropy",
+        "state_max_abs",
+        "state_median",
+        "state_min",
+        "state_sign_change_fraction",
+        "state_sparsity"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": -0.1922177304838553,
+      "source_validation_signed_corr": 0.017710421509087138,
+      "source_generalization_consistency": -0.20992815199294243,
+      "source_test_abs_corr": 0.2257333379581649,
+      "behavioral_novelty": 0.2810950976784331,
+      "target_output_std": 0.16857659823526622,
+      "complexity": 19,
+      "source_data_config": {
+        "train_states": 30,
+        "rollouts_per_action": 3
+      },
+      "depth": 5,
+      "admission_status": "admitted",
+      "downstream_utility": {
+        "target_game": "LineWorld",
+        "budget_steps": 2000,
+        "population": 8,
+        "seeds": [
+          11,
+          22,
+          33
+        ],
+        "baseline_returns": {
+          "11": 0.85595,
+          "22": -0.14848,
+          "33": -0.12787
+        },
+        "candidate_returns": {
+          "11": 0.85595,
+          "22": -0.14848,
+          "33": 0.123
+        },
+        "paired_differences": {
+          "11": 0.0,
+          "22": 0.0,
+          "33": 0.25087000000000004
+        },
+        "mean_paired_difference": 0.08362333333333334,
+        "minimum_improvement": 0.0,
+        "passed": true
+      }
+    },
+    {
+      "id": "nim_gp_3",
+      "expression": "max(max(sub(state_sparsity,state_sign_change_fraction),min(state_min,state_entropy)),add(state_positive_fraction,sub(min(state_max_abs,action_norm),min(state_median,state_median))))",
+      "canonical": "max(add(state_positive_fraction,sub(min(action_norm,state_max_abs),min(state_median,state_median))),max(min(state_entropy,state_min),sub(state_sparsity,state_sign_change_fraction)))",
+      "source_game": "Nim",
+      "target_game": "LineWorld",
+      "primitive_contract": "generic_state_action_v5",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_entropy",
+        "state_max_abs",
+        "state_median",
+        "state_min",
+        "state_positive_fraction",
+        "state_sign_change_fraction",
+        "state_sparsity"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_robust_signed_corr": -0.16669474306955387,
+      "source_validation_signed_corr": 0.1885825740395578,
+      "source_generalization_consistency": -0.3552773171091117,
+      "source_test_abs_corr": 0.24061335326260694,
+      "behavioral_novelty": 0.10080746761228007,
+      "target_output_std": 0.24028958013540716,
+      "complexity": 17,
+      "source_data_config": {
+        "train_states": 30,
+        "rollouts_per_action": 3
+      },
+      "depth": 5,
+      "admission_status": "admitted",
+      "downstream_utility": {
+        "target_game": "LineWorld",
+        "budget_steps": 2000,
+        "population": 8,
+        "seeds": [
+          11,
+          22,
+          33
+        ],
+        "baseline_returns": {
+          "11": 0.85595,
+          "22": -0.14848,
+          "33": -0.12787
+        },
+        "candidate_returns": {
+          "11": 0.85595,
+          "22": -0.14848,
+          "33": 0.77601
+        },
+        "paired_differences": {
+          "11": 0.0,
+          "22": 0.0,
+          "33": 0.90388
+        },
+        "mean_paired_difference": 0.30129333333333336,
+        "minimum_improvement": 0.0,
+        "passed": true
+      }
+    }
+  ]
+}

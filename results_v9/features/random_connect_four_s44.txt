@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(div(max(state_adjacent_difference,state_position_spread),board_own_open_lines),tanh(board_occupancy))
+sub(neg(board_own_open_lines),sub(square(board_own_open_lines),min(board_own_open_lines,state_position_moment)))
+mul(div(state_adjacent_difference,state_positive_fraction),sqrt(board_center_control))
+sqrt(sub(sub(state_position_spread,state_negative_fraction),neg(state_positive_fraction)))

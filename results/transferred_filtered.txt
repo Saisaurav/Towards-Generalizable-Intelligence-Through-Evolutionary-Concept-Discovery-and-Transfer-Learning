@@ -1,0 +1,6 @@
+# Action identity plus two nonconstant transferred concepts and two zero pads.
+action_norm
+div(min(add(state_var,state_abs_mean),mul(state_max_abs,state_abs_mean)),action_norm)
+div(sub(max(legal_norm,action_norm),add(legal_norm,state_mean)),action_norm)
+sub(state_mean,state_mean)
+sub(state_var,state_var)

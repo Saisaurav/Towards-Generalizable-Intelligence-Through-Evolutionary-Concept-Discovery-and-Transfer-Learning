@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+max(state_negative_fraction,add(state_range,add(state_abs_mean,state_range)))
+mul(state_mean,min(add(state_iqr,state_abs_mean),state_max_abs))
+min(min(add(state_sparsity,state_iqr),add(state_magnitude,state_min)),state_min)
+tanh(state_iqr)

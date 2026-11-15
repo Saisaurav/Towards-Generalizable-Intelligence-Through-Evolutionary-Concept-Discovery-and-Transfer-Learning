@@ -1,0 +1,207 @@
+{
+  "version": 2,
+  "primitive_contract": "generic_state_action_v2",
+  "primitive_metadata": {
+    "state_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean of normalized state values."
+    },
+    "state_abs_mean": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Mean absolute normalized state value."
+    },
+    "state_var": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Variance of normalized state values."
+    },
+    "state_max_abs": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Maximum absolute normalized state value."
+    },
+    "action_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Action index mapped to [-1, 1]."
+    },
+    "legal_norm": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Fraction of available actions that are legal."
+    },
+    "state_magnitude": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Root mean square of normalized state values."
+    },
+    "state_dispersion": {
+      "available_in": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "definition": "Standard deviation of normalized state values."
+    },
+    "state_boundary_margin": {
+      "available_in": [
+        "cartpole"
+      ],
+      "definition": "One minus the larger normalized CartPole position/angle magnitude."
+    }
+  },
+  "target_game": "CartPole",
+  "downstream_evaluation_enabled": false,
+  "candidates": [
+    {
+      "id": "cartpole_gp_1",
+      "expression": "div(state_dispersion,state_abs_mean)",
+      "canonical": "div(state_dispersion,state_abs_mean)",
+      "source_game": "CartPole",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "state_abs_mean",
+        "state_dispersion"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_training_abs_corr": 0.0,
+      "source_validation_abs_corr": 6.4674537377367716e-18,
+      "source_test_abs_corr": 4.357692591875998e-18,
+      "behavioral_novelty": 0.5563417357159781,
+      "target_output_std": 0.03285671703429309,
+      "complexity": 3,
+      "depth": 2,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "cartpole_gp_2",
+      "expression": "min(state_boundary_margin,div(state_mean,sub(action_norm,state_boundary_margin)))",
+      "canonical": "min(div(state_mean,sub(action_norm,state_boundary_margin)),state_boundary_margin)",
+      "source_game": "CartPole",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_boundary_margin",
+        "state_mean"
+      ],
+      "compatible_games": [
+        "cartpole"
+      ],
+      "source_training_abs_corr": 0.1741099610339481,
+      "source_validation_abs_corr": 0.2782714746851111,
+      "source_test_abs_corr": 0.3570186953631323,
+      "behavioral_novelty": 0.13429821407049186,
+      "target_output_std": 0.2995850756086994,
+      "complexity": 7,
+      "depth": 4,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "cartpole_gp_3",
+      "expression": "min(mul(min(state_max_abs,state_boundary_margin),max(add(action_norm,state_max_abs),mul(action_norm,state_magnitude))),mul(div(add(action_norm,action_norm),state_mean),state_var))",
+      "canonical": "min(mul(div(add(action_norm,action_norm),state_mean),state_var),mul(max(add(action_norm,state_max_abs),mul(action_norm,state_magnitude)),min(state_boundary_margin,state_max_abs)))",
+      "source_game": "CartPole",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_boundary_margin",
+        "state_magnitude",
+        "state_max_abs",
+        "state_mean",
+        "state_var"
+      ],
+      "compatible_games": [
+        "cartpole"
+      ],
+      "source_training_abs_corr": 0.24197416828042975,
+      "source_validation_abs_corr": 0.22518369788352297,
+      "source_test_abs_corr": 0.40457011342903415,
+      "behavioral_novelty": 0.05072834899793266,
+      "target_output_std": 0.5064501616542809,
+      "complexity": 19,
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    },
+    {
+      "id": "cartpole_gp_4",
+      "expression": "div(div(min(max(state_magnitude,state_mean),max(state_var,state_mean)),action_norm),state_mean)",
+      "canonical": "div(div(min(max(state_magnitude,state_mean),max(state_mean,state_var)),action_norm),state_mean)",
+      "source_game": "CartPole",
+      "target_game": "CartPole",
+      "primitive_contract": "generic_state_action_v2",
+      "primitive_dependencies": [
+        "action_norm",
+        "state_magnitude",
+        "state_mean",
+        "state_var"
+      ],
+      "compatible_games": [
+        "ttt",
+        "cartpole",
+        "connect_four",
+        "nim",
+        "lineworld"
+      ],
+      "source_training_abs_corr": 0.2593171471446659,
+      "source_validation_abs_corr": 0.17461495261306795,
+      "source_test_abs_corr": 0.4225521180963996,
+      "behavioral_novelty": 0.0475259694428332,
+      "target_output_std": 0.728220294620664,
+      "complexity": 11,
+      "depth": 5,
+      "admission_status": "pending_downstream",
+      "downstream_utility": null
+    }
+  ]
+}

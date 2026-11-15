@@ -1,0 +1,12 @@
+src/brain
+src/env_smoke_test
+src/lamarckian_hidden_test
+src/concept_parity_test
+src/regression_test
+*.o
+__pycache__/
+src/*.csv
+generated_envs/
+node_modules/
+src/brain
+src/runner

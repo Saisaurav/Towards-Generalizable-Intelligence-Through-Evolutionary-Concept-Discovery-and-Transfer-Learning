@@ -1,0 +1,5 @@
+# v9 GP concepts discovered on the source game
+sub(state_abs_mean,action_norm)
+square(div(state_position_moment,sqrt(abs(action_norm))))
+div(square(sub(action_norm,min(state_var,state_max))),abs(action_norm))
+sub(square(sub(action_norm,min(state_var,state_max))),sqrt(abs(action_norm)))

@@ -1,0 +1,52 @@
+{
+  "target": "lineworld",
+  "budget_per_learner": 3000,
+  "population": 8,
+  "paired_seeds": [
+    11,
+    22,
+    33
+  ],
+  "results": [
+    {
+      "condition": "restart",
+      "expression": "div(mul(legal_norm,sub(add(action_norm,state_mean),mul(state_max_abs,state_abs_mean))),state_abs_mean)",
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": 0.92608
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.0,
+        "33": 1.05395
+      },
+      "mean_paired_difference": 0.35131666666666667
+    },
+    {
+      "condition": "no_restart",
+      "expression": "div(action_norm,div(state_magnitude,min(state_dispersion,legal_norm)))",
+      "baseline_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": -0.12787
+      },
+      "candidate_returns": {
+        "11": 0.85595,
+        "22": -0.14848,
+        "33": 0.7565
+      },
+      "paired_differences": {
+        "11": 0.0,
+        "22": 0.0,
+        "33": 0.88437
+      },
+      "mean_paired_difference": 0.29479
+    }
+  ]
+}

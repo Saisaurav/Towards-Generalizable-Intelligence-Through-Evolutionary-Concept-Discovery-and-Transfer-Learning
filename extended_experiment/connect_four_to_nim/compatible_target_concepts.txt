@@ -1,0 +1,3 @@
+# Concepts admitted by fixed-budget fresh target-learner evaluation.
+mul(add(log1p(state_positive_fraction),state_abs_mean),add(div(state_positive_fraction,action_norm),state_sign_change_fraction))
+mul(add(log1p(log1p(state_positive_fraction)),min(state_max_abs,state_mean)),action_norm)

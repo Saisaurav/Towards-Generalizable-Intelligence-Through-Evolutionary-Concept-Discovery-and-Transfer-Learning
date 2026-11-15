@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+add(div(tanh(action_norm),sqrt(max(state_median,state_position_spread))),max(log1p(action_norm),add(legal_norm,state_abs_mean)))
+add(neg(state_max),action_norm)
+add(div(tanh(action_norm),state_max),max(mul(state_iqr,state_max),add(legal_norm,state_abs_mean)))

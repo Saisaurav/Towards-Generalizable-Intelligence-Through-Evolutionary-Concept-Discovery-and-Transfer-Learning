@@ -1,0 +1,3 @@
+# Concepts admitted by fixed-budget fresh target-learner evaluation.
+div(legal_norm,action_norm)
+square(div(action_norm,action_norm))

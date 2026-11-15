@@ -1,0 +1,5 @@
+# GP concepts evolved on TicTacToe; generic primitive contract v1
+div(action_norm,action_norm)
+div(div(action_norm,action_norm),legal_norm)
+div(min(add(state_var,state_abs_mean),mul(state_max_abs,state_abs_mean)),action_norm)
+div(sub(max(legal_norm,action_norm),add(legal_norm,state_mean)),action_norm)

@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+div(max(log1p(max(board_opponent_immediate_wins,state_max_abs)),max(board_own_immediate_wins,state_sparsity)),neg(square(action_norm)))
+div(sub(board_opponent_open_lines,div(min(board_opponent_immediate_wins,state_adjacent_difference),add(state_var,action_norm))),add(sub(mul(board_own_open_lines,state_positive_fraction),div(state_position_spread,state_mean)),action_norm))
+div(sub(board_opponent_open_lines,div(min(board_opponent_immediate_wins,state_adjacent_difference),add(board_own_immediate_wins,action_norm))),add(sub(mul(board_own_open_lines,state_positive_fraction),div(state_position_spread,state_positive_fraction)),action_norm))
+div(min(board_opponent_immediate_wins,state_adjacent_difference),add(sub(state_iqr,abs(board_own_immediate_wins)),action_norm))

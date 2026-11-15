@@ -1,0 +1,15 @@
+hidden=16 changed_weights=82 total_weights=82\n[PASS] initial genome has 16 hidden nodes (expect 16)
+[PASS] phenotype compute nodes=18 (16 hidden + 2 outputs)
+[PASS] forward output 0.679566 vs reference 0.679566 (|diff|=4.13e-08)
+[PASS] gradient check: 28 weights (16 into hidden units), worst rel err 4.67e-04
+[PASS] gradient check covered hidden-layer weights
+[PASS] Lamarckian: 82/82 weights changed (mean |dw|=0.0245; 48/48 into hidden units)
+[PASS] Darwinian: 0 weights changed (expect 0)
+[PASS] clone of trained genome preserves all trained weights
+[PASS] crossover(trained, trained) preserves trained weights (max diff 0.0e+00)
+[PASS] 'lam' mutation perturbs 13/82 weights, mean |dw|=0.0094 (small vs learned change)
+[PASS] all initial genomes share all 82 innovations (min shared=82)
+[PASS] every initial genome compiles with a hidden layer
+[PASS] add-node mutation grew hidden nodes (max hidden=20 > 16)
+[PASS] all evolved genomes compile with finite weights after 6 generations (mean nodes 22.6 conns 87.0)
+ALL REGRESSION TESTS PASSED (0 failures)

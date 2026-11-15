@@ -1,0 +1,258 @@
+{
+ "ttt_to_cartpole_rollout": {
+  "source": {
+   "div(state_position_moment,action_norm)": 0.1997313521387333,
+   "div(state_abs_mean,add(action_norm,sqrt(state_entropy)))": 0.5219975112479551,
+   "div(square(state_var),action_norm)": 0.1000337445699338,
+   "div(sub(add(state_positive_fraction,state_mean),state_position_spread),neg(square(action_norm)))": 0.2962868773023274
+  },
+  "target_trained": {
+   "min(div(sub(div(transition_delta_max_abs,state_range),add(state_dispersion,state_var)),max(mul(state_adjacent_difference,state_mean),mul(state_median,state_entropy))),div(tanh(action_norm),state_position_moment))": 0.8408826791412779,
+   "min(min(min(add(action_norm,state_median),state_max),neg(action_norm)),div(tanh(action_norm),state_position_moment))": 0.10804435136381084,
+   "min(mul(abs(state_mean),transition_delta_mean),div(tanh(action_norm),state_position_moment))": 0.49565455187061547,
+   "min(div(sub(div(transition_delta_max_abs,state_range),add(state_skewness,state_var)),tanh(max(action_norm,state_max))),div(tanh(action_norm),state_position_moment))": 0.6542123156154476
+  }
+ },
+ "random_cartpole": {
+  "11": {
+   "max(add(div(state_position_spread,transition_delta_max_abs),state_max),mul(transition_delta_mean,sub(state_iqr,state_sign_change_fraction)))": 0.023613506098124345,
+   "div(state_sign_change_fraction,state_var)": 0.14000015419093328,
+   "neg(state_position_spread)": 0.09762418897636232,
+   "add(sub(mul(state_positive_fraction,state_dispersion),log1p(state_min)),state_adjacent_difference)": 0.17394381857132948
+  },
+  "22": {
+   "max(tanh(mul(state_abs_mean,state_max)),neg(state_abs_mean))": 0.14603653589292148,
+   "mul(div(min(state_position_moment,state_position_moment),max(state_sparsity,state_sparsity)),min(mul(state_position_moment,state_iqr),add(state_iqr,state_position_spread)))": 0.29099617195125377,
+   "min(abs(state_mean),sub(div(state_adjacent_difference,state_magnitude),min(state_adjacent_difference,state_mean)))": 0.09724576051952899,
+   "div(sub(min(state_range,state_max_abs),state_max),add(div(state_negative_fraction,transition_delta_abs_mean),square(state_range)))": 0.024691432699436588
+  },
+  "33": {
+   "sub(state_boundary_margin,state_adjacent_difference)": 0.4428055659499774,
+   "sqrt(state_entropy)": 0.056334000338172124,
+   "mul(transition_delta_max_abs,add(state_abs_mean,state_adjacent_difference))": 0.07700555171209773,
+   "min(state_positive_fraction,sub(div(state_dispersion,transition_delta_mean),min(state_position_spread,state_max)))": 0.735979596621673
+  },
+  "44": {
+   "sub(div(max(state_position_spread,state_position_moment),state_sign_change_fraction),tanh(transition_delta_abs_mean))": 0.19534795274821964,
+   "tanh(max(div(state_range,legal_norm),transition_state_alignment))": 0.1825863026323016,
+   "add(state_position_moment,tanh(sub(state_max_abs,transition_state_alignment)))": 0.42450065249977226,
+   "sub(div(transition_delta_max_abs,state_max),state_min)": 0.22050368735895043
+  },
+  "55": {
+   "add(state_max,max(min(state_adjacent_difference,legal_norm),abs(state_entropy)))": 0.1341146020629108,
+   "log1p(tanh(transition_delta_mean))": 0.017862724504629314,
+   "tanh(sub(div(state_positive_fraction,transition_delta_mean),div(state_min,state_entropy)))": 0.7537825613877778,
+   "square(state_dispersion)": 0.1484305080600233
+  },
+  "66": {
+   "sub(max(tanh(state_positive_fraction),state_max_abs),transition_delta_abs_mean)": 0.14716279431098095,
+   "mul(log1p(sub(state_position_moment,transition_delta_abs_mean)),sub(add(state_max_abs,state_min),log1p(state_range)))": 0.12982549103793947,
+   "max(min(max(state_position_moment,state_position_spread),neg(state_position_spread)),abs(abs(state_skewness)))": 0.2440852940825384,
+   "min(add(log1p(state_adjacent_difference),min(action_norm,state_adjacent_difference)),add(action_norm,mul(transition_delta_max_abs,state_sign_change_fraction)))": 0.6562229699433572
+  },
+  "77": {
+   "mul(min(min(transition_delta_abs_mean,state_max),div(state_skewness,state_skewness)),log1p(sub(state_min,state_boundary_margin)))": 0.023059905011328242,
+   "mul(state_entropy,div(state_skewness,sub(action_norm,state_sign_change_fraction)))": 0.3410136580273033,
+   "min(square(neg(state_abs_mean)),max(mul(state_mean,state_entropy),sqrt(state_negative_fraction)))": 0.13462951036832027,
+   "sqrt(min(div(state_dispersion,state_var),square(transition_delta_max_abs)))": 0.030020299862222734
+  },
+  "88": {
+   "log1p(state_entropy)": 0.07416050258902558,
+   "min(sub(state_max,mul(state_sparsity,state_boundary_margin)),abs(state_skewness))": 0.15389578613466104,
+   "add(state_range,sub(add(state_sign_change_fraction,state_var),state_min))": 0.1468594328123226,
+   "mul(state_dispersion,div(max(state_min,state_sign_change_fraction),state_var))": 0.19697310792808936
+  },
+  "99": {
+   "neg(sqrt(mul(state_sign_change_fraction,legal_norm)))": 0.060968654090366906,
+   "square(tanh(add(state_skewness,state_negative_fraction)))": 0.1943444824339413,
+   "min(div(mul(state_dispersion,legal_norm),sqrt(state_adjacent_difference)),state_boundary_margin)": 0.14101630781198338,
+   "sub(add(sqrt(state_negative_fraction),add(state_max_abs,state_magnitude)),add(sub(state_position_moment,state_sparsity),max(state_adjacent_difference,state_position_spread)))": 0.19067241331750143
+  },
+  "111": {
+   "max(state_negative_fraction,add(state_range,add(state_abs_mean,state_range)))": 0.20379954842289733,
+   "mul(state_mean,min(add(state_iqr,state_abs_mean),state_max_abs))": 0.14766994859935226,
+   "min(min(add(state_sparsity,state_iqr),add(state_magnitude,state_min)),state_min)": 0.25378484438693266,
+   "tanh(state_iqr)": 0.20577614511494519
+  }
+ },
+ "ttt_to_cartpole_oracle": {
+  "source": {
+   "sub(state_abs_mean,action_norm)": 0.7309598439881124,
+   "square(div(state_position_moment,sqrt(abs(action_norm))))": 0.05510947241774102,
+   "div(square(sub(action_norm,min(state_var,state_max))),abs(action_norm))": 0.16826342805557856,
+   "sub(square(sub(action_norm,min(state_var,state_max))),sqrt(abs(action_norm)))": 0.34020857280855393
+  },
+  "target_trained": {
+   "min(div(sub(div(transition_delta_max_abs,state_range),add(state_dispersion,state_var)),max(mul(state_adjacent_difference,state_mean),mul(state_median,state_entropy))),div(tanh(action_norm),state_position_moment))": 0.8408826791412779,
+   "min(min(min(add(action_norm,state_median),state_max),neg(action_norm)),div(tanh(action_norm),state_position_moment))": 0.10804435136381084,
+   "min(mul(abs(state_mean),transition_delta_mean),div(tanh(action_norm),state_position_moment))": 0.49565455187061547,
+   "min(div(sub(div(transition_delta_max_abs,state_range),add(state_skewness,state_var)),tanh(max(action_norm,state_max))),div(tanh(action_norm),state_position_moment))": 0.6542123156154476
+  }
+ },
+ "ttt_to_c4_rollout": {
+  "source": {
+   "div(max(log1p(max(board_opponent_immediate_wins,state_max_abs)),max(board_own_immediate_wins,state_sparsity)),neg(square(action_norm)))": 0.6711627540839492,
+   "div(sub(board_opponent_open_lines,div(min(board_opponent_immediate_wins,state_adjacent_difference),add(state_var,action_norm))),add(sub(mul(board_own_open_lines,state_positive_fraction),div(state_position_spread,state_mean)),action_norm))": 0.12375202598163855,
+   "div(sub(board_opponent_open_lines,div(min(board_opponent_immediate_wins,state_adjacent_difference),add(board_own_immediate_wins,action_norm))),add(sub(mul(board_own_open_lines,state_positive_fraction),div(state_position_spread,state_positive_fraction)),action_norm))": 0.2531273177210556,
+   "div(min(board_opponent_immediate_wins,state_adjacent_difference),add(sub(state_iqr,abs(board_own_immediate_wins)),action_norm))": 0.1957269749897466
+  },
+  "target_trained": {
+   "square(square(sub(div(state_sparsity,action_norm),action_norm)))": 0.4602502540891796,
+   "add(max(max(sub(action_norm,state_mean),abs(board_center_control)),sqrt(div(state_position_spread,action_norm))),div(legal_norm,log1p(action_norm)))": 0.011188424184313964,
+   "mul(board_center_control,min(div(state_abs_mean,state_sparsity),div(state_position_spread,action_norm)))": 0.08062620681928437,
+   "sqrt(div(state_position_spread,action_norm))": 0.15399390157984685
+  }
+ },
+ "random_connect_four": {
+  "11": {
+   "mul(sub(div(state_skewness,state_sparsity),state_max),state_iqr)": 0.10747442714589461,
+   "max(min(state_position_moment,log1p(action_norm)),state_position_spread)": 0.09854863729316951,
+   "max(neg(sub(state_entropy,board_own_open_lines)),sub(board_own_immediate_wins,action_norm))": 0.4439329671202783,
+   "min(min(sqrt(state_min),board_opponent_open_lines),sub(state_entropy,abs(state_iqr)))": 0.07857381928290996
+  },
+  "22": {
+   "max(tanh(mul(state_abs_mean,state_range)),neg(state_abs_mean))": 0.0784115420608139,
+   "sub(sub(add(state_position_spread,state_max_abs),max(state_position_spread,state_min)),tanh(add(board_center_control,state_negative_fraction)))": 0.014657813845337871,
+   "max(state_position_spread,mul(state_mean,state_max_abs))": 0.09854863729316951,
+   "add(div(sub(state_magnitude,legal_norm),max(state_var,state_adjacent_difference)),state_skewness)": 0.26725172079497295
+  },
+  "33": {
+   "sub(board_occupancy,state_sign_change_fraction)": 0.14993551723044019,
+   "sqrt(board_occupancy)": 0.141755255497927,
+   "mul(min(state_var,state_mean),board_center_control)": 0.011872332071906569,
+   "div(div(sub(state_iqr,state_dispersion),add(state_entropy,state_adjacent_difference)),max(max(state_sign_change_fraction,board_center_control),tanh(state_range)))": 0.3620151445318352
+  },
+  "44": {
+   "sub(div(max(state_adjacent_difference,state_position_spread),board_own_open_lines),tanh(board_occupancy))": 0.017355915228625854,
+   "sub(neg(board_own_open_lines),sub(square(board_own_open_lines),min(board_own_open_lines,state_position_moment)))": 0.0401368193437487,
+   "mul(div(state_adjacent_difference,state_positive_fraction),sqrt(board_center_control))": 0.055146985396898586,
+   "sqrt(sub(sub(state_position_spread,state_negative_fraction),neg(state_positive_fraction)))": 0.03308982538709821
+  },
+  "55": {
+   "log1p(tanh(board_opponent_open_lines))": 0.05136400075307627,
+   "sub(neg(log1p(state_abs_mean)),state_iqr)": 0.2223442705559074,
+   "sub(min(square(state_adjacent_difference),board_opponent_immediate_wins),state_sign_change_fraction)": 0.01817256316000386,
+   "min(add(state_position_moment,max(board_opponent_immediate_wins,legal_norm)),sub(state_entropy,div(action_norm,legal_norm)))": 0.46686562861863695
+  },
+  "66": {
+   "mul(log1p(sub(state_position_spread,board_own_immediate_wins)),sub(add(state_max_abs,state_max),log1p(state_positive_fraction)))": 0.10641917342542521,
+   "max(min(max(state_position_spread,state_adjacent_difference),neg(state_adjacent_difference)),abs(abs(state_entropy)))": 0.17086131427830473,
+   "min(add(log1p(state_sign_change_fraction),min(action_norm,state_sign_change_fraction)),add(action_norm,mul(board_opponent_immediate_wins,board_own_open_lines)))": 0.2991837694103736,
+   "max(tanh(add(board_own_immediate_wins,state_positive_fraction)),sub(mul(state_median,state_abs_mean),state_sparsity))": 0.08349482548776065
+  },
+  "77": {
+   "mul(state_position_moment,div(state_entropy,sub(action_norm,board_own_open_lines)))": 0.11582112731144313,
+   "min(square(neg(state_abs_mean)),max(mul(state_mean,state_position_moment),sqrt(state_sparsity)))": 0.024194732064789535,
+   "sqrt(min(div(state_dispersion,state_var),square(board_opponent_immediate_wins)))": 0.01817256316000386,
+   "div(max(mul(state_magnitude,legal_norm),tanh(state_adjacent_difference)),min(mul(state_entropy,board_center_control),add(board_occupancy,board_own_immediate_wins)))": 0.552490685932093
+  },
+  "88": {
+   "log1p(state_position_moment)": 0.016889276505251658,
+   "min(sub(state_range,mul(state_median,state_min)),abs(state_entropy))": 0.17086131427830473,
+   "add(state_positive_fraction,sub(add(board_own_open_lines,state_var),state_max))": 0.12455474459967014,
+   "log1p(state_var)": 0.052763956350175466
+  },
+  "99": {
+   "neg(sqrt(mul(board_own_open_lines,legal_norm)))": 0.10637835846802883,
+   "square(tanh(add(state_entropy,state_sparsity)))": 0.04060793902433949,
+   "sub(add(sqrt(state_sparsity),add(state_max_abs,state_magnitude)),add(sub(state_position_spread,state_median),max(state_sign_change_fraction,state_adjacent_difference)))": 0.023797939896303456,
+   "min(max(state_position_moment,neg(state_positive_fraction)),square(div(state_dispersion,state_iqr)))": 0.017563912100871097
+  },
+  "111": {
+   "max(state_sparsity,add(state_positive_fraction,add(state_abs_mean,state_positive_fraction)))": 0.03731855758703519,
+   "mul(state_mean,min(add(state_skewness,state_abs_mean),state_max_abs))": 0.08023891477045743,
+   "tanh(state_skewness)": 0.037082618377459416,
+   "sub(tanh(sqrt(state_positive_fraction)),min(min(state_max,state_abs_mean),sqrt(board_own_immediate_wins)))": 0.08618198936261723
+  }
+ },
+ "ttt_to_c4_oracle": {
+  "source": {
+   "sub(state_abs_mean,action_norm)": 0.5369725280437175,
+   "square(div(state_position_moment,sqrt(abs(action_norm))))": 0.3483898500648881,
+   "div(square(sub(action_norm,min(state_var,state_max))),abs(action_norm))": 0.26660886610103873,
+   "div(mul(sub(square(board_opponent_open_lines),action_norm),state_position_spread),mul(sqrt(abs(action_norm)),abs(state_skewness)))": 0.3773297529520405
+  },
+  "target_trained": {
+   "square(square(sub(div(state_sparsity,action_norm),action_norm)))": 0.4602502540891796,
+   "add(max(max(sub(action_norm,state_mean),abs(board_center_control)),sqrt(div(state_position_spread,action_norm))),div(legal_norm,log1p(action_norm)))": 0.011188424184313964,
+   "mul(board_center_control,min(div(state_abs_mean,state_sparsity),div(state_position_spread,action_norm)))": 0.08062620681928437,
+   "sqrt(div(state_position_spread,action_norm))": 0.15399390157984685
+  }
+ },
+ "c4_to_nim_rollout": {
+  "source": {
+   "square(square(sub(div(state_sparsity,action_norm),action_norm)))": 0.358082862070055,
+   "neg(mul(action_norm,div(square(state_abs_mean),state_range)))": 0.8169737185356452,
+   "add(div(legal_norm,log1p(action_norm)),state_iqr)": 0.1000636835088358,
+   "max(action_norm,sqrt(div(state_position_spread,action_norm)))": 0.3520058631352055
+  },
+  "target_trained": {
+   "sub(neg(add(log1p(state_median),state_max)),log1p(min(state_max_abs,action_norm)))": 0.2247735359409506,
+   "sub(mul(sub(log1p(state_max_abs),square(state_skewness)),square(state_min)),max(log1p(action_norm),max(log1p(action_norm),state_mean)))": 0.13669062761511536,
+   "min(sub(min(state_sparsity,state_median),legal_norm),action_norm)": 0.02540971592205095,
+   "min(sub(abs(state_position_moment),legal_norm),add(state_mean,action_norm))": 0.02614290523610151
+  }
+ },
+ "random_nim": {
+  "11": {
+   "abs(sub(mul(state_negative_fraction,state_dispersion),log1p(state_max)))": 0.1809532242333281,
+   "mul(sqrt(add(state_abs_mean,state_iqr)),add(add(state_min,state_position_spread),add(state_dispersion,state_dispersion)))": 0.2658016688038905,
+   "div(legal_norm,min(sub(state_range,state_median),state_position_spread))": 0.08659562911996355,
+   "div(tanh(state_min),add(min(state_position_moment,action_norm),mul(state_mean,action_norm)))": 0.549998659211219
+  },
+  "22": {
+   "div(sub(min(state_positive_fraction,state_max_abs),state_range),add(div(state_sparsity,state_dispersion),state_positive_fraction))": 0.23904995809911975,
+   "add(sub(legal_norm,min(state_min,state_negative_fraction)),max(tanh(state_sparsity),abs(state_range)))": 0.08287334735301853,
+   "max(state_var,div(div(legal_norm,state_mean),add(state_median,state_positive_fraction)))": 0.20487184470730066,
+   "min(neg(action_norm),abs(max(state_iqr,state_adjacent_difference)))": 0.3520058631352055
+  },
+  "33": {
+   "sub(state_min,state_sign_change_fraction)": 0.23904995809911975,
+   "square(state_min)": 0.27359043660553706,
+   "max(tanh(legal_norm),state_dispersion)": 0.061087238308096335,
+   "sub(min(legal_norm,legal_norm),state_magnitude)": 0.23515540722943265
+  },
+  "44": {
+   "sub(div(max(state_adjacent_difference,state_position_spread),state_entropy),state_mean)": 0.23904995809911975,
+   "add(sub(add(state_dispersion,legal_norm),div(state_var,legal_norm)),square(sub(state_position_moment,state_position_moment)))": 0.08287334735301853,
+   "min(add(div(state_position_spread,state_min),state_positive_fraction),square(state_abs_mean))": 0.27359043660553706,
+   "sqrt(max(add(state_magnitude,state_max_abs),state_dispersion))": 0.1690980130939001
+  },
+  "55": {
+   "log1p(tanh(state_max_abs))": 0.15187749402060965,
+   "abs(min(div(state_negative_fraction,state_magnitude),action_norm))": 0.3657478109686399,
+   "sub(square(state_range),action_norm)": 0.6222024121711068,
+   "log1p(div(sqrt(legal_norm),max(action_norm,state_max_abs)))": 0.14784935002927896
+  },
+  "66": {
+   "sub(max(tanh(state_negative_fraction),state_max_abs),state_sign_change_fraction)": 0.23904995809911975,
+   "sub(add(add(state_position_moment,state_positive_fraction),mul(state_mean,state_position_spread)),max(sub(state_skewness,state_magnitude),add(state_position_moment,state_min)))": 0.2502857330800948,
+   "abs(neg(neg(action_norm)))": 0.358082862070055,
+   "sqrt(sqrt(max(state_iqr,legal_norm)))": 0.02230676493159786
+  },
+  "77": {
+   "max(state_sign_change_fraction,add(add(legal_norm,state_min),state_max_abs))": 0.1162485405101554,
+   "add(state_mean,state_negative_fraction)": 0.23904995809911975,
+   "neg(legal_norm)": 0.08287334735301853,
+   "mul(add(add(state_var,state_magnitude),mul(state_negative_fraction,state_iqr)),state_magnitude)": 0.27359043660553706
+  },
+  "88": {
+   "min(sub(state_range,mul(state_median,state_min)),abs(state_entropy))": 0.27359043660553706,
+   "add(add(mul(state_min,state_position_moment),mul(state_entropy,state_var)),neg(state_max_abs))": 0.23904995809911975,
+   "div(max(state_adjacent_difference,max(state_skewness,action_norm)),div(state_position_spread,max(state_position_spread,state_sign_change_fraction)))": 0.46219611709385866,
+   "sub(min(add(state_median,state_min),state_max),div(state_positive_fraction,neg(state_mean)))": 0.015054250641850014
+  },
+  "99": {
+   "mul(max(div(state_magnitude,state_max_abs),max(state_negative_fraction,state_position_moment)),sub(add(legal_norm,legal_norm),div(state_position_moment,state_sign_change_fraction)))": 0.06792619124941605,
+   "add(sub(sub(state_entropy,state_max_abs),add(action_norm,state_position_spread)),max(div(state_position_moment,state_sign_change_fraction),mul(state_adjacent_difference,state_sparsity)))": 0.5943274497330446,
+   "add(sub(add(state_magnitude,legal_norm),action_norm),max(state_position_spread,abs(legal_norm)))": 0.05152671250822723,
+   "max(tanh(state_position_spread),state_max_abs)": 0.23904995809911975
+  },
+  "111": {
+   "mul(state_mean,min(add(state_skewness,state_abs_mean),state_max_abs))": 0.27359043660553706,
+   "min(min(add(state_median,state_skewness),add(state_magnitude,state_max)),state_max)": 0.23904995809911975,
+   "mul(state_min,sqrt(max(state_median,state_skewness)))": 0.2658016688038905,
+   "sqrt(abs(sub(state_max,legal_norm)))": 0.19433203182839207
+  }
+ }
+}

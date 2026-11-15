@@ -1,0 +1,107 @@
+[
+  {
+    "game": "ttt",
+    "seed": 11,
+    "return": -0.028,
+    "exit": 0,
+    "last": "gen   0 steps      7131 best     0.11 mean     0.07 sp  8 nodes  22.0 conns  11.8\nHELDOUT return -0.028000 episodes 1000\n\n"
+  },
+  {
+    "game": "ttt",
+    "seed": 22,
+    "return": -0.007,
+    "exit": 0,
+    "last": "gen   0 steps      7169 best     0.13 mean     0.05 sp  8 nodes  22.0 conns  11.2\nHELDOUT return -0.007000 episodes 1000\n\n"
+  },
+  {
+    "game": "ttt",
+    "seed": 33,
+    "return": 0.045,
+    "exit": 0,
+    "last": "gen   0 steps      7199 best     0.23 mean     0.20 sp  8 nodes  22.0 conns  12.5\nHELDOUT return 0.045000 episodes 1000\n\n"
+  },
+  {
+    "game": "cartpole",
+    "seed": 11,
+    "return": 22.731001,
+    "exit": 0,
+    "last": "gen   0 steps     19942 best    22.49 mean    19.81 sp  5 nodes   8.0 conns   3.1\nHELDOUT return 22.731001 episodes 1000\n\n"
+  },
+  {
+    "game": "cartpole",
+    "seed": 22,
+    "return": 22.247,
+    "exit": 0,
+    "last": "gen   0 steps     19021 best    20.68 mean    18.66 sp  8 nodes   8.0 conns   3.9\nHELDOUT return 22.247000 episodes 1000\n\n"
+  },
+  {
+    "game": "cartpole",
+    "seed": 33,
+    "return": 22.365,
+    "exit": 0,
+    "last": "gen   0 steps     21276 best    21.77 mean    21.48 sp  5 nodes   8.0 conns   3.4\nHELDOUT return 22.365000 episodes 1000\n\n"
+  },
+  {
+    "game": "connect_four",
+    "seed": 11,
+    "return": -0.039,
+    "exit": 0,
+    "last": "gen   0 steps     12440 best     0.04 mean     0.04 sp  1 nodes  88.0 conns  52.5\nHELDOUT return -0.039000 episodes 1000\n\n"
+  },
+  {
+    "game": "connect_four",
+    "seed": 22,
+    "return": 0.116,
+    "exit": 0,
+    "last": "gen   0 steps     12117 best     0.12 mean    -0.04 sp  1 nodes  88.0 conns  51.9\nHELDOUT return 0.116000 episodes 1000\n\n"
+  },
+  {
+    "game": "connect_four",
+    "seed": 33,
+    "return": 0.079,
+    "exit": 0,
+    "last": "gen   0 steps     12372 best     0.12 mean    -0.25 sp  1 nodes  88.0 conns  49.5\nHELDOUT return 0.079000 episodes 1000\n\n"
+  },
+  {
+    "game": "nim",
+    "seed": 11,
+    "return": 0.002,
+    "exit": 0,
+    "last": "gen   0 steps      7440 best    -0.22 mean    -0.22 sp  3 nodes   5.0 conns   1.6\nHELDOUT return 0.002000 episodes 1000\n\n"
+  },
+  {
+    "game": "nim",
+    "seed": 22,
+    "return": 0.046,
+    "exit": 0,
+    "last": "gen   0 steps      7511 best     0.18 mean     0.09 sp  4 nodes   5.0 conns   1.8\nHELDOUT return 0.046000 episodes 1000\n\n"
+  },
+  {
+    "game": "nim",
+    "seed": 33,
+    "return": 0.022,
+    "exit": 0,
+    "last": "gen   0 steps      7506 best     0.06 mean    -0.00 sp  2 nodes   5.0 conns   1.9\nHELDOUT return 0.022000 episodes 1000\n\n"
+  },
+  {
+    "game": "lineworld",
+    "seed": 11,
+    "return": 0.73548,
+    "exit": 0,
+    "last": "gen   0 steps     25176 best     0.71 mean     0.02 sp  3 nodes   6.0 conns   1.8\nHELDOUT return 0.735480 episodes 1000\n\n"
+  },
+  {
+    "game": "lineworld",
+    "seed": 22,
+    "return": -0.14848,
+    "exit": 0,
+    "last": "gen   0 steps     27276 best    -0.17 mean    -0.28 sp  4 nodes   6.0 conns   2.1\nHELDOUT return -0.148480 episodes 1000\n\n"
+  },
+  {
+    "game": "lineworld",
+    "seed": 33,
+    "return": -0.12787,
+    "exit": 0,
+    "last": "gen   0 steps     26220 best    -0.12 mean    -0.15 sp  4 nodes   6.0 conns   2.5\nHELDOUT return -0.127870 episodes 1000\n\n"
+  }
+]

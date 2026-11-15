@@ -1,0 +1,3 @@
+# Downstream-admitted concepts; primitive contract generic_state_action_v7.
+div(add(legal_norm,state_sign_change_fraction),div(action_norm,state_median))
+sub(div(add(legal_norm,state_sign_change_fraction),div(action_norm,state_median)),square(state_positive_fraction))

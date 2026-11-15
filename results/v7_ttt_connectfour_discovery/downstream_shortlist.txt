@@ -1,0 +1,3 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+sub(sqrt(div(div(state_abs_mean,action_norm),state_magnitude)),state_skewness)
+div(state_abs_mean,action_norm)

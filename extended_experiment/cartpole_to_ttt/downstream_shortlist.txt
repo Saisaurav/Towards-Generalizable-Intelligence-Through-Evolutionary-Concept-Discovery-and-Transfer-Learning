@@ -1,0 +1,4 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+div(add(legal_norm,state_sign_change_fraction),div(action_norm,state_median))
+div(log1p(div(state_adjacent_difference,state_negative_fraction)),div(action_norm,state_median))
+sub(div(add(legal_norm,state_sign_change_fraction),div(action_norm,state_median)),square(state_positive_fraction))

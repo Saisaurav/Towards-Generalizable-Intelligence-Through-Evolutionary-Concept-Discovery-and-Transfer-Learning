@@ -1,0 +1,9 @@
+# screened concepts from results/concept_bank.json
+state_max_abs
+div(max(action_norm,div(state_dispersion,action_norm)),sub(sub(mul(state_mean,action_norm),action_norm),mul(legal_norm,sub(state_abs_mean,state_dispersion))))
+div(div(sub(state_var,state_mean),div(add(state_abs_mean,state_max_abs),min(action_norm,state_max_abs))),sub(max(action_norm,max(state_abs_mean,state_max_abs)),div(mul(action_norm,action_norm),state_magnitude)))
+div(max(action_norm,div(state_dispersion,action_norm)),sub(state_var,action_norm))
+max(div(mul(sub(action_norm,state_var),div(state_mean,state_magnitude)),add(sub(legal_norm,state_abs_mean),min(state_abs_mean,action_norm))),div(mul(legal_norm,state_var),action_norm))
+state_magnitude
+div(max(action_norm,div(state_dispersion,div(state_dispersion,action_norm))),sub(mul(sub(state_var,state_max_abs),state_magnitude),action_norm))
+div(state_mean,sub(div(sub(state_max_abs,state_dispersion),legal_norm),div(state_mean,sub(action_norm,state_var))))

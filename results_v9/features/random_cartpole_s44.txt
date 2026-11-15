@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(div(max(state_position_spread,state_position_moment),state_sign_change_fraction),tanh(transition_delta_abs_mean))
+tanh(max(div(state_range,legal_norm),transition_state_alignment))
+add(state_position_moment,tanh(sub(state_max_abs,transition_state_alignment)))
+sub(div(transition_delta_max_abs,state_max),state_min)

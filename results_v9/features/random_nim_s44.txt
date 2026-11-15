@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(div(max(state_adjacent_difference,state_position_spread),state_entropy),state_mean)
+add(sub(add(state_dispersion,legal_norm),div(state_var,legal_norm)),square(sub(state_position_moment,state_position_moment)))
+min(add(div(state_position_spread,state_min),state_positive_fraction),square(state_abs_mean))
+sqrt(max(add(state_magnitude,state_max_abs),state_dispersion))

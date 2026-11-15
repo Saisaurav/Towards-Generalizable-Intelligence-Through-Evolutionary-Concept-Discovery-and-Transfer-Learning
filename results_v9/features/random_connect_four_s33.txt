@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+sub(board_occupancy,state_sign_change_fraction)
+sqrt(board_occupancy)
+mul(min(state_var,state_mean),board_center_control)
+div(div(sub(state_iqr,state_dispersion),add(state_entropy,state_adjacent_difference)),max(max(state_sign_change_fraction,board_center_control),tanh(state_range)))

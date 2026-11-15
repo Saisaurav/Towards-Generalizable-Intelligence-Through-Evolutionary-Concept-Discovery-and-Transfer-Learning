@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+max(add(div(state_position_spread,transition_delta_max_abs),state_max),mul(transition_delta_mean,sub(state_iqr,state_sign_change_fraction)))
+div(state_sign_change_fraction,state_var)
+neg(state_position_spread)
+add(sub(mul(state_positive_fraction,state_dispersion),log1p(state_min)),state_adjacent_difference)

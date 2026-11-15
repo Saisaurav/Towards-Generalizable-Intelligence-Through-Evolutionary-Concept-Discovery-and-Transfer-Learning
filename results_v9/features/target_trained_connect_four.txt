@@ -1,0 +1,5 @@
+# v9 GP concepts discovered on the target game itself
+square(square(sub(div(state_sparsity,action_norm),action_norm)))
+add(max(max(sub(action_norm,state_mean),abs(board_center_control)),sqrt(div(state_position_spread,action_norm))),div(legal_norm,log1p(action_norm)))
+mul(board_center_control,min(div(state_abs_mean,state_sparsity),div(state_position_spread,action_norm)))
+sqrt(div(state_position_spread,action_norm))

@@ -1,0 +1,826 @@
+{
+  "experiment": "forced_stagnation_restart_vs_no_restart",
+  "source": "nim",
+  "target": "lineworld",
+  "seed": 731,
+  "population": 40,
+  "generations_requested": 24,
+  "initial_population": "40 copies of action_norm; novelty archive pre-seeded with that behaviour",
+  "restart_condition": {
+    "generations_run": 24,
+    "restart_summary": {
+      "restarts_triggered": 3,
+      "successful_restarts": 2,
+      "unsuccessful_restarts": 0,
+      "consecutive_unsuccessful_restarts": 0,
+      "max_unsuccessful_restarts": 3,
+      "stopped_after_unsuccessful_restarts": false,
+      "events": [
+        {
+          "restart_id": 1,
+          "generation": 0,
+          "outcome": "successful",
+          "new_behaviors": 17
+        },
+        {
+          "restart_id": 2,
+          "generation": 7,
+          "outcome": "successful",
+          "new_behaviors": 11
+        },
+        {
+          "restart_id": 3,
+          "generation": 23,
+          "outcome": "pending",
+          "new_behaviors": null
+        }
+      ]
+    },
+    "unique_structures": 269,
+    "unique_behaviours": 126,
+    "post_restart_generation_population_size": 40,
+    "post_restart_behaviourally_new_target_compatible_candidates": 19,
+    "top_candidates": [
+      {
+        "expression": "div(mul(legal_norm,sub(add(action_norm,state_mean),mul(state_max_abs,state_abs_mean))),state_abs_mean)",
+        "source_val_corr": 0.1290892767242956,
+        "source_test_corr": 0.1294053263350504,
+        "target_std": 0.9454674013536555,
+        "dependencies": [
+          "action_norm",
+          "legal_norm",
+          "state_abs_mean",
+          "state_max_abs",
+          "state_mean"
+        ]
+      },
+      {
+        "expression": "add(add(state_max_abs,add(action_norm,state_max_abs)),div(state_dispersion,state_mean))",
+        "source_val_corr": 0.1203590108418243,
+        "source_test_corr": 0.10973125061607275,
+        "target_std": 0.32916784095057633,
+        "dependencies": [
+          "action_norm",
+          "state_dispersion",
+          "state_max_abs",
+          "state_mean"
+        ]
+      },
+      {
+        "expression": "max(action_norm,state_var)",
+        "source_val_corr": 0.11778017115658435,
+        "source_test_corr": 0.16022079376296958,
+        "target_std": 0.3664004878128018,
+        "dependencies": [
+          "action_norm",
+          "state_var"
+        ]
+      },
+      {
+        "expression": "add(state_magnitude,action_norm)",
+        "source_val_corr": 0.11344933252646064,
+        "source_test_corr": 0.12876278315487408,
+        "target_std": 0.6731906635778039,
+        "dependencies": [
+          "action_norm",
+          "state_magnitude"
+        ]
+      },
+      {
+        "expression": "min(legal_norm,add(add(add(state_abs_mean,action_norm),sub(action_norm,state_abs_mean)),mul(max(action_norm,state_magnitude),min(state_max_abs,legal_norm))))",
+        "source_val_corr": 0.10415448475279258,
+        "source_test_corr": 0.12154799556519097,
+        "target_std": 0.8225552353980232,
+        "dependencies": [
+          "action_norm",
+          "legal_norm",
+          "state_abs_mean",
+          "state_magnitude",
+          "state_max_abs"
+        ]
+      }
+    ]
+  },
+  "no_restart_control": {
+    "generations_run": 24,
+    "restart_summary": {
+      "restarts_triggered": 0,
+      "successful_restarts": 0,
+      "unsuccessful_restarts": 0,
+      "consecutive_unsuccessful_restarts": 0,
+      "max_unsuccessful_restarts": 3,
+      "stopped_after_unsuccessful_restarts": false,
+      "events": []
+    },
+    "unique_structures": 160,
+    "unique_behaviours": 93,
+    "novel_target_compatible_candidates": 33,
+    "top_candidates": [
+      {
+        "expression": "div(action_norm,div(state_magnitude,min(state_dispersion,legal_norm)))",
+        "source_val_corr": 0.2197790114060641,
+        "source_test_corr": 0.13448694912057482,
+        "target_std": 0.32548932689470683,
+        "dependencies": [
+          "action_norm",
+          "legal_norm",
+          "state_dispersion",
+          "state_magnitude"
+        ]
+      },
+      {
+        "expression": "div(action_norm,div(state_magnitude,min(state_dispersion,state_mean)))",
+        "source_val_corr": 0.2197790114060641,
+        "source_test_corr": 0.13448694912057482,
+        "target_std": 0.32548932689470683,
+        "dependencies": [
+          "action_norm",
+          "state_dispersion",
+          "state_magnitude",
+          "state_mean"
+        ]
+      },
+      {
+        "expression": "add(state_magnitude,sub(max(state_magnitude,sub(legal_norm,action_norm)),min(legal_norm,state_dispersion)))",
+        "source_val_corr": 0.19574434744777489,
+        "source_test_corr": 0.16726114755065422,
+        "target_std": 0.188548640400522,
+        "dependencies": [
+          "action_norm",
+          "legal_norm",
+          "state_dispersion",
+          "state_magnitude"
+        ]
+      },
+      {
+        "expression": "add(state_magnitude,sub(max(legal_norm,add(state_magnitude,legal_norm)),action_norm))",
+        "source_val_corr": 0.19232945912968297,
+        "source_test_corr": 0.1699108930109926,
+        "target_std": 0.20617927346223,
+        "dependencies": [
+          "action_norm",
+          "legal_norm",
+          "state_magnitude"
+        ]
+      },
+      {
+        "expression": "max(action_norm,add(state_magnitude,sub(legal_norm,action_norm)))",
+        "source_val_corr": 0.18477346987775883,
+        "source_test_corr": 0.16273808844051982,
+        "target_std": 0.11224286637177333,
+        "dependencies": [
+          "action_norm",
+          "legal_norm",
+          "state_magnitude"
+        ]
+      }
+    ]
+  },
+  "generation_logs": {
+    "restart": [
+      {
+        "generation": 0,
+        "structurally_new": 0,
+        "behaviorally_new": 0,
+        "behavioral_diversity": 0.0,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.14915361602753788,
+        "best_validation_abs_corr": 0.12785478910336853,
+        "best_behavioral_novelty": 0.0,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": true,
+        "restart_outcome": "successful",
+        "restart_id": 1,
+        "preserved_elites": 1,
+        "random_individuals_injected": 25,
+        "mutated_individuals_injected": 14,
+        "high_mutation_generations": 3,
+        "restart_new_behaviors": 17
+      },
+      {
+        "generation": 1,
+        "structurally_new": 38,
+        "behaviorally_new": 17,
+        "behavioral_diversity": 0.5082804637778289,
+        "pareto_front_size": 11,
+        "best_training_abs_corr": 0.16022079376296958,
+        "best_validation_abs_corr": 0.1664709767853584,
+        "best_behavioral_novelty": 0.4940851460780099,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 2,
+        "structurally_new": 18,
+        "behaviorally_new": 9,
+        "behavioral_diversity": 0.512342549250135,
+        "pareto_front_size": 15,
+        "best_training_abs_corr": 0.16022079376296958,
+        "best_validation_abs_corr": 0.1664709767853584,
+        "best_behavioral_novelty": 0.36535000859727024,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 3,
+        "structurally_new": 15,
+        "behaviorally_new": 9,
+        "behavioral_diversity": 0.4586956329048475,
+        "pareto_front_size": 22,
+        "best_training_abs_corr": 0.16022079376296958,
+        "best_validation_abs_corr": 0.1664709767853584,
+        "best_behavioral_novelty": 0.3296371205314305,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 4,
+        "structurally_new": 12,
+        "behaviorally_new": 9,
+        "behavioral_diversity": 0.492145604054331,
+        "pareto_front_size": 18,
+        "best_training_abs_corr": 0.1820449033589005,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.37698829736637485,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 5,
+        "structurally_new": 12,
+        "behaviorally_new": 9,
+        "behavioral_diversity": 0.46149845194898864,
+        "pareto_front_size": 25,
+        "best_training_abs_corr": 0.1820449033589005,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.3831698646866674,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 6,
+        "structurally_new": 13,
+        "behaviorally_new": 4,
+        "behavioral_diversity": 0.47598289638487246,
+        "pareto_front_size": 26,
+        "best_training_abs_corr": 0.20320279480710884,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.3362044232061064,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 7,
+        "structurally_new": 4,
+        "behaviorally_new": 0,
+        "behavioral_diversity": 0.41754142606936184,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.20320279480710884,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.39057056930904854,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": true,
+        "restart_outcome": "successful",
+        "restart_id": 2,
+        "preserved_elites": 4,
+        "random_individuals_injected": 23,
+        "mutated_individuals_injected": 13,
+        "high_mutation_generations": 3,
+        "restart_new_behaviors": 11
+      },
+      {
+        "generation": 8,
+        "structurally_new": 36,
+        "behaviorally_new": 11,
+        "behavioral_diversity": 0.5414006534158772,
+        "pareto_front_size": 10,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.4323847953491712,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 9,
+        "structurally_new": 17,
+        "behaviorally_new": 8,
+        "behavioral_diversity": 0.5442808970849052,
+        "pareto_front_size": 16,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.3849090012140639,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 10,
+        "structurally_new": 15,
+        "behaviorally_new": 8,
+        "behavioral_diversity": 0.5640708204240604,
+        "pareto_front_size": 20,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.41017939373382467,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 11,
+        "structurally_new": 9,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.577333268867954,
+        "pareto_front_size": 21,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.41910042505917505,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 12,
+        "structurally_new": 7,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.536089555678016,
+        "pareto_front_size": 25,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.40729025161786925,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 13,
+        "structurally_new": 9,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.5484273191279707,
+        "pareto_front_size": 28,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.4497703392766531,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 14,
+        "structurally_new": 7,
+        "behaviorally_new": 4,
+        "behavioral_diversity": 0.5791791909775057,
+        "pareto_front_size": 27,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.42230616963602213,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 15,
+        "structurally_new": 5,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.45210818368161976,
+        "pareto_front_size": 38,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.5290101328764715,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 16,
+        "structurally_new": 7,
+        "behaviorally_new": 4,
+        "behavioral_diversity": 0.5540584898992039,
+        "pareto_front_size": 36,
+        "best_training_abs_corr": 0.1879278964153554,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.45188014638034446,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 17,
+        "structurally_new": 7,
+        "behaviorally_new": 6,
+        "behavioral_diversity": 0.576706274055526,
+        "pareto_front_size": 38,
+        "best_training_abs_corr": 0.21116930072665915,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.7087875701623412,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 18,
+        "structurally_new": 10,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.5777606880994863,
+        "pareto_front_size": 38,
+        "best_training_abs_corr": 0.21116930072665915,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.7224467611676749,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 19,
+        "structurally_new": 6,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.5396145102184243,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.21116930072665915,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.7224467611676749,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 20,
+        "structurally_new": 8,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.5622271454497206,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.2111693032914315,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.6727030784015279,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 21,
+        "structurally_new": 4,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.5631917892610855,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.2111693032914315,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.6709711488264741,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 22,
+        "structurally_new": 6,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.5971777866430961,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.2111693032914315,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.5782671894883883,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 23,
+        "structurally_new": 3,
+        "behaviorally_new": 0,
+        "behavioral_diversity": 0.6102106861213041,
+        "pareto_front_size": 39,
+        "best_training_abs_corr": 0.2111693032914315,
+        "best_validation_abs_corr": 0.23585827335493997,
+        "best_behavioral_novelty": 0.6359469507782279,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": true,
+        "restart_outcome": "pending",
+        "restart_id": 3,
+        "preserved_elites": 4,
+        "random_individuals_injected": 23,
+        "mutated_individuals_injected": 13,
+        "high_mutation_generations": 3
+      }
+    ],
+    "control": [
+      {
+        "generation": 0,
+        "structurally_new": 0,
+        "behaviorally_new": 0,
+        "behavioral_diversity": 0.0,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.14915361602753788,
+        "best_validation_abs_corr": 0.12785478910336853,
+        "best_behavioral_novelty": 0.0,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 1,
+        "structurally_new": 10,
+        "behaviorally_new": 8,
+        "behavioral_diversity": 0.17032022223250606,
+        "pareto_front_size": 38,
+        "best_training_abs_corr": 0.15906048806548656,
+        "best_validation_abs_corr": 0.12785478910336853,
+        "best_behavioral_novelty": 0.6180808719896337,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 2,
+        "structurally_new": 9,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.21672802550788337,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.16424942386639332,
+        "best_validation_abs_corr": 0.1379278579479421,
+        "best_behavioral_novelty": 0.5482248319849198,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 3,
+        "structurally_new": 6,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.14922614478775859,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.16641257487833153,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.4219848654984396,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 4,
+        "structurally_new": 2,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.11454818608045135,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.16641257487833153,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.8641654896597295,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 5,
+        "structurally_new": 2,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.1407216014326438,
+        "pareto_front_size": 35,
+        "best_training_abs_corr": 0.17211959899043958,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.8460526961185295,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 6,
+        "structurally_new": 6,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.3014610624031807,
+        "pareto_front_size": 35,
+        "best_training_abs_corr": 0.17211959899043958,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7869425511419241,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 7,
+        "structurally_new": 4,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.3932212094224693,
+        "pareto_front_size": 39,
+        "best_training_abs_corr": 0.17211959899043958,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7109811791041347,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 8,
+        "structurally_new": 5,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.2747166273063594,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.17279467463293272,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7756541004120925,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 9,
+        "structurally_new": 9,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.37013698572612896,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7412056487637396,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 10,
+        "structurally_new": 10,
+        "behaviorally_new": 6,
+        "behavioral_diversity": 0.4209935975101046,
+        "pareto_front_size": 39,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7368795559192263,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 11,
+        "structurally_new": 9,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.46469936708551246,
+        "pareto_front_size": 32,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.6562738950594358,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 12,
+        "structurally_new": 7,
+        "behaviorally_new": 6,
+        "behavioral_diversity": 0.44201972755422997,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7878092521021042,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 13,
+        "structurally_new": 9,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.5008767872617987,
+        "pareto_front_size": 36,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.6742089306957794,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 14,
+        "structurally_new": 10,
+        "behaviorally_new": 6,
+        "behavioral_diversity": 0.4638108353093475,
+        "pareto_front_size": 34,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.7473398139159835,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 15,
+        "structurally_new": 11,
+        "behaviorally_new": 7,
+        "behavioral_diversity": 0.5026461089833351,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.6982864683789849,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 16,
+        "structurally_new": 7,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.5026232817027855,
+        "pareto_front_size": 40,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.6503680738051439,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 17,
+        "structurally_new": 8,
+        "behaviorally_new": 5,
+        "behavioral_diversity": 0.5703282053584698,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.663764463840625,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 18,
+        "structurally_new": 6,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.5411151539325506,
+        "pareto_front_size": 35,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.4902218253718356,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 19,
+        "structurally_new": 7,
+        "behaviorally_new": 4,
+        "behavioral_diversity": 0.5538139148229749,
+        "pareto_front_size": 37,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.5282092068008253,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 20,
+        "structurally_new": 6,
+        "behaviorally_new": 1,
+        "behavioral_diversity": 0.5508865885166883,
+        "pareto_front_size": 36,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.4747193296880351,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 21,
+        "structurally_new": 7,
+        "behaviorally_new": 4,
+        "behavioral_diversity": 0.4979322793187306,
+        "pareto_front_size": 36,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.6477667258357268,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 22,
+        "structurally_new": 5,
+        "behaviorally_new": 2,
+        "behavioral_diversity": 0.5068953406554434,
+        "pareto_front_size": 39,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.5921532308419877,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      },
+      {
+        "generation": 23,
+        "structurally_new": 4,
+        "behaviorally_new": 3,
+        "behavioral_diversity": 0.5276414942950192,
+        "pareto_front_size": 34,
+        "best_training_abs_corr": 0.1734626027936576,
+        "best_validation_abs_corr": 0.2197790114060641,
+        "best_behavioral_novelty": 0.4682582451609701,
+        "smallest_tree_nodes": 1,
+        "restart_triggered": false,
+        "restart_outcome": null
+      }
+    ]
+  }
+}

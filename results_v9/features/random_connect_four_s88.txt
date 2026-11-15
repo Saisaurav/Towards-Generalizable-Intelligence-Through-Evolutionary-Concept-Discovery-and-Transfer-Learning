@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+log1p(state_position_moment)
+min(sub(state_range,mul(state_median,state_min)),abs(state_entropy))
+add(state_positive_fraction,sub(add(board_own_open_lines,state_var),state_max))
+log1p(state_var)

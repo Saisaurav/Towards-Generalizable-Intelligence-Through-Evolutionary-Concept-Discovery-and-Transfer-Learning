@@ -1,0 +1,5 @@
+# v9 GP concepts discovered on the source game
+div(state_position_moment,action_norm)
+div(state_abs_mean,add(action_norm,sqrt(state_entropy)))
+div(square(state_var),action_norm)
+div(sub(add(state_positive_fraction,state_mean),state_position_spread),neg(square(action_norm)))

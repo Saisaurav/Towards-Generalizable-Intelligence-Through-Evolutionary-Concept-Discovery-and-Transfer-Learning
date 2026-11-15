@@ -1,0 +1,5 @@
+# GP concepts evolved on TicTacToe; generic primitive contract v1
+mul(min(state_mean,div(state_mean,state_abs_mean)),action_norm)
+mul(min(add(state_mean,state_mean),div(state_mean,state_abs_mean)),action_norm)
+mul(min(add(add(state_abs_mean,state_mean),state_mean),div(state_mean,state_abs_mean)),add(action_norm,state_var))
+mul(min(div(state_mean,state_abs_mean),div(state_mean,state_abs_mean)),action_norm)

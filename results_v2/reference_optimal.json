@@ -1,0 +1,12 @@
+{
+ "ttt_optimal_vs_random": {
+  "expected_return": 0.9598296957671959,
+  "win_or_draw": 0.9962962962962962
+ },
+ "nim_optimal_vs_random": {
+  "expected_return": 0.9910836762688615
+ },
+ "nim_optimal_vs_optimal_opponent": {
+  "expected_return": 0.5
+ }
+}

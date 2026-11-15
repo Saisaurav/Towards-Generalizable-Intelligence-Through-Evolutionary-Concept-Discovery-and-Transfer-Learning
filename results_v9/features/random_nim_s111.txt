@@ -1,0 +1,5 @@
+# random v7-vocabulary features (control)
+mul(state_mean,min(add(state_skewness,state_abs_mean),state_max_abs))
+min(min(add(state_median,state_skewness),add(state_magnitude,state_max)),state_max)
+mul(state_min,sqrt(max(state_median,state_skewness)))
+sqrt(abs(sub(state_max,legal_norm)))

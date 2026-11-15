@@ -1,0 +1,5 @@
+# Candidates passed source validation and target feature compatibility; downstream admission may still be pending.
+min(min(min(state_magnitude,state_position_moment),add(action_norm,state_median)),state_entropy)
+add(sub(abs(legal_norm),tanh(state_median)),div(log1p(sub(action_norm,state_positive_fraction)),action_norm))
+add(sub(state_max,state_range),div(state_median,action_norm))
+min(action_norm,sub(state_adjacent_difference,square(state_max)))

@@ -1,0 +1,3 @@
+# Compatible nonconstant, behaviorally distinct concepts; no target reward labels used for filtering.
+div(min(add(state_var,state_abs_mean),mul(state_max_abs,state_abs_mean)),action_norm)
+div(sub(max(legal_norm,action_norm),add(legal_norm,state_mean)),action_norm)
