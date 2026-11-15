@@ -369,9 +369,17 @@ class Runner:
         obs = self.observe(self.learner)
         legal = [] if done else self.legal(self.learner)
         outcome = {"win": 1, "loss": -1, "draw": 0}[self.result(self.learner)] if done else 2
+        expert = -1
+        scripted_action = getattr(self.env, "scripted_action", None)
+        if not done and callable(scripted_action):
+            candidate = scripted_action(self.learner)
+            if isinstance(candidate, bool) or not isinstance(candidate, int):
+                raise EnvContractError("scripted_action(agent_id) must return a legal integer action")
+            if candidate in legal:
+                expert = candidate
         return (
             f"S {reward:.9g} {int(done)} {len(legal)} {' '.join(map(str, legal))} "
-            f"{len(obs)} {_fmt(obs)} {outcome}"
+            f"{len(obs)} {_fmt(obs)} {outcome} {expert}"
         )
 
     def evaluate(self, learner_cfg: dict | None, episodes: int, seed: int) -> dict:

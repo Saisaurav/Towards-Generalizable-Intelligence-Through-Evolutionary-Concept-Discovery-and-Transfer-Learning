@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <stdexcept>
 #include <vector>
 #include "rng.h"
 // Single-agent env interface used by the brain. The LLM-generated IGame gets wrapped into this.
@@ -23,6 +24,11 @@ struct Env {
   virtual void action_tactics(int, float*) {}
   virtual bool additional_primitive(const std::string&, const std::vector<float>&, float&) const { return false; }
   virtual float step(int a,bool& done,Rng&) = 0;
+  virtual int act_dim() const { return 0; }
+  virtual float step_cont(const float*, bool&, Rng&) {
+    throw std::logic_error("continuous actions are not supported by this environment");
+  }
+  virtual int expert_action() const { return -1; }
   // 1 = win, -1 = loss, 0 = draw, 2 = unavailable.
   virtual int episode_result() const { return 2; }
   virtual std::unique_ptr<Env> make() const = 0;

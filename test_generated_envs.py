@@ -99,6 +99,7 @@ class InterfaceTests(unittest.TestCase):
             "max_steps": 0, "tick_ms": 80})
         self.assertEqual(realtime.to_dict()["tick_ms"], 80)
         self.assertTrue(realtime.to_dict()["real_time"])
+        self.assertTrue(realtime.trainable)
         legacy_realtime = EnvSpec.from_mapping({
             "title": "t", "description": "d", "agents": [0], "observation_size": 2,
             "action": {"type": "discrete", "n": 2}, "turn_based": False, "max_steps": 1})
@@ -132,6 +133,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertIn('SPEC["real_time"] = True', env_prompts.SYSTEM_PROMPT)
         self.assertIn('"real_time": True', env_prompts.EXAMPLE_SOURCE)
         self.assertIn("scripted_action", env_prompts.SYSTEM_PROMPT)
+        self.assertIn("head/body ordering", env_prompts.SYSTEM_PROMPT)
         self.assertNotIn("tic-tac", env_prompts.SYSTEM_PROMPT.lower())
         self.assertNotIn("tictactoe", env_prompts.SYSTEM_PROMPT.lower())  # no game template is baked in
         report = validate_environment(env_prompts.EXAMPLE_SOURCE)
@@ -449,6 +451,23 @@ class OnlineConceptTests(unittest.TestCase):
             self.assertEqual(a["digest"], b["digest"])
             self.assertNotEqual(a["digest"], c["digest"])
 
+    def test_brain_protocol_includes_legal_scripted_action_for_imitation(self):
+        source = fixture_source("snake").replace(
+            "    def render_text(self):",
+            "    def scripted_action(self, agent_id): return 1\n\n"
+            "    def render_text(self):",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "snake.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as box:
+                response = box.raw_line("R 41")
+                expert = int(response.split()[-1])
+                self.assertIn(expert, [0, 1, 2, 3])
+        with SandboxProcess(FIXTURES / "ttt.py") as box:
+            response = box.raw_line("R 41")
+            self.assertEqual(int(response.split()[-1]), -1)
+
     def test_opponents_play_legally_and_rule_based_beats_random(self):
         random_vs_rule = evaluate_policy(FIXTURES / "ttt.py", "random", "rule_based", episodes=150)
         random_vs_random = evaluate_policy(FIXTURES / "ttt.py", "random", "random", episodes=150)
@@ -499,6 +518,19 @@ class GeneratorTests(unittest.TestCase):
             (store.path(generated.env_id) / "env.py").write_text(source + "# tampered\n")
             with self.assertRaises(EnvStoreError):
                 store.load(generated.env_id)
+
+    def test_snake_defaults_to_real_time_when_model_generates_turn_based_code(self):
+        source = MINI.replace('"title": "Mini"', '"title": "Snake"')
+        realtime = source.replace(
+            '"turn_based": True, "max_steps": 10',
+            '"turn_based": False, "real_time": True, "max_steps": 0',
+        )
+        client = ScriptedClient([fenced(source), fenced(realtime)])
+        with tempfile.TemporaryDirectory() as root:
+            generated = EnvGenerator(client, EnvStore(root)).generate("Snake, standard rules")
+        self.assertEqual(generated.attempts, 2)
+        self.assertTrue(generated.spec["real_time"])
+        self.assertIn("Implement it as real-time", client.calls[1][1])
 
     def test_repair_loop_is_bounded(self):
         client = ScriptedClient([fenced(MINI.replace("is_terminal(self): return self.n >= 3", "is_terminal(self): return False")), "plain text"])
@@ -618,6 +650,53 @@ class LearnerIntegrationTests(unittest.TestCase):
         self.assertTrue(result.target_reached)
         self.assertEqual(result.history[-1]["win_rate"], 1.0)
         self.assertEqual(result.history[-1]["win_or_draw_rate"], 1.0)
+
+    def test_training_imitates_scripted_actions(self):
+        source = MINI.replace(
+            '"turn_based": True, "max_steps": 10',
+            '"turn_based": False, "real_time": True, "max_steps": 0',
+        ).replace(
+            "    def is_terminal(self):",
+            "    def scripted_action(self, agent_id): return 1\n"
+            "    def is_terminal(self):",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "scripted.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as sandbox:
+                spec = sandbox.spec
+            trainer = EnvTrainer(
+                budget=0,
+                population=2,
+                timeout=60,
+                target_win_rate=0.9,
+                evaluation_episodes=2,
+                evaluation_interval_generations=1,
+                concept_refresh_generation=0,
+            )
+            result = trainer.train_env(path, spec, seed=17, concepts=[])
+        self.assertEqual(result.policy.choose([0.0], [0, 1], greedy=True), 1)
+
+    def test_snake_training_does_not_wait_for_an_unreachable_board_fill_win_rate(self):
+        source = MINI.replace('"title": "Mini"', '"title": "Snake"')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "snake.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as sandbox:
+                spec = sandbox.spec
+            trainer = EnvTrainer(
+                budget=1,
+                population=2,
+                timeout=60,
+                target_win_rate=0.9,
+                evaluation_episodes=2,
+                evaluation_interval_generations=1,
+                concept_refresh_generation=1,
+            )
+            result = trainer.train_env(path, spec, seed=17, concepts=[])
+        self.assertTrue(result.history)
+        self.assertIsNone(result.concept_refresh_note)
+        self.assertFalse(result.target_reached)
 
     def test_generation_checkpoint_discovers_concepts_and_restarts(self):
         source = MINI.replace(

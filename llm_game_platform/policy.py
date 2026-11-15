@@ -372,6 +372,7 @@ class GridPolicy:
     def __init__(self, model: dict[str, Any]) -> None:
         self.input_ids = model.get("input_ids")
         self.n_logit = model.get("n_logit")
+        self.head = model.get("head", "per_action")
         nodes = model.get("nodes")
         connections = model.get("connections")
         concepts = model.get("concepts", [])
@@ -382,6 +383,7 @@ class GridPolicy:
             or isinstance(self.n_logit, bool)
             or not isinstance(self.n_logit, int)
             or self.n_logit < 1
+            or self.head not in ("per_action", "fixed")
             or not isinstance(nodes, list)
             or not isinstance(connections, list)
             or not isinstance(concepts, list)
@@ -390,7 +392,7 @@ class GridPolicy:
             raise ValueError("exported brain policy has an invalid schema")
 
         self.concept_expressions = list(concepts)
-        if "action_norm" not in self.concept_expressions:
+        if self.head == "per_action" and "action_norm" not in self.concept_expressions:
             self.concept_expressions.append("action_norm")
         self.concept_trees = [parse_expression(item) for item in self.concept_expressions]
         if any(not _dependencies(tree) <= _GRID_PRIMITIVES for tree in self.concept_trees):
@@ -496,6 +498,13 @@ class GridPolicy:
         state = _grid_state_features(environment)
         n_legal = len(legal)
         primitives = _state_primitives(state, n_legal)
+        if self.head == "fixed":
+            action_features = dict(primitives, action_norm=0.0)
+            concept_features = [
+                _concept_value(tree, action_features) for tree in self.concept_trees
+            ]
+            logits = self._scores(state + concept_features)
+            return max(legal, key=lambda name: logits[_ACTION_NAMES.index(name)])
         action_scores = []
         for action_name in legal:
             action = _ACTION_NAMES.index(action_name)

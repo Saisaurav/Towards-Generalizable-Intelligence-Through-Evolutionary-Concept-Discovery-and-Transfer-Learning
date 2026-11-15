@@ -149,6 +149,14 @@ RULES THE RUNTIME ENFORCES (violations are reported back to you for repair)
 - For real-time games set "real_time": True, "max_steps": 0, "controls"
   (key -> action), and "tick_ms" in SPEC. tick_ms controls both human-play and
   brain-play frame speed.
+- For Snake, default to a real-time, one-action-per-frame game unless the user
+  explicitly requests turn-based play. Keep the snake's head/body ordering
+  consistent with its initial heading, and expose food, head, body, and direction
+  in the observation. Exclude reverse moves; when any safe move exists, legal
+  actions should also exclude moves into a wall or the body (including the tail
+  cell only when it will not move). Give food-seeking progress a small bounded
+  reward and implement scripted_action(agent_id) as a safe, legal food-seeking
+  controller so it can guide learner training.
 - Keep each call fast (well under a millisecond-scale game tick); no unbounded loops.
 
 EXAMPLE (an unrelated tiny game, showing every required piece):

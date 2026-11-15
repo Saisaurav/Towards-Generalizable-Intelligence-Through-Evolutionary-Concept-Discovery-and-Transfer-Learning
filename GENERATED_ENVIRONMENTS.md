@@ -1,9 +1,11 @@
 # General-purpose generated environments
 
 The LLM now writes **actual Python game logic** (not a JSON config of a grid template). The code is
-validated in an isolated process and then trained on by the *unchanged* C++ NEAT+PPO learner through a
-generic interface. The old grid pipeline (`/api/games`, `GameSpec`, `GridPolicy`) is untouched and still
-available under the "Grid maze (legacy contract)" tab.
+validated in an isolated process and trained by the C++ NEAT+PPO learner through a generic interface.
+The learner supports fixed-output discrete policies for real-time games, and its standalone CLI also
+supports Gaussian continuous-action PPO for the PointMass research proxy. The existing online concept
+refresh and staged-training path remain in place. The old grid pipeline (`/api/games`, `GameSpec`,
+`GridPolicy`) is untouched and still available under the "Grid maze (legacy contract)" tab.
 
 ## 1. What the old architecture assumed
 
@@ -14,11 +16,12 @@ available under the "Grid maze (legacy contract)" tab.
 | `policy.py` `GridPolicy` | Hard-coded grid features and exactly 4 actions (`legal_norm = n/4`, `action_norm = 2a/3-1`) |
 | `server.py` / `index.html` | Responses carry grid cells; the page draws a maze and listens for arrow keys |
 | `main.cpp` | `grid` mode builds `GridWorld` from a spec file; one learning agent, opponent hard-coded inside the C++ env |
-| C++ `Env` / `ConceptEnv` / PPO / NEAT | **Already generic**: any fixed `n_state`, discrete `n_actions`, per-step legal list. Concepts are expressions over state statistics + `action_norm` + `legal_norm`, so they were never grid-specific. |
+| C++ `Env` / `ConceptEnv` / PPO / NEAT | Generic state and discrete-action interfaces, extended with fixed-output heads for real-time games and Gaussian continuous-action PPO for the standalone PointMass proxy. Existing concept expressions and online refresh remain available. |
 
-So the real blockers were Python-side (templated generation, grid policy, grid renderer) and the missing
+The original blockers were Python-side (templated generation, grid policy, grid renderer) and the missing
 bridge from an *arbitrary* environment (multi-agent, opponents) into the single-agent C++ `Env` interface.
-No change to NEAT, PPO, genomes or the concept machinery was needed.
+The learner extensions add fixed discrete action heads and continuous-action training without replacing
+the current concept generator or its staged/online discovery workflow.
 
 ## 2. New architecture
 
@@ -105,11 +108,15 @@ builtins apply (untested there).
 
 ## 7. Learner ↔ environment
 
-For the learner the generated game is a single-agent `Env` (`PER_ACTION` mode: network scores
-`[observation ‖ action concept features]` per legal action, so the number of legal actions may vary per
-step). The worker picks the learner's seat (random each episode if `symmetric_agents`), plays all other
-agents with the configured opponent until the learner must act, and returns the learner's accumulated reward,
-the done flag, the learner's legal ids and the learner's observation.
+For the learner the generated game is a single-agent `Env`. Turn-based environments use a `PER_ACTION`
+head that scores `[observation ‖ action concept features]` separately for each legal action, so the number
+of legal actions may vary per step. Discrete real-time games use a fixed output per action and choose among
+the current legal ids each frame; action-dependent and transition concepts are excluded from that head.
+When an environment supplies a valid `scripted_action(agent_id)`, its legal action is used to guide
+training rollouts and as an auxiliary PPO imitation target. Evaluation and fitness selection still use
+the learned policy against the game itself. The worker picks the learner's seat (random each episode if `symmetric_agents`), plays all other agents
+with the configured opponent until the learner acts, and returns the learner's reward, done flag, legal
+ids and observation.
 
 Opponents: `random`; `rule_based` (the env's own `scripted_action`, else a generic win-now / avoid-immediate-loss
 look-ahead on copies); `policy` (a frozen exported brain – used for staged self-play: each round a *fresh*
@@ -121,6 +128,12 @@ one fresh learner with the old and newly screened concepts. This refresh is atte
 and restarted training share one additional timeout window. If no candidates pass the train/validation
 correlation and output-diversity checks, the learner still restarts with the existing concepts and the
 status explains that no new features were admitted.
+
+Snake is an exception to win-rate stopping: filling the entire board is an impractical default target.
+Training instead ends at its configured step budget; if no positive budget is supplied, it is capped at
+60 generations. This makes the run bounded, not evidence that the learned policy is strong. The recorded
+Snake performance below remains poor and must be remeasured after generating and training a corrected
+real-time Snake environment.
 
 ## 7b. Measured results (hand-written fixtures through the real pipeline, one CPU core, single seeds)
 
@@ -186,15 +199,24 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
   observations do not make arbitrary tasks learnable.
 * Observations are fixed-length vectors (entity lists must be padded by the generated code). There is no
   variable-length/set encoder in the network.
-* Discrete actions only for training (≤128 actions, a C++ buffer limit). Continuous action spaces run and validate
-  but are reported as not trainable.
+* Generated environments currently train with discrete actions (≤128 actions, a C++ buffer limit).
+  Continuous-action training is available only through the standalone PointMass robotics proxy.
 * Concepts using `state_boundary_margin` (grid geometry) are excluded; the other concepts are state statistics and
   action/legal normalisations, so what transfers is intentionally generic.
 * No gradient bootstrapping on truncation (inherited from the existing PPO).
 * Training uses 1 learner thread in `ext` mode (relay is serial): ≈10–15k env steps/s for simple games; slower for
   Pong-like long episodes and for the rule-based opponent (copies the env per candidate move).
 * Opponent-in-training choices: random, rule-based, staged self-play. There is no simultaneous co-evolution of two learners.
-* Real-time environments set `real_time: True` and `max_steps: 0`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The learner supplies an action each frame; browser human/brain playback uses that interval. Older non-turn-based specs default to real-time behavior.
+* Real-time environments set `real_time: True` and `max_steps: 0`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The browser's **Play frames** control steps a human-played game at that interval; keyboard controls steer each frame, and `hold_last_action` determines whether a direction persists after the key is released. Brain autoplay uses the same frame interval. Older non-turn-based specs default to real-time behavior.
+* To keep evaluation bounded when a real-time policy can avoid ending a game, generated-game training truncates each episode after 256 frames (counted as a draw); this does not limit browser play.
+* The standalone `pointmass` CLI task is a robotics research proxy, not a simulator or physical robot
+  integration. It uses Gaussian continuous-action PPO, optional observation-difference/action stacking,
+  persisted optimizer moments, and held-out noise/delay/mass robustness checks. Example:
+
+  ```bash
+  cd src
+  ./brain pointmass concepts.txt 200000 11 24 pointmass-policy.json --stack 4 --robust 100
+  ```
 * The page has no *live* population view beyond per-generation fitness/species/node/connection counts parsed from the
   learner's log (the README already listed a full visualizer as not implemented).
 * Python-level sandbox limits above; the generated code was never run against a **live** LLM in this repo's tests –

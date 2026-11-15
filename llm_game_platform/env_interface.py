@@ -45,9 +45,9 @@ Turn-based games return one agent from ``active_agents()``. For real-time games,
 set ``real_time`` to True, set ``max_steps`` to 0, set ``tick_ms`` to the desired
 frame interval, and return all agents that act during each frame from
 ``active_agents()``. Each ``step()`` advances exactly one frame, and the episode
-ends only through game rules, not a frame count. ``real_time`` defaults to the inverse of
-by the runtime and validator, but the NEAT/PPO learner currently only trains on
-discrete action spaces (see ``EnvSpec.trainable``).
+ends only through game rules, not a frame count. ``real_time`` defaults to the
+inverse of ``turn_based``. Discrete real-time games are trainable with a fixed
+output per action; continuous action spaces are still validation/play-only.
 """
 
 from __future__ import annotations
@@ -117,7 +117,7 @@ class EnvSpec:
 
     @property
     def trainable(self) -> bool:
-        """The current NEAT/PPO learner only supports discrete actions."""
+        """NEAT/PPO supports fixed legal-action scores for both turn- and real-time games."""
         return self.discrete
 
     @property
@@ -125,8 +125,8 @@ class EnvSpec:
         if self.discrete:
             return None
         return (
-            "continuous action spaces are executable and validated, but the "
-            "NEAT/PPO learner only trains on discrete actions"
+            "continuous action spaces are executable and validated; generated "
+            "environments currently train with discrete actions"
         )
 
     @classmethod

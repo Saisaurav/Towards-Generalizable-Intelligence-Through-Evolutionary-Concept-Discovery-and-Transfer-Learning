@@ -15,6 +15,7 @@ from llm_game_platform.llm import (
     LLMRequestError,
     OpenAICompatibleClient,
 )
+from llm_game_platform.neat_policy import NeatPolicy
 from llm_game_platform.policy import (
     GridPolicy,
     _concept_value,
@@ -215,6 +216,40 @@ class GridPolicyTests(unittest.TestCase):
         )
         environment = GameEnvironment(spec)
         self.assertEqual(GridPolicy(model).choose_action(environment), "right")
+
+    def test_fixed_head_scores_legal_actions_without_action_dependent_concepts(self):
+        output_base = (1 << 24) + 1
+        model = {
+            "n_logit": 3,
+            "head": "fixed",
+            "action_onehot": False,
+            "input_ids": [0, 1],
+            "nodes": [
+                {"id": 0, "type": 0},
+                {"id": 1, "type": 0},
+                {"id": 1 << 24, "type": 1},
+                *({"id": output_base + index, "type": 2} for index in range(4)),
+            ],
+            "connections": [
+                {"from": 1 << 24, "to": output_base + 2, "weight": 2.0, "enabled": True},
+                {"from": 1 << 24, "to": output_base + 3, "weight": 1.0, "enabled": True},
+            ],
+            "concepts": ["state_mean"],
+        }
+        policy = NeatPolicy(model, n_actions=3)
+        self.assertEqual(policy.scores([0.25], [0, 2]), [0.0, 2.0])
+        self.assertEqual(policy.choose([0.25], [0, 2]), 2)
+
+    def test_fixed_head_rejects_mismatched_policy_output_count(self):
+        with self.assertRaisesRegex(ValueError, "one logit per action"):
+            NeatPolicy(
+                {"n_logit": 1, "head": "fixed", "action_onehot": False,
+                 "input_ids": [0], "nodes": [
+                     {"id": 0, "type": 0}, {"id": 1 << 24, "type": 1},
+                     {"id": (1 << 24) + 1, "type": 2}, {"id": (1 << 24) + 2, "type": 2},
+                 ], "connections": [], "concepts": []},
+                n_actions=2,
+            )
 
     def test_concept_bank_filters_incompatible_primitives(self):
         bank = {

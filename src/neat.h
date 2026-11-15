@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <string>
 #include <thread>
 #include <atomic>
@@ -16,9 +17,11 @@ struct NeatCfg {
   MutCfg mut; PPOCfg ppo;
   float cx_prob = 0.6f, survive = 0.3f, thr = 3.f, c_d = 1.f, c_w = 0.4f;
   int target_species = 6; bool adapt_thr = true;
+  float cont_out_gain = 0.05f, carry = 0.f;
 };
 
 struct Stats { int gen; long steps; float best, mean; int species; float nodes, conns; long train_steps = 0, eval_steps = 0; std::vector<float> fitness; float diversity = 0, champ_nodes = 0, champ_conns = 0; };
+struct StopLimits { int max_gens = 0, min_gens = 0; double max_seconds = 0.0; };
 
 class Population {
 public:
@@ -33,6 +36,12 @@ public:
     spec.n_in = e.n_in(); spec.n_logit = e.n_logit();
     for (int i = 0; i < cfg.pop; i++)
       pop.push_back(cfg.mlp_hidden.empty() ? make_minimal(spec, inns, rng, cfg.init_prob) : make_mlp(spec, cfg.mlp_hidden, inns, rng));
+    if (e.act_dim() > 0) {
+      for (auto& g : pop)
+        for (auto& connection : g.conns)
+          if (connection.to >= OUT_BASE && connection.to < OUT_BASE + spec.n_logit)
+            connection.w *= cfg.cont_out_gain;
+    }
   }
 
   // New input (e.g. new concept). Behavior unchanged until mutation wires it in. Env must expose the new column.
@@ -74,10 +83,19 @@ public:
     return evaluator.evaluate_detail(champion, episodes, seed, greedy);
   }
 
-  void run(long budget, const char* csv = nullptr) {
+  void run(long budget, const char* csv = nullptr, const StopLimits& limits = StopLimits{}) {
     FILE* f = csv ? std::fopen(csv, "w") : nullptr;
     if (f) std::fprintf(f, "gen,steps,best,mean,species,nodes,conns\n");
-    while ((cfg.budget_train_only ? train_steps.load() : steps.load()) < budget) {
+    const auto started = std::chrono::steady_clock::now();
+    auto may_continue = [&]() {
+      if (limits.max_gens > 0 && gen >= limits.max_gens) return false;
+      if (limits.max_seconds > 0.0 &&
+          std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count() >= limits.max_seconds)
+        return false;
+      if (gen < limits.min_gens) return true;
+      return budget > 0 && (cfg.budget_train_only ? train_steps.load() : steps.load()) < budget;
+    };
+    while (may_continue()) {
       Stats s = step();
       std::printf("gen %3d steps %9ld best %8.2f mean %8.2f sp %2d nodes %5.1f conns %5.1f\n", s.gen, s.steps, s.best, s.mean, s.species, s.nodes, s.conns);
       if (f) { std::fprintf(f, "%d,%ld,%.4f,%.4f,%d,%.2f,%.2f\n", s.gen, s.steps, s.best, s.mean, s.species, s.nodes, s.conns); std::fflush(f); }
@@ -86,9 +104,10 @@ public:
   }
 
   bool run_until_win_rate(double target, int eval_episodes, int eval_every_generations,
-                          long max_steps, const char* csv = nullptr, int max_generations = 0) {
-    if (!(target > 0.0 && target <= 1.0) || eval_episodes < 1 ||
-        eval_every_generations < 1 || max_generations < 0)
+                          long max_steps, const char* csv = nullptr,
+                          const StopLimits& limits = StopLimits{}) {
+    if (!(target > 0.0 && target <= 1.0) || eval_episodes < 1 || eval_every_generations < 1 ||
+        limits.max_gens < 0 || limits.min_gens < 0 || limits.max_seconds < 0.0)
       throw std::invalid_argument("invalid win-rate stopping configuration");
     FILE* f = csv ? std::fopen(csv, "w") : nullptr;
     if (f) std::fprintf(f, "gen,steps,best,mean,species,nodes,conns\n");
@@ -104,10 +123,19 @@ public:
       last_eval_gen = gen;
       return win_rate >= target;
     };
-    while (max_steps <= 0 || (cfg.budget_train_only ? train_steps.load() : steps.load()) < max_steps) {
+    const auto started = std::chrono::steady_clock::now();
+    auto may_continue = [&]() {
+      if (limits.max_gens > 0 && gen >= limits.max_gens) return false;
+      if (limits.max_seconds > 0.0 &&
+          std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count() >= limits.max_seconds)
+        return false;
+      if (gen < limits.min_gens) return true;
+      return max_steps <= 0 || (cfg.budget_train_only ? train_steps.load() : steps.load()) < max_steps;
+    };
+    while (may_continue()) {
       Stats s = step();
-      std::printf("gen %3d steps %9ld best %8.2f mean %8.2f sp %2d nodes %5.1f conns %5.1f\n",
-                  s.gen, s.steps, s.best, s.mean, s.species, s.nodes, s.conns);
+      std::printf("gen %3d steps %9ld best %8.2f mean %8.2f sp %2d nodes %5.1f conns %5.1f train %ld eval %ld\n",
+                  s.gen, s.steps, s.best, s.mean, s.species, s.nodes, s.conns, s.train_steps, s.eval_steps);
       if (f) {
         std::fprintf(f, "%d,%ld,%.4f,%.4f,%d,%.2f,%.2f\n",
                      s.gen, s.steps, s.best, s.mean, s.species, s.nodes, s.conns);
@@ -117,12 +145,11 @@ public:
         reached = true;
         break;
       }
-      if (max_generations > 0 && gen >= max_generations) break;
     }
     if (!reached && gen > 0 && last_eval_gen != gen) reached = check_quality();
     std::printf("TARGET_REACHED %d\n", reached ? 1 : 0);
     std::printf("GENERATION_LIMIT_REACHED %d\n",
-                (!reached && max_generations > 0 && gen >= max_generations) ? 1 : 0);
+                (!reached && limits.max_gens > 0 && gen >= limits.max_gens) ? 1 : 0);
     if (f) std::fclose(f);
     return reached;
   }
@@ -141,7 +168,12 @@ private:
       Trainer& T = *workers[t];
       for (;;) {
         int i = next++; if (i >= (int)pop.size()) break;
-        pop[i].fitness = T.evaluate(pop[i], cfg.write_back, cfg.eval_episodes, cfg.seed * 1000003ULL + (uint64_t)gen * 7919ULL + i, cfg.seed * 0x9E3779B97F4A7C15ULL + (uint64_t)gen * 7919ULL);
+        float fresh_fitness = T.evaluate(pop[i], cfg.write_back, cfg.eval_episodes,
+            cfg.seed * 1000003ULL + (uint64_t)gen * 7919ULL + i,
+            cfg.seed * 0x9E3779B97F4A7C15ULL + (uint64_t)gen * 7919ULL);
+        pop[i].fitness = (gen > 0 && cfg.carry > 0.f)
+            ? cfg.carry * pop[i].prev_fit + (1.f - cfg.carry) * fresh_fitness
+            : fresh_fitness;
         steps += T.steps; train_steps += T.train_steps; eval_steps += T.eval_steps;
       }
     };
@@ -196,7 +228,7 @@ private:
     }
     while ((int)next.size() < N) { Genome c = champion; mutate(c, cfg.mut, inns, rng); next.push_back(std::move(c)); }
     next.resize(N);
-    for (auto& g : next) { g.fitness = 0; g.species = -1; }
+    for (auto& g : next) { g.prev_fit = g.fitness; g.fitness = 0; g.species = -1; }
     pop = std::move(next);
   }
 };

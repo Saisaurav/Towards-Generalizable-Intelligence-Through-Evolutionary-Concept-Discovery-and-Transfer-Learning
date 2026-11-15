@@ -12,6 +12,8 @@ from .env_store import EnvStore
 from .env_validator import ValidationReport, validate_environment
 
 _FENCE = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.S)
+_SNAKE_WORD = re.compile(r"\bsnake\b", re.I)
+_TURN_BASED = re.compile(r"\bturn[- ]based\b|\btake turns\b|\balternating turns\b", re.I)
 
 
 class ChatClient(Protocol):
@@ -81,6 +83,21 @@ class EnvGenerator:
             note(f"attempt {attempt}: validating in the sandbox")
             report = validate_environment(source)
             if report.ok:
+                if (
+                    _SNAKE_WORD.search(description)
+                    and not _TURN_BASED.search(description)
+                    and report.spec
+                    and not report.spec.get("real_time")
+                ):
+                    feedback = (
+                        "The user requested Snake without asking for turn-based play. "
+                        "Implement it as real-time: set turn_based=False, real_time=True, "
+                        "max_steps=0, controls, and tick_ms in SPEC."
+                    )
+                    errors.append(feedback)
+                    note(f"attempt {attempt}: repairing Snake play mode")
+                    user = env_prompts.repair_prompt(description, source, feedback)
+                    continue
                 env_id = env_id or uuid4().hex
                 self.store.save(env_id, prompt=description, source=source, spec=report.spec or {},
                                 report=report.to_dict(), attempts=attempt,

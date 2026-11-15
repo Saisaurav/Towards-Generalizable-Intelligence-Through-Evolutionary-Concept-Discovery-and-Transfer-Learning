@@ -17,11 +17,12 @@ struct NetSpec {
 };
 
 struct Node { int id; uint8_t type; };
-struct Conn { int innov, from, to; float w; bool en; };
+struct Conn { int innov, from, to; float w; bool en; float am = 0.f, av = 0.f; };
 struct Genome {
   std::vector<Node> nodes;
   std::vector<Conn> conns;                       // kept sorted by innov
-  float fitness = 0; int species = -1;
+  float fitness = 0, prev_fit = 0; int species = -1; long adam_t = 0;
+  std::vector<float> logstd, ls_m, ls_v;
   int type_of(int id) const { for (auto& n : nodes) if (n.id == id) return n.type; return -1; }
   bool has_conn(int f, int t) const { for (auto& c : conns) if (c.from == f && c.to == t) return true; return false; }
 };
@@ -156,7 +157,8 @@ inline void mutate(Genome& g, const MutCfg& m, Innovations& I, Rng& r) {
 
 // a must be the fitter parent (disjoint/excess come from a). Child nodes = a's nodes.
 inline Genome crossover(const Genome& a, const Genome& b, Rng& r) {
-  Genome c; c.nodes = a.nodes;
+  Genome c; c.nodes = a.nodes; c.fitness = a.fitness; c.adam_t = a.adam_t;
+  c.logstd = a.logstd; c.ls_m = a.ls_m; c.ls_v = a.ls_v;
   size_t j = 0;
   for (auto& ca : a.conns) {
     while (j < b.conns.size() && b.conns[j].innov < ca.innov) j++;

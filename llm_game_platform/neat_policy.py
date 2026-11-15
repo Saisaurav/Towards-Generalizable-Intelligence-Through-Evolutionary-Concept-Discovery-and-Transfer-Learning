@@ -41,6 +41,18 @@ def concept_features(trees: Sequence[Any], observation: Sequence[float], legal: 
     return rows
 
 
+def fixed_head_usable_concept(expression: str) -> bool:
+    return not any(
+        primitive in expression
+        for primitive in (
+            "action_norm",
+            "action_wins_now",
+            "action_blocks_opponent",
+            "transition_",
+        )
+    )
+
+
 class NeatPolicy(GridPolicy):
     def __init__(self, model: dict[str, Any], n_actions: int) -> None:
         super().__init__(model)
@@ -49,6 +61,8 @@ class NeatPolicy(GridPolicy):
         action_onehot = model.get("action_onehot", False)
         if not isinstance(action_onehot, bool):
             raise ValueError("exported brain policy has an invalid action_onehot flag")
+        if self.head == "fixed" and (self.n_logit != n_actions or action_onehot):
+            raise ValueError("fixed-head policy must have one logit per action and no action one-hot inputs")
         self.n_actions = n_actions
         self.action_onehot = action_onehot
 
@@ -67,10 +81,19 @@ class NeatPolicy(GridPolicy):
     def scores(self, observation: Sequence[float], legal: Sequence[int]) -> list[float]:
         if not legal:
             raise ValueError("no legal actions to score")
+        if self.head == "fixed" and any(
+            isinstance(action, bool) or not isinstance(action, int)
+            or not 0 <= action < self.n_actions
+            for action in legal
+        ):
+            raise ValueError("fixed-head policy received an invalid legal action")
         state = [float(v) for v in observation]
         rows = concept_features(
             self.concept_trees, state, legal, self.n_actions, self.action_onehot
         )
+        if self.head == "fixed":
+            logits = self._scores(state + rows[0])
+            return [logits[action] for action in legal]
         return [self._scores(state + concepts)[0] for concepts in rows]
 
     def choose(self, observation: Sequence[float], legal: Sequence[int],

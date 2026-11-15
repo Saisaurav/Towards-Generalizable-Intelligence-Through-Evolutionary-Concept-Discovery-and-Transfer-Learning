@@ -89,7 +89,7 @@
               <div class="form-row"><label class="tag">Player seat <select class="select" id="env-seat" aria-label="Player seat"></select></label><label class="tag">Opponent <select class="select" id="env-opp" aria-label="Opponent"><option value="random">Random</option><option value="rule_based">Rule-based</option><option value="brain" disabled>Trained brain</option></select></label></div>
               <div class="runtime" id="env-scene"><div class="runtime-empty">Generate or load an environment to see its real runtime view.</div></div>
               <p class="hud" id="env-hud" aria-live="polite"></p>
-              <div class="game-controls"><button class="button" id="env-brain" type="button" disabled>Brain move</button><button class="button" id="env-auto" type="button" disabled>Let brain play</button><label class="tag"><input type="checkbox" id="env-textmode"> Text view</label></div>
+              <div class="game-controls"><button class="button" id="env-play" type="button" hidden disabled>Play frames</button><button class="button" id="env-brain" type="button" disabled>Brain move</button><button class="button" id="env-auto" type="button" disabled>Let brain play</button><label class="tag"><input type="checkbox" id="env-textmode"> Text view</label></div>
               <pre class="spec-code" id="env-text" hidden></pre><form class="form-row" id="env-textform" hidden><input class="input grow" id="env-textinput" aria-label="Your move" autocomplete="off" placeholder="Enter an action name or index"><button class="button" type="submit">Send move</button></form>
               <div class="panel-head" style="margin-top:17px"><div><div class="kicker">ENVIRONMENT CONTRACT</div><h2>Generated specification</h2></div></div><pre class="spec-code" id="env-spec">No environment loaded.</pre>
             </section>
@@ -137,6 +137,9 @@
       let pollToken = 0;
       let pollTimer = null;
       let autoTimer = null;
+      let frameTimer = null;
+      let frameAction = null;
+      let pressedAction = null;
       let busy = false;
       let editorEnvId = null;
       let savedEnvironments = [];
@@ -445,7 +448,7 @@
         $("env-opp").querySelector('[value="brain"]').disabled = !env.brain_ready;
         $("env-seat").disabled = !env.spec || busy;
         $("env-opp").disabled = !env.spec || busy;
-        if (view && (view.terminal || view.truncated)) stopAuto();
+        if (view && (view.terminal || view.truncated)) stopPlayback();
         renderScene(view);
         $("env-textform").hidden = !$("env-textmode").checked;
         let hud = view ? ((view.scene && view.scene.hud) || (view.terminal ? "Episode finished." : "Environment ready.")) : "";
@@ -456,6 +459,9 @@
           hud += " — Episode step limit reached.";
         }
         $("env-hud").textContent = hud;
+        $("env-play").hidden = !env.spec || !env.spec.real_time;
+        $("env-play").disabled = !env.spec || !env.spec.real_time || !view || view.terminal || view.truncated;
+        $("env-play").textContent = frameTimer !== null ? "Pause frames" : "Play frames";
         $("env-brain").disabled = !env.brain_ready || !view || view.terminal || busy;
         $("env-auto").disabled = !env.brain_ready || !view || view.terminal;
         $("env-auto").textContent = autoTimer ? "Stop brain" : "Let brain play";
@@ -488,20 +494,97 @@
       }
 
       async function sendAction(action, endpoint = "action") {
-        if (!env || busy || !env.view || env.view.terminal) return;
+        if (!env || busy || !env.view || env.view.terminal || env.view.truncated) return false;
         busy = true;
-        try { renderEnv(await request(`/api/envs/${env.id}/${endpoint}`, endpoint === "action" ? { action } : {})); }
-        catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); stopAuto(); }
+        try {
+          renderEnv(await request(`/api/envs/${env.id}/${endpoint}`, endpoint === "action" ? { action } : {}));
+          return true;
+        }
+        catch (error) {
+          $("env-error").textContent = error.message;
+          $("env-error").classList.add("error");
+          stopPlayback();
+          return false;
+        }
         finally { busy = false; if (env) renderEnv(env); }
       }
-      function stopAuto() { if (autoTimer) clearInterval(autoTimer); autoTimer = null; if (env) setText("env-auto", "Let brain play"); }
+      function stopAuto() {
+        if (autoTimer !== null) clearTimeout(autoTimer);
+        autoTimer = null;
+        if (env) setText("env-auto", "Let brain play");
+      }
+      function stopFrames() {
+        if (frameTimer !== null) clearTimeout(frameTimer);
+        frameTimer = null;
+        pressedAction = null;
+        if (env) setText("env-play", "Play frames");
+      }
+      function stopPlayback() { stopAuto(); stopFrames(); }
+      function scheduleFrame(callback, delay) {
+        frameTimer = setTimeout(callback, delay);
+      }
+      async function humanFrame() {
+        if (frameTimer === null) return;
+        if (!env || !env.spec || !env.view || env.view.terminal || env.view.truncated) {
+          stopFrames();
+          return;
+        }
+        const legal = env.view.legal || [];
+        const fallback = env.spec.noop_action;
+        let action = pressedAction !== null
+          ? pressedAction
+          : (env.spec.hold_last_action && frameAction !== null
+              ? frameAction
+              : (fallback !== null && fallback !== undefined ? fallback : legal[0]));
+        if (!legal.includes(action)) {
+          action = fallback !== null && fallback !== undefined && legal.includes(fallback)
+            ? fallback
+            : legal[0];
+        }
+        if (action === undefined || action === null) {
+          stopFrames();
+          return;
+        }
+        if (!await sendAction(action)) {
+          stopFrames();
+          return;
+        }
+        if (frameTimer !== null && env && env.view && !env.view.terminal && !env.view.truncated) {
+          scheduleFrame(humanFrame, env.spec.tick_ms);
+        } else {
+          stopFrames();
+        }
+      }
+      function startFrames() {
+        stopAuto();
+        stopFrames();
+        if (!env || !env.spec || !env.spec.real_time || !env.view || env.view.terminal) return;
+        frameAction = null;
+        scheduleFrame(humanFrame, 0);
+        setText("env-play", "Pause frames");
+      }
+      function scheduleBrainFrame(delay) {
+        autoTimer = setTimeout(async () => {
+          if (!env || !env.view || env.view.terminal || env.view.truncated) {
+            stopAuto();
+            return;
+          }
+          if (!await sendAction(null, "agent")) {
+            stopAuto();
+            return;
+          }
+          if (autoTimer !== null && env && env.view && !env.view.terminal && !env.view.truncated) {
+            scheduleBrainFrame(env.spec && env.spec.real_time ? env.spec.tick_ms : 450);
+          } else {
+            stopAuto();
+          }
+        }, delay);
+      }
       function startAuto() {
+        stopFrames();
         stopAuto();
         if (!env || !env.brain_ready) return;
-        autoTimer = setInterval(() => {
-          if (!env || !env.view || env.view.terminal) { stopAuto(); return; }
-          sendAction(null, "agent");
-        }, 450);
+        scheduleBrainFrame(0);
         setText("env-auto", "Stop brain");
       }
       $("env-form").addEventListener("submit", async (event) => {
@@ -515,7 +598,7 @@
         $("header-run").disabled = true;
         const prompt = $("env-prompt").value.trim();
         if (!prompt) { $("env-error").textContent = "Enter a game or simulation description."; $("env-error").classList.add("error"); return; }
-        stopAuto(); $("env-create").disabled = true;
+        stopPlayback(); $("env-create").disabled = true;
         try {
           const snapshot = await request("/api/envs", { prompt, training_opponent: $("env-train-opp").value });
           renderEnv(snapshot); void poll(snapshot.id);
@@ -540,7 +623,7 @@
         $("source-error").textContent = "";
         $("run-training").disabled = true;
         $("header-run").disabled = true;
-        stopAuto();
+        stopPlayback();
         try {
           const snapshot = await request(`/api/envs/${env.id}/train`, {
             source: $("env-source-input").value,
@@ -568,22 +651,23 @@
       $("header-run").addEventListener("click", runTraining);
       $("env-restart").addEventListener("click", async () => {
         if (!env) return;
-        stopAuto();
+        stopPlayback();
         try { renderEnv(await request(`/api/envs/${env.id}/reset`, {})); }
         catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
       });
       $("env-brain").addEventListener("click", () => sendAction(null, "agent"));
+      $("env-play").addEventListener("click", () => frameTimer !== null ? stopFrames() : startFrames());
       $("env-auto").addEventListener("click", () => autoTimer ? stopAuto() : startAuto());
       $("env-textmode").addEventListener("change", () => renderScene(env && env.view));
       $("env-seat").addEventListener("change", async () => {
         if (!env) return;
-        stopAuto();
+        stopPlayback();
         try { renderEnv(await request(`/api/envs/${env.id}/reset`, { seat: Number($("env-seat").value) })); }
         catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
       });
       $("env-opp").addEventListener("change", async () => {
         if (!env) return;
-        stopAuto();
+        stopPlayback();
         try { renderEnv(await request(`/api/envs/${env.id}/reset`, { opponent: $("env-opp").value })); }
         catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
       });
@@ -605,7 +689,7 @@
       $("env-load").addEventListener("click", async () => {
         const id = $("env-saved").value;
         if (!id) return;
-        stopAuto();
+        stopPlayback();
         try {
           const snapshot = await request("/api/envs/load", { id });
           editorEnvId = null;
@@ -618,7 +702,21 @@
       document.addEventListener("keydown", (event) => {
         if (!env || !env.spec || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) || $("env-textmode").checked) return;
         const action = env.spec.controls && env.spec.controls[event.key];
-        if (action !== undefined) { event.preventDefault(); sendAction(action); }
+        if (action !== undefined) {
+          event.preventDefault();
+          if (env.spec.real_time && frameTimer !== null) {
+            pressedAction = action;
+            frameAction = action;
+          } else {
+            sendAction(action);
+          }
+        }
+      });
+      document.addEventListener("keyup", (event) => {
+        if (!env || !env.spec || !env.spec.real_time || env.spec.hold_last_action ||
+            /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) || $("env-textmode").checked) return;
+        const action = env.spec.controls && env.spec.controls[event.key];
+        if (action !== undefined && pressedAction === action) pressedAction = null;
       });
       $("concept-search").addEventListener("input", renderConcepts);
 

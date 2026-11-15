@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from .neat_policy import NeatPolicy
+from .neat_policy import NeatPolicy, fixed_head_usable_concept
 from .online_concepts import discover_concepts
 from .policy import load_compatible_concepts
 from .sandbox import SandboxError, SandboxProcess
@@ -39,6 +39,9 @@ _QUALITY = re.compile(
 )
 _TARGET_REACHED = re.compile(r"TARGET_REACHED\s+([01])")
 _GENERATION_LIMIT_REACHED = re.compile(r"GENERATION_LIMIT_REACHED\s+([01])")
+_REALTIME_TRAINING_STEP_LIMIT = 256
+_SNAKE_SCORE_TRAINING_GENERATIONS = 60
+_SNAKE_TITLE = re.compile(r"\bsnake\b", re.I)
 
 
 @dataclass
@@ -154,6 +157,8 @@ class EnvTrainer(BrainTrainer):
             raise BrainTrainingError(spec.get("untrainable_reason") or "environment is not trainable")
         opponent_cfg = {"kind": opponent} if isinstance(opponent, str) else dict(opponent)
         concepts = list(concepts) if concepts is not None else load_compatible_concepts(self.concept_bank)
+        game_label = f"{spec.get('title', '')} {spec.get('description', '')}"
+        score_based_snake = bool(_SNAKE_TITLE.search(game_label))
         binary = self._binary()
         seed = seed if seed is not None else secrets.randbelow(2**31 - 1) + 1
         history: list[dict[str, float]] = []
@@ -164,16 +169,24 @@ class EnvTrainer(BrainTrainer):
         workers: dict[int, SandboxProcess] = {}
         refresh_at = (
             self.concept_refresh_generation
-            if _allow_concept_refresh else 0
+            if _allow_concept_refresh and not score_based_snake else 0
         )
         with tempfile.TemporaryDirectory(prefix="env-training-") as directory:
             workdir = Path(directory)
             (workdir / "concepts.txt").write_text("\n".join(concepts) + "\n", encoding="ascii")
             model_path = workdir / "brain-policy.json"
             command = [str(binary), "ext", str(workdir / "concepts.txt"), str(self.budget), str(seed),
-                       str(self.population), str(model_path), "--target-win-rate", str(self.target_win_rate),
+                       str(self.population), str(model_path),
                        "--eval-episodes", str(self.evaluation_episodes),
-                       "--eval-interval", str(self.evaluation_interval_generations)]
+                       "--eval-interval", str(self.evaluation_interval_generations),
+                       "--head", "fixed" if spec["real_time"] else "per_action",
+                       "--max-seconds", str(max(1, int(self.timeout * 0.8)))]
+            if not score_based_snake:
+                command.extend(["--target-win-rate", str(self.target_win_rate)])
+            elif self.budget == 0:
+                command.extend(["--max-generations", str(_SNAKE_SCORE_TRAINING_GENERATIONS)])
+            if spec["real_time"]:
+                command.extend(["--max-episode-steps", str(_REALTIME_TRAINING_STEP_LIMIT)])
             if refresh_at:
                 command.extend(["--max-generations", str(refresh_at)])
             brain = subprocess.Popen(command, cwd=workdir, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -288,7 +301,11 @@ class EnvTrainer(BrainTrainer):
                 model = json.loads(model_path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as error:
                 raise BrainTrainingError(f"brain did not produce a valid policy: {error}") from error
-            model["concepts"] = concepts
+            model["concepts"] = (
+                [concept for concept in concepts if fixed_head_usable_concept(concept)]
+                if model.get("head") == "fixed"
+                else concepts
+            )
             try:
                 policy = NeatPolicy(model, spec["action"]["n"])
             except ValueError as error:

@@ -38,6 +38,7 @@ async function until(fn, ms, what) { const end = Date.now() + ms; while (Date.no
   // ---- Environment generation + visualization
   await until(() => $("env-title").textContent === "Tic-Tac-Toe", 60000, "title from generated SPEC");
   check("generated SPEC title shown", $("env-title").textContent === "Tic-Tac-Toe");
+  check("real-time frame control stays hidden for turn-based games", $("env-play").hidden);
   await until(() => /generated and validated/i.test($("env-gen-status").textContent), 60000, "generation status");
   check("generation status says generated and validated", true, $("env-gen-status").textContent);
   check("sandbox validation report displayed", /Sandbox validation: \d+ random episodes/.test($("env-validation").textContent), $("env-validation").textContent.slice(0, 90));

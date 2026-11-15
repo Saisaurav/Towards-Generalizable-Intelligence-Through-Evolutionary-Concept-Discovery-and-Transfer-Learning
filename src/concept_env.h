@@ -103,6 +103,8 @@ public:
   int n_state() const override { return state_onehot_k > 0 ? state_onehot_k + 1 : base->n_state(); }
   int n_action_feat() const override { return (int)concepts.size() + (act_onehot ? base->n_actions() : 0); }
   int n_actions() const override { return base->n_actions(); }
+  int act_dim() const override { return base->act_dim(); }
+  int expert_action() const override { return base->expert_action(); }
   void reset(Rng& r) override { base->reset(r); std::fill(last_delta.begin(),last_delta.end(),0.f); has_transition=false; }
   int legal(int* out) override { return base->legal(out); }
   void state_feat(float* out) override {
@@ -202,15 +204,25 @@ public:
     if(act_onehot) for(int i=0;i<base->n_actions();i++) out[concepts.size()+i]=(i==a)?1.f:0.f;
   }
   float step(int a,bool& d,Rng& r) override {
-    std::vector<float> before(base->n_state()),after(base->n_state());
-    base->state_feat(before.data());
+    base->state_feat(state.data());
     float reward=base->step(a,d,r);
+    std::vector<float> after(base->n_state());
     base->state_feat(after.data());
-    for(size_t i=0;i<last_delta.size();i++) last_delta[i]=after[i]-before[i];
+    for(size_t i=0;i<last_delta.size();i++) last_delta[i]=after[i]-state[i];
+    has_transition=true;
+    return reward;
+  }
+  float step_cont(const float* action,bool& d,Rng& r) override {
+    base->state_feat(state.data());
+    float reward=base->step_cont(action,d,r);
+    std::vector<float> after(base->n_state());
+    base->state_feat(after.data());
+    for(size_t i=0;i<last_delta.size();i++) last_delta[i]=after[i]-state[i];
     has_transition=true;
     return reward;
   }
   int episode_result() const override { return base->episode_result(); }
   std::unique_ptr<Env> make() const override { return std::make_unique<ConceptEnv>(base->make(), raw(), act_onehot, state_onehot_k); }
+  std::unique_ptr<Env> make_base() const { return base->make(); }
   std::vector<std::string> raw() const { std::vector<std::string> x; for(auto& c:concepts)x.push_back(c.s); return x; }
 };

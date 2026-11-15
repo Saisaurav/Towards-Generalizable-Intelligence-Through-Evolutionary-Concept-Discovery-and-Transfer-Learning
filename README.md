@@ -1,6 +1,6 @@
 # Cross-game concept transfer prototype
 
-This package contains an experimental NEAT+PPO learner and GP concept-transfer pipeline. It currently includes Tic-Tac-Toe, CartPole, Connect Four, Nim, and LineWorld.
+This package contains an experimental NEAT+PPO learner and GP concept-transfer pipeline. It includes Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, generated Python environments, and a standalone PointMass robotics proxy.
 
 ## Current status (audited and re-run)
 
@@ -11,13 +11,13 @@ See `RESEARCH_REPORT.md` for the full audit, standalone-learner results, transfe
 - **Cross-game transfer was not demonstrated.** Source-discovered GP concepts did not improve CartPole learning over scratch or random features, and raw state x action features beat them; the Connect Four to Nim pair is uninformative.
 - v9 concept generator (richer primitives, oracle teacher) was merged and evaluated with the audited learner (`RESEARCH_REPORT.md` section J): still no measurable source-to-target transfer; only target-game concepts helped, and only on Nim.
 - With action-conditioned primitives (`generic_state_action_v8`: supplied win-now / block-opponent lookahead) TTT-discovered concepts improve Connect Four from 0.79 to 0.97 (`RESEARCH_REPORT.md` section K), but a primitives-only control matches them, so the gain comes from the primitives, not from GP discovery.
-- Supported environments: Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, and LLM-parameterised grid worlds (width/height/start/goal/walls/hazards only; not arbitrary game generation).
+- Supported environments: Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, LLM-authored Python game environments, and the standalone PointMass robotics research proxy.
 - Known limitations: single-core experiments, 10 seeds, pilots only for the grid demos, concept primitives are state aggregates, transfer recorded at pair level.
 
 Reproduce (from the repo root):
 
 ```bash
-cd src && make runner regression_test env_smoke_test lamarckian_hidden_test && ./regression_test && cd ..
+cd src && make runner regression_test env_smoke_test learner_integration_test && ./regression_test && ./env_smoke_test && ./learner_integration_test && cd ..
 python3 -m unittest test_concept_bank test_llm_game_platform
 python3 experiments/batch.py results_v2/standalone my_run "game=cartpole repr=fixed budget=150000"   # 10 seeds, JSON per run
 python3 gp_transfer.py --source ttt --target cartpole --seed 2026 --pop 100 --gens 30 --out results_v2/gp/ttt_to_cartpole
@@ -57,10 +57,12 @@ how to use those features. Concept compatibility and source-game fitness alone
 are not evidence that a concept helps a target; the downstream admission
 experiment compares fresh learners under paired seeds and a fixed budget.
 
-The current C++ learner accepts a fixed set of built-in environments through
-the `Env` interface. The Python GP discovery and experiment pipeline works with
-the supported environments listed below. Neither component currently accepts
-arbitrary LLM-generated game rules.
+The C++ learner accepts built-in and generated environments through the `Env`
+interface. Discrete real-time games use a fixed action-output head; turn-based
+games retain the action-conditioned head. Continuous Gaussian PPO is available
+in the standalone PointMass CLI research proxy; generated Python games remain
+discrete-action. The Python GP discovery and experiment pipeline works with the
+supported environments listed below.
 
 ## Environments
 
@@ -71,6 +73,8 @@ arbitrary LLM-generated game rules.
 | `connect_four` | 6x7 Connect Four against a random opponent; the opponent sometimes opens | Drop in a non-full column |
 | `nim` | Single heap, 10–21 objects at reset; take 1–3, then a random opponent takes 1–3; taking the last object wins | Take 1, 2, or 3 (illegal takes are masked) |
 | `lineworld` | Deterministic 11-position line; start at positions 0–4, reach position 10 within 30 steps | Move left or right (moves off the line are masked) |
+| LLM-authored Python games | Sandboxed, validated environments, including multi-agent and real-time games | Discrete actions; real-time games use a fixed action-output head |
+| `pointmass` | Standalone 2D continuous-control robotics research proxy; not Gazebo/ROS or a physical robot | Gaussian continuous actions |
 
 These are controlled experimental environments, not claims of broad game coverage. Connect Four and Nim use random opponents; their results measure learning against those opponents, not optimal play.
 
@@ -96,6 +100,9 @@ make
 make test-envs
 ```
 
+On Windows, the Makefile statically links the MinGW runtime so the brain can be
+started by the browser server without relying on VS Code's inherited `PATH`.
+
 ## Run a target learner
 
 ```bash
@@ -104,6 +111,16 @@ make test-envs
 
 The target learner is always created from scratch. The expression file supplies only the action-conditioned concept features.
 The runtime automatically includes `action_norm` unless the file already contains that exact primitive expression, so otherwise state-only concepts do not make all legal actions indistinguishable.
+
+Generated discrete real-time games use a fixed output per action, with concepts
+that depend on a particular action or previous transition omitted from that
+head. If a generated game provides a valid `scripted_action(agent_id)`, its
+actions guide training rollouts and supervise the PPO policy; fitness evaluation
+still measures the learned policy itself. The
+standalone `pointmass` CLI experiment adds Gaussian continuous-action
+PPO and is a robotics proxy, not a Gazebo/ROS or physical-robot integration.
+For its options and robustness evaluation, see
+[`GENERATED_ENVIRONMENTS.md`](./GENERATED_ENVIRONMENTS.md).
 
 ## GP discovery and admission
 
@@ -191,7 +208,8 @@ For LLM-generated Python environments, generation only produces and validates a
 draft. Edit the source in the builder and select **Run Training** to sandbox-
 validate and persist those exact edits, start the learner, and initialize the
 runtime from the same environment implementation (including its `render()`
-output).
+output). Real-time environments include **Play frames** for paced human
+control, with keyboard steering and frame timing from `tick_ms`.
 
 Configure an OpenAI-compatible chat endpoint, then start the server from the
 package root:
@@ -247,9 +265,7 @@ python3 play_cli.py generated_env_fixtures/ttt.py  # terminal play of a hand-wri
 
 Tests: `python3 -m unittest test_generated_envs test_llm_game_platform test_concept_bank` (platform; slow),
 `python3 -m unittest test_novelty_monitor test_gp_selection test_action_primitives` (research),
-`cd src && make regression_test env_smoke_test && ./regression_test && ./env_smoke_test` (C++).
-Note: `make test-envs` references `lamarckian_hidden_test.cpp`, which is absent from the V8 archive this was
-built from, so that aggregate target fails exactly as it did in V8; use the explicit targets above.
+`cd src && make test-envs` (C++; includes the fixed-head and continuous-action integration test).
 
 Concepts reaching generated games come from `results/concept_bank.json` through V8's
 `screen_concepts` filter. Per the bank's own note none of these concepts was admitted as a demonstrated
