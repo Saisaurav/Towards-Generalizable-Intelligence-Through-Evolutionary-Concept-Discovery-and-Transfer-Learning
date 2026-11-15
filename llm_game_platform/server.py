@@ -12,12 +12,12 @@ from typing import Any
 from uuid import uuid4
 
 from .env_generator import EnvGenerator
-from .env_service import EnvNotReady, EnvService, TRAINING_OPPONENTS
+from .env_service import EnvNotReady, EnvService, EnvSourceValidationError, TRAINING_OPPONENTS
 from .env_store import EnvStore, EnvStoreError
 from .env_trainer import EnvTrainer
 from .generator import GameGenerationError, GameGenerator
 from .llm import LLMConfigurationError, LLMRequestError, OpenAICompatibleClient
-from .policy import GridPolicy
+from .policy import GridPolicy, load_compatible_concepts
 from .runtime import RuntimeGenerationError, RuntimeGenerator, RuntimeSpec
 from .sandbox import SandboxError
 from .spec import GameEnvironment, GameSpec
@@ -26,7 +26,7 @@ from .trainer import BrainTrainer, BrainTrainingError
 
 _WEB_ROOT = Path(__file__).with_name("web")
 _GAME_ID = re.compile(r"^[0-9a-f]{32}$")
-_ENV_PATH = re.compile(r"^/api/envs(?:/([0-9a-f]{32})/(status|source|reset|action|agent)|/(load))?$")
+_ENV_PATH = re.compile(r"^/api/envs(?:/([0-9a-f]{32})/(status|source|reset|action|agent|train)|/(load))?$")
 
 
 @dataclass
@@ -188,11 +188,16 @@ class GameRequestHandler(BaseHTTPRequestHandler):
     # General-purpose generated-environment pipeline (LLM-written Python in a sandbox).
     env_service = EnvService(
         EnvGenerator(OpenAICompatibleClient()),
-        EnvTrainer(budget=int(os.getenv("GAME_ENV_TRAINING_BUDGET", "150000"))),
+        EnvTrainer(budget=int(os.getenv(
+            "GAME_ENV_MAX_STEPS", os.getenv("GAME_ENV_TRAINING_BUDGET", "0")
+        ))),
         EnvStore(),
     )
 
     def do_GET(self) -> None:
+        if self.path == "/api/concepts":
+            self._get_concepts()
+            return
         if self.path.startswith("/api/envs"):
             self._guarded(self._get_env)
             return
@@ -231,6 +236,37 @@ class GameRequestHandler(BaseHTTPRequestHandler):
             return
         self._send_json(404, {"error": "not found"})
 
+    def _get_concepts(self) -> None:
+        bank_path = self.env_service.trainer.concept_bank
+        try:
+            bank = json.loads(bank_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            self._send_json(500, {"error": f"could not read configured concept bank {bank_path}: {error}"})
+            return
+        if not isinstance(bank, dict) or not isinstance(bank.get("concepts"), list):
+            self._send_json(500, {"error": "configured concept bank must contain a concepts list"})
+            return
+        try:
+            compatible = set(load_compatible_concepts(bank_path))
+        except ValueError as error:
+            self._send_json(500, {"error": str(error)})
+            return
+        concepts = []
+        for item in bank["concepts"]:
+            if not isinstance(item, dict):
+                continue
+            concept = dict(item)
+            expression = concept.get("expression")
+            concept["compatible"] = isinstance(expression, str) and expression in compatible
+            concepts.append(concept)
+        self._send_json(200, {
+            "version": bank.get("version"),
+            "created_utc": bank.get("created_utc"),
+            "primitive_contract": bank.get("primitive_contract"),
+            "state_dim": bank.get("state_dim"),
+            "concepts": concepts,
+        })
+
     def _guarded(self, handler: Any) -> None:
         try:
             handler()
@@ -242,6 +278,11 @@ class GameRequestHandler(BaseHTTPRequestHandler):
             self._send_json(409, {"error": str(error)})
         except SandboxError as error:
             self._send_json(422, {"error": error.describe()})
+        except EnvSourceValidationError as error:
+            self._send_json(422, {
+                "error": str(error),
+                "validation": error.report.to_dict(),
+            })
         except (LLMConfigurationError, LLMRequestError) as error:
             self._send_json(503, {"error": str(error)})
 
@@ -270,8 +311,8 @@ class GameRequestHandler(BaseHTTPRequestHandler):
         if not match:
             self._send_json(404, {"error": "not found"})
             return
-        body = self._read_json()
         env_id, operation, load = match.groups()
+        body = self._read_json(max_bytes=220_000 if operation == "train" else 16_384)
         service = self.env_service
         if env_id is None and load is None:
             prompt = EnvGenerator.validate_prompt(body.get("prompt"))
@@ -281,6 +322,14 @@ class GameRequestHandler(BaseHTTPRequestHandler):
         elif load:
             loaded = service.load_saved(str(body.get("id", "")))
             self._send_json(200, service.snapshot(loaded.id))
+        elif operation == "train":
+            if env_id is None:
+                raise ValueError("environment ID is required for training")
+            snapshot = service.prepare_training(
+                env_id, body.get("source"), body.get("training_opponent", "random")
+            )
+            self._send_json(202, snapshot)
+            self._submit_background(self._train_env, env_id)
         elif operation == "reset":
             seat = body.get("seat")
             if seat is not None and (isinstance(seat, bool) or not isinstance(seat, int)):
@@ -295,6 +344,9 @@ class GameRequestHandler(BaseHTTPRequestHandler):
 
     def _generate_env(self, env_id: str) -> None:
         self.env_service.generate(env_id)
+
+    def _train_env(self, env_id: str) -> None:
+        self.env_service.train(self.env_service.get(env_id))
 
     def do_POST(self) -> None:
         if self.path.startswith("/api/envs"):
@@ -382,6 +434,8 @@ class GameRequestHandler(BaseHTTPRequestHandler):
             self.store.fail_generation(game_id, message)
         elif worker_name == "_generate_env":
             self.env_service.fail(game_id, message)
+        elif worker_name == "_train_env":
+            self.env_service.fail_training(game_id, message)
         elif worker_name == "_generate_runtime":
             self.store.fail_runtime(game_id, message)
         elif worker_name == "_train_brain":
@@ -405,13 +459,13 @@ class GameRequestHandler(BaseHTTPRequestHandler):
             return
         self.store.set_policy(game_id, policy)
 
-    def _read_json(self) -> dict[str, Any]:
+    def _read_json(self, max_bytes: int = 16_384) -> dict[str, Any]:
         try:
             length = int(self.headers.get("Content-Length", "0"))
         except ValueError as error:
             raise ValueError("invalid Content-Length") from error
-        if length < 1 or length > 16_384:
-            raise ValueError("request body must be between 1 and 16384 bytes")
+        if length < 1 or length > max_bytes:
+            raise ValueError(f"request body must be between 1 and {max_bytes} bytes")
         body = json.loads(self.rfile.read(length))
         if not isinstance(body, dict):
             raise ValueError("request body must be a JSON object")

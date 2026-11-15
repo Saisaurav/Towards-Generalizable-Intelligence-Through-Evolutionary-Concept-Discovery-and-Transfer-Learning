@@ -23,6 +23,7 @@ from llm_game_platform.env_service import EnvService
 from llm_game_platform.env_store import EnvStore, EnvStoreError
 from llm_game_platform.env_trainer import EnvTrainer, evaluate_policy
 from llm_game_platform.env_validator import validate_environment
+from llm_game_platform.online_concepts import discover_concepts
 from llm_game_platform.render_protocol import SceneError, validate_scene
 from llm_game_platform.sandbox import SandboxError, SandboxProcess
 from llm_game_platform.server import GameRequestHandler
@@ -95,9 +96,18 @@ class InterfaceTests(unittest.TestCase):
         realtime = EnvSpec.from_mapping({
             "title": "t", "description": "d", "agents": [0], "observation_size": 2,
             "action": {"type": "discrete", "n": 2}, "turn_based": False, "real_time": True,
-            "max_steps": 5, "tick_ms": 80})
+            "max_steps": 0, "tick_ms": 80})
         self.assertEqual(realtime.to_dict()["tick_ms"], 80)
         self.assertTrue(realtime.to_dict()["real_time"])
+        legacy_realtime = EnvSpec.from_mapping({
+            "title": "t", "description": "d", "agents": [0], "observation_size": 2,
+            "action": {"type": "discrete", "n": 2}, "turn_based": False, "max_steps": 1})
+        self.assertTrue(legacy_realtime.real_time)
+        with self.assertRaisesRegex(ValueError, "must be 0"):
+            EnvSpec.from_mapping({
+                "title": "t", "description": "d", "agents": [0], "observation_size": 2,
+                "action": {"type": "discrete", "n": 2}, "turn_based": False, "real_time": True,
+                "max_steps": 5})
         base = {"title": "t", "description": "d", "agents": [0], "observation_size": 4,
                 "action": {"type": "discrete", "n": 3}, "turn_based": True, "max_steps": 5}
         for bad in (dict(base, action={"type": "discrete", "n": 500}), dict(base, extra=1),
@@ -287,6 +297,34 @@ class SnakeAndPongRuleTests(unittest.TestCase):
         self.assertEqual(env.result(0), "loss")
         self.assertEqual(env.legal_actions(0), [])
 
+    def test_snake_wins_only_when_board_is_full(self):
+        snake = load_fixture("snake")
+        env = snake.Environment()
+        env.reset(3)
+        self.assertEqual(snake.SPEC["max_steps"], 0)
+        env.body = [(0, 0)] + [
+            (x, y) for y in range(snake.H) for x in range(snake.W)
+            if (x, y) not in ((0, 0), (1, 0))
+        ]
+        env.heading = 1
+        env.food = (1, 0)
+        env.step({0: 1})
+        self.assertTrue(env.is_terminal())
+        self.assertEqual(len(env.body), snake.W * snake.H)
+        self.assertIsNone(env.food)
+        self.assertEqual(env.result(0), "win")
+
+    def test_saved_snake_has_no_frame_count_win(self):
+        source = Path(__file__).parent / "generated_envs" / "bc35b744ff9244d49dad31c10fa507f1" / "env.py"
+        spec = importlib.util.spec_from_file_location("saved_snake", source)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        env = module.Environment()
+        env.reset(3)
+        env.t = 500
+        self.assertFalse(env.is_terminal())
+        self.assertEqual(module.SPEC["max_steps"], 0)
+
     def test_pong_bounce_miss_and_score(self):
         pong = load_fixture("pong")
         env = pong.Environment()
@@ -333,6 +371,75 @@ class SandboxRuntimeTests(unittest.TestCase):
             with self.assertRaises(SandboxError):
                 box.request("play", action=0)
             self.assertIn(view["results"]["0"], ("win", "loss", "draw"))
+
+    def test_real_time_runtime_ignores_legacy_frame_cap(self):
+        source = MINI.replace('"turn_based": True, "max_steps": 10',
+                              '"turn_based": False, "max_steps": 1')
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "env.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as box:
+                view = box.request("reset", seed=1, seat=0)
+                view = box.request("play", action=1)
+                self.assertFalse(view["terminal"])
+                view = box.request("play", action=1)
+                self.assertFalse(view["terminal"])
+                view = box.request("play", action=1)
+                self.assertTrue(view["terminal"])
+                self.assertEqual(view["results"]["0"], "win")
+
+    def test_concept_data_collection_records_generated_game_episodes(self):
+        model = {
+            "input_ids": [0, 1],
+            "n_logit": 1,
+            "nodes": [
+                {"id": 0, "type": 0},
+                {"id": 1, "type": 0},
+                {"id": 0x1000000, "type": 1},
+                {"id": 0x1000001, "type": 2},
+                {"id": 0x1000002, "type": 2},
+            ],
+            "connections": [],
+            "concepts": ["action_norm"],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            policy_path = Path(directory) / "policy.json"
+            policy_path.write_text(json.dumps(model), encoding="utf-8")
+            source_path = Path(directory) / "mini.py"
+            source_path.write_text(MINI, encoding="utf-8")
+            with SandboxProcess(source_path) as box:
+                box.request("configure", default={"kind": "random"})
+                result = box.request(
+                    "collect_concept_data",
+                    learner={"kind": "policy", "policy_path": str(policy_path), "greedy": False},
+                    episodes=2,
+                    seed=5,
+                    max_steps=12,
+                )
+        self.assertEqual(len(result["episodes"]), 2)
+        sample = result["episodes"][0]["samples"][0]
+        self.assertEqual(len(sample["observation"]), 1)
+        self.assertTrue(sample["legal"])
+        self.assertIn(sample["action"], sample["legal"])
+
+
+class OnlineConceptTests(unittest.TestCase):
+    def test_gp_discovers_a_valid_feature_from_generated_game_returns(self):
+        episodes = []
+        for index in range(30):
+            won = index >= 15
+            state_value = 0.9 if won else 0.1
+            episodes.append({
+                "result": "win" if won else "loss",
+                "samples": [
+                    {"observation": [state_value], "legal": [0, 1],
+                     "action": step % 2, "reward": 0.0}
+                    for step in range(3)
+                ],
+            })
+        concepts = discover_concepts(episodes, 2, [], seed=17)
+        self.assertTrue(concepts)
+        self.assertTrue(any("state_mean" in expression for expression in concepts))
 
     def test_seeded_reset_is_deterministic_in_the_sandbox(self):
         with SandboxProcess(FIXTURES / "snake.py") as box:
@@ -478,7 +585,9 @@ class TextModeTests(unittest.TestCase):
 
 
 def small_trainer(budget=30000, population=16):
-    return EnvTrainer(budget=budget, population=population, timeout=300)
+    return EnvTrainer(
+        budget=budget, population=population, timeout=300, concept_refresh_generation=0
+    )
 
 
 class LearnerIntegrationTests(unittest.TestCase):
@@ -490,13 +599,65 @@ class LearnerIntegrationTests(unittest.TestCase):
             spec = box.spec
         return path, spec, small_trainer(budget).train_env(path, spec, opponent, seed=seed)
 
+    def test_training_stops_when_configured_win_rate_is_met(self):
+        source = MINI.replace("else [0, 1]", "else [1]")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "always-win.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as sandbox:
+                spec = sandbox.spec
+            trainer = EnvTrainer(
+                budget=0,
+                population=2,
+                timeout=60,
+                target_win_rate=0.9,
+                evaluation_episodes=5,
+                evaluation_interval_generations=1,
+            )
+            result = trainer.train_env(path, spec, seed=17, concepts=[])
+        self.assertTrue(result.target_reached)
+        self.assertEqual(result.history[-1]["win_rate"], 1.0)
+        self.assertEqual(result.history[-1]["win_or_draw_rate"], 1.0)
+
+    def test_generation_checkpoint_discovers_concepts_and_restarts(self):
+        source = MINI.replace(
+            'def result(self, agent_id): return "win"',
+            'def result(self, agent_id): return "loss"',
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "always-loss.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as sandbox:
+                spec = sandbox.spec
+            notes = []
+            trainer = EnvTrainer(
+                budget=1,
+                population=2,
+                timeout=60,
+                target_win_rate=0.9,
+                evaluation_episodes=2,
+                evaluation_interval_generations=1,
+                concept_refresh_generation=1,
+                concept_refresh_episodes=8,
+                concept_refresh_max_steps=12,
+            )
+            result = trainer.train_env(
+                path, spec, seed=17, concepts=[], status=notes.append
+            )
+        self.assertFalse(result.target_reached)
+        self.assertIn("restarted training", result.concept_refresh_note)
+        self.assertTrue(any("collecting game episodes" in note for note in notes))
+        self.assertGreaterEqual(len(result.history), 2)
+        self.assertGreater(result.history[-1]["gen"], result.history[0]["gen"])
+
     def test_ttt_trains_and_python_policy_matches_cpp_heldout(self):
         path, spec, result = self.train("ttt", budget=60000)
         self.assertGreater(len(result.history), 1)
         self.assertEqual(result.opponent, "random")
         self.assertTrue(result.concepts)                       # transferred concepts are the only carry-over
+        self.assertTrue(result.model["action_onehot"])
         policy_file = result.save_policy(Path(tempfile.mkdtemp()) / "p.json")
-        mine = evaluate_policy(path, {"kind": "policy", "policy_path": str(policy_file), "greedy": False},
+        mine = evaluate_policy(path, {"kind": "policy", "policy_path": str(policy_file), "greedy": True},
                                "random", episodes=3000, seed=99)
         self.assertLess(abs(mine["mean_return"] - result.heldout_return), 0.15)
         baseline = evaluate_policy(path, "random", "random", episodes=3000, seed=99)
@@ -587,10 +748,28 @@ class EnvApiTests(unittest.TestCase):
             status, snap = self.call(f"{base}/api/envs", {"prompt": "tic tac toe", "training_opponent": "random"})
             self.assertEqual(status, 202)
             env_id = snap["id"]
-            snap = self.wait(base, env_id, lambda s: s["training_status"] in ("ready", "failed"))
+            snap = self.wait(base, env_id, lambda s: s["generation_status"] in ("ready", "failed"))
             self.assertEqual(snap["generation_status"], "ready")
-            self.assertEqual(snap["training_status"], "ready", snap["training_error"])
+            self.assertEqual(snap["training_status"], "waiting")
+            self.assertFalse(snap["brain_ready"])
             self.assertEqual(snap["spec"]["title"], "Tic-Tac-Toe")
+
+            status, text = self.call(f"{base}/api/envs/{env_id}/source")
+            self.assertEqual((status, text), (200, fixture_source("ttt")))
+            status, error = self.call(f"{base}/api/envs/{env_id}/train", {"source": "not valid Python"})
+            self.assertEqual(status, 422)
+            self.assertTrue(error["validation"]["errors"])
+            self.assertEqual(self.call(f"{base}/api/envs/{env_id}/source"), (200, fixture_source("ttt")))
+
+            edited_source = fixture_source("ttt").replace('"title": "Tic-Tac-Toe"', '"title": "Edited Tic-Tac-Toe"')
+            status, snap = self.call(f"{base}/api/envs/{env_id}/train", {
+                "source": edited_source,
+                "training_opponent": "random",
+            })
+            self.assertEqual(status, 202)
+            snap = self.wait(base, env_id, lambda s: s["training_status"] in ("ready", "failed"))
+            self.assertEqual(snap["training_status"], "ready", snap["training_error"])
+            self.assertEqual(snap["spec"]["title"], "Edited Tic-Tac-Toe")
             self.assertTrue(snap["training_history"] and snap["concepts"])
             self.assertTrue(snap["brain_ready"])
 
@@ -611,7 +790,7 @@ class EnvApiTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(snap["human_seat"], 1)
             status, text = self.call(f"{base}/api/envs/{env_id}/source")
-            self.assertEqual((status, text), (200, fixture_source("ttt")))
+            self.assertEqual((status, text), (200, edited_source))
             status, listing = self.call(f"{base}/api/envs")
             self.assertEqual([e["id"] for e in listing["environments"]], [env_id])
 
@@ -637,7 +816,7 @@ class EnvApiTests(unittest.TestCase):
             base, _ = self.start([fenced(fixture_source("snake"))], root)
             status, snap = self.call(f"{base}/api/envs", {"prompt": "snake"})
             env_id = snap["id"]
-            self.wait(base, env_id, lambda s: s["generation_status"] == "ready" and s["training_status"] in ("ready", "failed"))
+            self.wait(base, env_id, lambda s: s["generation_status"] == "ready")
             status, snap = self.call(f"{base}/api/envs/{env_id}/reset", {})
             before = snap["view"]["steps"]
             status, snap = self.call(f"{base}/api/envs/{env_id}/action", {"action": None})
@@ -646,8 +825,8 @@ class EnvApiTests(unittest.TestCase):
 
     def test_real_time_learner_advances_one_frame_per_action(self):
         source = MINI.replace(
-            '"turn_based": True',
-            '"turn_based": False, "real_time": True, "tick_ms": 80',
+            '"turn_based": True, "max_steps": 10',
+            '"turn_based": False, "real_time": True, "max_steps": 0, "tick_ms": 80',
         )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "realtime.py"
@@ -659,6 +838,33 @@ class EnvApiTests(unittest.TestCase):
         state_size_index = 4 + legal_count
         self.assertEqual(int(fields[state_size_index]), 1)
         self.assertAlmostEqual(float(fields[state_size_index + 1]), 1.0 / 3.0)
+
+    def test_terminal_opponent_win_provides_learner_loss_reward(self):
+        source = '''
+SPEC = {"title": "Loss", "description": "opponent wins", "agents": [0, 1],
+        "observation_size": 1, "action": {"type": "discrete", "n": 1},
+        "turn_based": True, "max_steps": 4, "symmetric_agents": False}
+class Environment:
+    def reset(self, seed=None): self.turn = 0
+    def observe(self, agent_id): return [0.0]
+    def legal_actions(self, agent_id): return [] if self.is_terminal() else [0]
+    def active_agents(self): return [] if self.is_terminal() else [self.turn]
+    def step(self, actions):
+        self.turn += 1
+        return {1: 1.0} if self.turn == 2 else {0: 0.0}
+    def is_terminal(self): return self.turn == 2
+    def result(self, agent_id): return "loss" if agent_id == 0 else "win"
+    def render(self): return {"width": 10, "height": 10, "items": []}
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "opponent-win.py"
+            path.write_text(source, encoding="utf-8")
+            with SandboxProcess(path) as sandbox:
+                sandbox.raw_line("R 7")
+                fields = sandbox.raw_line("A 0").split()
+        self.assertEqual(float(fields[1]), -1.0)
+        self.assertEqual(fields[2], "1")
+        self.assertEqual(fields[-1], "-1")
 
 
 if __name__ == "__main__":

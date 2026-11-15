@@ -34,6 +34,7 @@ import types
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+VALIDATION_STEP_LIMIT = 10000
 
 import render_protocol  # noqa: E402  (stdlib only)
 from env_interface import RESULT_VALUES, EnvSpec  # noqa: E402
@@ -149,7 +150,7 @@ class Runner:
     def done(self) -> bool:
         if self.env.is_terminal():
             return True
-        if self.steps >= self.spec.max_steps or (
+        if (not self.spec.real_time and self.spec.max_steps and self.steps >= self.spec.max_steps) or (
             hasattr(self.env, "is_truncated") and self.env.is_truncated()
         ):
             self.truncated = True
@@ -354,7 +355,15 @@ class Runner:
         total = self.step(actions)[self.learner]
         if not self.spec.real_time:
             total += self.advance(self.learner)
-        return total, self.done()
+        done = self.done()
+        if done and total == 0.0:
+            # Some games reward only the winner, leaving the learner's terminal loss at zero.
+            outcome = self.result(self.learner)
+            if outcome == "win":
+                total = 1.0
+            elif outcome == "loss":
+                total = -1.0
+        return total, done
 
     def brain_line(self, reward: float, done: bool) -> str:
         obs = self.observe(self.learner)
@@ -384,6 +393,34 @@ class Runner:
             counts[self.result(self.learner)] += 1
         return {"mean_return": total / episodes, "mean_length": lengths / episodes,
                 **{k: v / episodes for k, v in counts.items()}}
+
+    def collect_concept_data(
+        self, learner_cfg: dict, episodes: int, seed: int, max_steps: int
+    ) -> list[dict]:
+        ctrl = self.set_controller(learner_cfg)
+        if ctrl[0] != "policy":
+            raise EnvContractError("concept-data collection requires a policy learner")
+        traces = []
+        for episode in range(episodes):
+            self.learner_reset(seed + episode * 1009)
+            samples = []
+            for _ in range(max_steps):
+                if self.done():
+                    break
+                observation = self.observe(self.learner)
+                legal = self.legal(self.learner)
+                action = ctrl[1].choose(observation, legal, self.rng, greedy=False)
+                reward, _done = self.learner_step(action)
+                samples.append({
+                    "observation": observation,
+                    "legal": legal,
+                    "action": action,
+                    "reward": reward,
+                })
+            outcome = self.result(self.learner) if self.env.is_terminal() or self.truncated else None
+            if samples:
+                traces.append({"samples": samples, "result": outcome})
+        return traces
 
     # ---- human / UI play ---------------------------------------------------
     def view(self) -> dict:
@@ -508,6 +545,10 @@ class Runner:
                 nonzero = nonzero or value != 0.0
             if self.steps == max(1, self.spec.max_steps // 2):
                 render_protocol.validate_scene(self.env.render())
+            if self.steps >= VALIDATION_STEP_LIMIT and not self.done():
+                raise EnvContractError(
+                    f"validation episode exceeded {VALIDATION_STEP_LIMIT} steps without a terminal state"
+                )
         terminal = bool(self.env.is_terminal())
         results = None
         if terminal:
@@ -602,6 +643,22 @@ class Server:
             return {"ok": True, **runner.validate_episode(int(request["seed"]), int(request["action_seed"]), bool(request.get("check_illegal")))}
         if op == "evaluate":
             return {"ok": True, **r.evaluate(request.get("learner"), int(request.get("episodes", 100)), int(request.get("seed", 0)))}
+        if op == "collect_concept_data":
+            episodes = request.get("episodes", 16)
+            max_steps = request.get("max_steps", 96)
+            if isinstance(episodes, bool) or not isinstance(episodes, int) or not 1 <= episodes <= 64:
+                raise EnvContractError("concept-data episodes must be an integer from 1 to 64")
+            if isinstance(max_steps, bool) or not isinstance(max_steps, int) or not 1 <= max_steps <= VALIDATION_STEP_LIMIT:
+                raise EnvContractError(
+                    f"concept-data max_steps must be an integer from 1 to {VALIDATION_STEP_LIMIT}"
+                )
+            learner = request.get("learner")
+            if not isinstance(learner, dict):
+                raise EnvContractError("concept-data collection requires a learner policy")
+            traces = r.collect_concept_data(
+                learner, episodes, int(request.get("seed", 0)), max_steps
+            )
+            return {"ok": True, "episodes": traces}
         if op == "quit":
             raise SystemExit(0)
         raise EnvContractError(f"unknown op {op!r}")

@@ -3,522 +3,669 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prompt-to-Game</title>
+  <meta name="theme-color" content="#111310">
+  <title>Frameforge — Reinforcement Learning Studio</title>
   <style>
-    :root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #101721; color: #e8eef5; }
-    body { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
-    h1 { margin-bottom: .35rem; }
-    p { color: #b7c4d2; }
-    textarea { box-sizing: border-box; width: 100%; min-height: 7rem; padding: .8rem; border-radius: .6rem; }
-    button { border: 0; border-radius: .45rem; padding: .65rem 1rem; margin: .25rem; cursor: pointer; color: #101721; background: #82d5bb; font-weight: 650; }
-    button:disabled { opacity: .4; cursor: default; }
-    #board { display: grid; gap: .3rem; width: min(90vw, 480px); margin: 1rem 0; }
-    .cell { display: grid; place-items: center; aspect-ratio: 1; background: #263545; border-radius: .35rem; font-size: clamp(1rem, 5vw, 2rem); }
-    .wall { background: #647184; } .hazard { background: #853e49; } .goal { background: #3a795a; }
-    #status { min-height: 1.5rem; color: #f0cf75; }
-    #runtime-status, #training-status { min-height: 1.25rem; }
-    .controls { display: grid; grid-template-columns: repeat(3, 3.5rem); }
-    #error { color: #ff9a9a; white-space: pre-wrap; }
-    #generation-status { min-height: 1.5rem; color: #f0cf75; }
-    .loading::before { content: ""; display: inline-block; width: .8rem; height: .8rem; margin-right: .55rem; border: 2px solid #718398; border-top-color: #82d5bb; border-radius: 50%; animation: spin .8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    body[data-theme="forest"] { background: #101721; }
-    body[data-theme="neon"] { background: #171126; }
-    body[data-theme="paper"] { background: #25231e; }
-    body[data-theme="paper"] .cell { background: #49463e; }
-    .tabs { display: flex; gap: .4rem; margin-bottom: 1rem; }
-    .tabs button { background: #263545; color: #e8eef5; }
-    .tabs button.active { background: #82d5bb; color: #101721; }
-    .row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin: .5rem 0; }
-    select { padding: .5rem; border-radius: .45rem; background: #1b2735; color: #e8eef5; border: 1px solid #3b4d60; }
-    #env-scene { width: min(94vw, 560px); background: #18232f; border-radius: .6rem; touch-action: manipulation; }
-    #env-scene svg { display: block; width: 100%; height: auto; border-radius: .6rem; }
-    #env-scene .clickable { cursor: pointer; } #env-scene .clickable:hover { filter: brightness(1.35); }
-    .fx-pulse { animation: fxpulse 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-    .fx-fade { animation: fxfade 1.6s ease-in-out infinite; }
-    .fx-shake { animation: fxshake .35s linear infinite; }
-    @keyframes fxpulse { 50% { transform: scale(1.18); } }
-    @keyframes fxfade { 50% { opacity: .35; } }
-    @keyframes fxshake { 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
-    #env-chart { width: min(94vw, 560px); height: 150px; background: #18232f; border-radius: .6rem; }
-    .legend span { margin-right: 1rem; } .legend .best { color: #82d5bb; } .legend .mean { color: #f0cf75; }
-    details { margin: .6rem 0; } pre { overflow: auto; max-height: 18rem; background: #18232f; padding: .7rem; border-radius: .5rem; font-size: .8rem; }
-    .muted { color: #8fa1b4; font-size: .9rem; }
+    :root{color-scheme:dark;--bg:#111310;--panel:#181c16;--panel2:#20251d;--line:#30372b;--soft:#262d23;--text:#f0f2e9;--muted:#a0a69a;--dim:#737b6e;--lime:#c7f36b;--cyan:#38e1ff;--violet:#a78bfa;--mono:"DM Mono",Consolas,monospace;--sans:Manrope,Arial,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 var(--sans);-webkit-font-smoothing:antialiased}button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+    .header{height:68px;position:sticky;top:0;z-index:10;background:#111310f2;border-bottom:1px solid var(--soft);display:flex;align-items:center;justify-content:space-between;padding:0 28px}.brand{display:flex;gap:10px;align-items:center;font-size:18px;font-weight:800;letter-spacing:-.7px}.brand-mark{display:grid;place-items:center;width:29px;height:29px;border-radius:8px;color:#151810;background:var(--lime);font-weight:900}.brand em{font-style:normal;color:var(--lime)}.header-actions{display:flex;gap:9px;align-items:center}
+    .workspace{display:flex;max-width:1600px;margin:auto;min-height:calc(100vh - 68px)}.sidebar{width:218px;flex:0 0 218px;border-right:1px solid var(--line);padding:25px 14px;display:flex;flex-direction:column;gap:6px}.side-label,.eyebrow,.kicker,.mono{font-family:var(--mono);letter-spacing:1px}.side-label{font-size:9px;color:var(--dim);margin:0 10px 14px}.side-link{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid transparent;border-radius:5px;color:var(--muted);font-size:12px}.side-link:hover,.side-link.active{background:#20251d;border-color:#343d2c;color:var(--lime)}.side-link .icon{width:22px;text-align:center;color:var(--lime)}.side-link[data-tab="gazebo"]{color:var(--cyan)}.side-link[data-tab="gazebo"] .icon{color:var(--cyan)}.sidebar-note{margin-top:auto;padding:14px;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:10px}.sidebar-note b{color:var(--text)}.sidebar-note p{margin:7px 0 0}
+    .main{flex:1;min-width:0}.tab{display:none}.tab.active{display:block}.page{max-width:1320px;margin:auto;padding:48px 30px 75px}.page-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}.eyebrow{font-size:9px;color:var(--lime);text-transform:uppercase}.page-head h1{font-size:clamp(34px,4vw,48px);letter-spacing:-2px;line-height:1.1;margin:10px 0}.page-head p{max-width:680px;color:var(--muted);font-size:12px;margin:0}.status-pill,.tag{font:9px var(--mono);letter-spacing:.7px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;color:var(--muted);white-space:nowrap}.status-pill .dot{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--lime)}.status-pill.running .dot{animation:pulse 1.2s infinite}@keyframes pulse{50%{opacity:.3}}
+    .button{border:1px solid var(--line);border-radius:5px;background:#1a1e18;color:var(--text);padding:9px 13px;font-size:11px;font-weight:700}.button:hover{border-color:#788b56}.button.primary{background:var(--lime);border-color:var(--lime);color:#141810}.button.primary:hover{background:#d7ff83}.button:disabled{opacity:.45;cursor:not-allowed}.button.cyan{color:var(--cyan);border-color:#236170}.button.small{padding:7px 10px}
+    .grid{display:grid;gap:14px}.grid.two{grid-template-columns:minmax(260px,.78fr) minmax(0,1.22fr)}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.panel{min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:18px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.panel-head h2,.panel h2{font-size:16px;letter-spacing:-.4px;margin:3px 0}.kicker{font-size:8px;color:var(--dim);text-transform:uppercase}.muted{color:var(--muted)}.dim{color:var(--dim)}.field{display:block;margin:16px 0 7px;color:#89917f;font:9px var(--mono);letter-spacing:1px;text-transform:uppercase}.textarea,.input,.select{display:block;width:100%;padding:11px 12px;color:var(--text);background:#11150f;border:1px solid #3b4632;border-radius:5px;outline:none}.textarea{resize:vertical;min-height:116px;font-size:12px;line-height:1.7}.textarea:focus,.input:focus,.select:focus{border-color:var(--lime)}.form-row{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}.grow{flex:1;min-width:180px}.notice{min-height:24px;color:var(--muted);font-size:11px;white-space:pre-wrap}.notice.error{color:#ff9a9a}
+    .runtime{min-height:350px;background:#10160f;border:1px solid #3c4632;border-radius:5px;overflow:auto;display:grid;place-items:center}.runtime svg{width:100%;height:auto;display:block}.runtime-empty{color:var(--dim);font-size:12px;padding:24px;text-align:center}.spec-code{max-height:300px;overflow:auto;margin:0;padding:13px;border:1px solid var(--line);border-radius:5px;background:#10130f;color:#cbd4c1;font:10px/1.65 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+    .game-controls{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}.game-controls button{min-width:44px}.hud{min-height:24px;color:var(--lime);font-size:11px;margin:10px 0}.saved-list{max-height:260px;overflow:auto;display:grid;gap:7px}.saved-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:5px;font-size:11px}.saved-item span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.saved-item button{flex:0 0 auto}
+    .metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.metric{padding:13px;background:#141912;border:1px solid var(--line);border-radius:5px}.metric span{display:block;color:var(--dim);font:8px var(--mono);letter-spacing:.7px;text-transform:uppercase}.metric b{display:block;margin-top:7px;font:18px var(--mono);color:var(--cyan);overflow-wrap:anywhere}.chart-wrap{height:280px;position:relative;background:#121610;border:1px solid var(--line);border-radius:5px;padding:8px}.chart-wrap svg{width:100%;height:100%;overflow:visible}.chart-legend{display:flex;gap:18px;color:var(--muted);font-size:10px;margin:9px 0}.chart-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.chart-legend .best{background:var(--lime)}.chart-legend .mean{background:var(--cyan)}.chart-legend .eval{background:var(--violet)}.table-wrap{overflow:auto}.data-table{width:100%;border-collapse:collapse;font:10px var(--mono)}.data-table th,.data-table td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.data-table th{color:var(--dim);font-weight:400}.empty{padding:38px 20px;text-align:center;color:var(--dim);border:1px dashed var(--line);border-radius:5px;font-size:11px}
+    .concept-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px}.concept-graph{height:490px;background:#121711;border:1px solid var(--line);border-radius:5px;overflow:hidden}.concept-graph canvas{width:100%;height:100%;display:block}.concept-list{max-height:490px;overflow:auto;display:grid;gap:5px}.concept-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font:9px var(--mono);cursor:pointer}.concept-row:hover,.concept-row.active{border-color:var(--violet);color:var(--text)}.concept-row .compat{margin-left:auto;color:var(--lime);font:8px var(--mono)}.concept-detail{min-height:160px}.concept-expression{font:11px/1.7 var(--mono);color:var(--cyan);overflow-wrap:anywhere}.pill-row{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0}.pill{font:8px var(--mono);padding:4px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted)}
+    .overview-hero{padding:34px;border:1px solid #3b4632;border-radius:8px;background:radial-gradient(ellipse at 85% 20%,#2b3520,#171c15 60%);margin-bottom:18px}.overview-hero h1{font-size:clamp(38px,6vw,67px);line-height:1.02;letter-spacing:-3px;margin:14px 0}.overview-hero h1 span{color:var(--lime)}.overview-hero p{max-width:650px;color:var(--muted);font-size:13px}.overview-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:19px}.overview-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.overview-summary .metric b{color:var(--lime)}.gazebo-notice{padding:20px;border:1px dashed #286171;background:#10191a;border-radius:6px;color:var(--muted);font-size:12px}.footer{padding:20px 30px;border-top:1px solid var(--soft);display:flex;justify-content:space-between;gap:12px;color:var(--dim);font-size:10px}
+    @media(max-width:900px){.sidebar{width:64px;flex-basis:64px;padding:18px 8px}.side-label,.side-link .label,.sidebar-note{display:none}.side-link{justify-content:center}.side-link .icon{font-size:16px}.grid.two{grid-template-columns:1fr}.grid.three{grid-template-columns:1fr 1fr}.concept-layout{grid-template-columns:1fr}.concept-list{max-height:280px}.page{padding:34px 18px}.header{padding:0 17px}}
+    @media(max-width:560px){.grid.three,.metric-grid,.overview-summary{grid-template-columns:1fr 1fr}.page-head{align-items:flex-start;flex-direction:column}.header-actions .button:not(.primary){display:none}.runtime{min-height:250px}.concept-graph{height:340px}.footer{flex-direction:column}}
   </style>
 </head>
 <body>
-  <div class="tabs" role="tablist">
-    <button id="tab-env" class="active" type="button">Any game (generated Python)</button>
-    <button id="tab-legacy" type="button">Grid maze (legacy contract)</button>
-    <a id="tab-research" href="/research" target="_blank" rel="noopener" style="align-self:center;margin-left:auto;color:#82d5bb;font-size:.9rem">Research results &#8599;</a>
-  </div>
-  <div id="env-mode">
-    <h1>Describe a game</h1>
-    <p>A language model writes the game as Python. It is validated in an isolated process, then a fresh learner trains on it through a common interface. Any game or simulation can be described; grids are not required.</p>
-    <form id="env-form">
-      <label for="env-prompt">Game or simulation</label>
-      <textarea id="env-prompt" required maxlength="4000" placeholder="Tic-tac-toe on a 3x3 board for two players, X moves first, three in a row wins"></textarea>
-      <div class="row">
-        <label for="env-train-opp">Train against</label>
-        <select id="env-train-opp"><option value="random">random opponent</option><option value="rule_based">rule-based opponent</option><option value="self_play">staged self-play (fresh learner vs frozen champion)</option></select>
-        <button id="env-create" type="submit">Generate environment</button>
-        <select id="env-saved" aria-label="Saved environments"><option value="">Saved environments...</option></select>
-        <button id="env-load" type="button">Load</button>
-      </div>
-    </form>
-    <p id="env-error" role="alert" style="color:#ff9a9a;white-space:pre-wrap"></p>
-    <section id="env-panel" hidden>
-      <h2 id="env-title"></h2>
-      <p id="env-description"></p>
-      <p id="env-gen-status" aria-live="polite" style="color:#f0cf75"></p>
-      <p id="env-validation" class="muted"></p>
-      <div class="row">
-        <label for="env-seat">You play</label><select id="env-seat"></select>
-        <label for="env-opp">Opponent</label>
-        <select id="env-opp"><option value="random">random</option><option value="rule_based">rule-based</option><option value="brain" disabled>trained brain</option></select>
-      </div>
-      <label class="muted"><input type="checkbox" id="env-textmode"> Text mode (no graphics)</label>
-      <div id="env-scene" aria-label="Game view"></div>
-      <pre id="env-text" hidden aria-live="polite"></pre>
-      <form id="env-textform" class="row" hidden>
-        <input id="env-textinput" autocomplete="off" aria-label="Your move" placeholder="type a move number or name, Enter = default move">
-        <button type="submit">Send</button>
-      </form>
-      <p id="env-hud" aria-live="polite" style="color:#f0cf75;min-height:1.5rem"></p>
-      <div class="row">
-        <button id="env-play" type="button" hidden>Play</button>
-        <button id="env-brain" type="button" disabled>Let brain play my seat</button>
-        <button id="env-restart" type="button">Restart</button>
-      </div>
-      <h3>Learning</h3>
-      <p id="env-training" aria-live="polite"></p>
-      <svg id="env-chart" viewBox="0 0 560 150" preserveAspectRatio="none" aria-label="Fitness per generation"></svg>
-      <p class="legend muted"><span class="best">&#9632; best fitness</span><span class="mean">&#9632; population mean</span><span id="env-popinfo"></span></p>
-      <details id="env-concept-box"><summary id="env-concept-summary">Concepts available to the learner</summary><pre id="env-concepts"></pre></details>
-      <details id="env-source-box"><summary>Generated Python source</summary><pre id="env-source"></pre></details>
-    </section>
-  </div>
-  <div id="legacy-mode" hidden>
-  <h1>Describe a game</h1>
-  <p>A language model creates a bounded grid-game specification. A trusted local engine validates and runs it.</p>
-  <form id="create-form">
-    <label for="prompt">Game idea</label>
-    <textarea id="prompt" required maxlength="4000" placeholder="Create a maze with a few hazards and a clear goal"></textarea>
-    <button id="create-button" type="submit">Generate game</button>
-  </form>
-  <p id="error" role="alert"></p>
-  <section id="game" hidden>
-    <h2 id="title"></h2>
-    <p id="description"></p>
-    <p id="generation-status" role="status" aria-live="polite"></p>
-    <p id="runtime-status" aria-live="polite"></p>
-    <p id="training-status" aria-live="polite"></p>
-    <div id="board" aria-label="Game board"></div>
-    <div class="controls" aria-label="Move">
-      <span></span><button data-action="up" aria-label="Move up">↑</button><span></span>
-      <button data-action="left" aria-label="Move left">←</button>
-      <button data-action="down" aria-label="Move down">↓</button>
-      <button data-action="right" aria-label="Move right">→</button>
+  <header class="header">
+    <a class="brand" href="#" data-tab-link="overview"><span class="brand-mark">F</span><span>frameforge<em>.</em></span></a>
+    <div class="header-actions">
+      <a class="button" id="tab-research" href="/research" target="_blank" rel="noopener">Research results ↗</a>
+      <button class="button" id="header-build">New environment</button>
+      <button class="button primary" id="header-run" type="button" disabled>Run training</button>
     </div>
-    <p id="status" aria-live="polite"></p>
-    <button id="agent-button" type="button" disabled>Let brain play</button>
-    <button id="reset-button" type="button">Restart</button>
-  </section>
+  </header>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <div class="side-label">WORKSPACE / TOOLS</div>
+      <a class="side-link active" href="#overview" data-tab-link="overview"><span class="icon">⌂</span><span class="label">Overview</span></a>
+      <a class="side-link" href="#builder" data-tab-link="builder"><span class="icon">✳</span><span class="label">Game Builder</span></a>
+      <a class="side-link" href="#training" data-tab-link="training"><span class="icon">⌁</span><span class="label">Training Visualizer</span></a>
+      <a class="side-link" href="#concepts" data-tab-link="concepts"><span class="icon">▦</span><span class="label">Concept Bank</span></a>
+      <a class="side-link" href="#gazebo" data-tab-link="gazebo"><span class="icon">⎈</span><span class="label">Gazebo Sim</span></a>
+      <div class="sidebar-note"><b>Live workspace</b><p>Games, learner progress, and reusable features are loaded from the local training service.</p></div>
+    </aside>
+    <main class="main">
+      <section class="tab active" id="tab-overview">
+        <div class="page">
+          <div class="overview-hero">
+            <div class="eyebrow">GENERATE · TRAIN · TRANSFER</div>
+            <h1>Turn ideas into<br><span>learnable games.</span></h1>
+            <p>Generate and validate a playable environment, train a fresh learner, then inspect measured training progress and the real concept bank used by policies.</p>
+            <div class="overview-actions"><button class="button primary" data-go="builder">Open Game Builder ↗</button><button class="button" data-go="training">View training data ↗</button><button class="button" data-go="concepts">Browse concepts ↗</button></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><div class="kicker">LOCAL SERVICE</div><h2>Workspace status</h2></div><span class="status-pill" id="service-status"><i class="dot"></i>Connecting</span></div>
+            <div class="overview-summary">
+              <div class="metric"><span>Saved environments</span><b id="overview-saved">—</b></div>
+              <div class="metric"><span>Active environment</span><b id="overview-active">None</b></div>
+              <div class="metric"><span>Compatible concepts</span><b id="overview-concepts">—</b></div>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="kicker">PERSISTED ENVIRONMENTS</div><h2>Recent environments</h2></div><button class="button small" data-go="builder">Create environment</button></div><div class="saved-list" id="overview-environments"><div class="empty">Loading saved environments…</div></div></div>
+        </div>
+      </section>
+      <section class="tab" id="tab-builder">
+        <div class="page">
+          <div class="page-head"><div><div class="eyebrow">STUDIO / 01 — ENVIRONMENT BUILDER</div><h1>Game Builder<span style="color:var(--lime)">.</span></h1><p>Generate an environment, edit the LLM-authored Python, then validate and train that exact source. Its LLM-authored renderer drives the runtime.</p></div><span class="status-pill" id="builder-status"><i class="dot"></i>Ready</span></div>
+          <div class="grid two">
+            <section class="panel">
+              <div class="panel-head"><div><div class="kicker">ENVIRONMENT CONFIGURATION</div><h2>Describe your game</h2></div></div>
+              <form id="env-form">
+                <label class="field" for="env-prompt">Game or simulation</label>
+                <textarea class="textarea" id="env-prompt" required maxlength="4000" placeholder="Tic-tac-toe on a 3x3 board for two players; three in a row wins."></textarea>
+                <label class="field" for="env-train-opp">Training opponent</label>
+                <select class="select" id="env-train-opp"><option value="random">Random opponent</option><option value="rule_based">Rule-based opponent</option><option value="self_play">Staged self-play</option></select>
+                <div class="form-row"><button class="button primary" id="env-create" type="submit">Generate environment</button><select class="select grow" id="env-saved" aria-label="Saved environments"><option value="">Load a saved environment…</option></select><button class="button" id="env-load" type="button">Load</button></div>
+              </form>
+              <p class="notice" id="env-error" role="alert"></p>
+              <div class="panel-head" style="margin-top:22px"><div><div class="kicker">VALIDATED CONTRACT</div><h2 id="env-title">No environment loaded</h2></div></div>
+              <p class="muted" id="env-description">Create or load an environment to view its specification.</p>
+              <p class="notice" id="env-gen-status" aria-live="polite"></p><p class="muted" id="env-validation"></p>
+              <label class="field" for="env-source-input">GENERATED ENVIRONMENT · EDIT BEFORE TRAINING</label>
+              <textarea class="textarea spec-code" id="env-source-input" spellcheck="false" aria-label="Editable generated Python environment" placeholder="The LLM-generated Python environment will appear here after generation." disabled style="min-height:360px"></textarea>
+              <p class="muted" style="font-size:10px">Run Training sandbox-validates your edits, saves the accepted source, and trains with that same environment. The environment's <code>render()</code> implementation supplies its live runtime.</p>
+              <button class="button primary" id="run-training" type="button" disabled>Run Training</button>
+              <p class="notice" id="source-error" role="alert"></p>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><div><div class="kicker">RUNTIME / ACTUAL OBSERVATION</div><h2>Interactive environment</h2></div><button class="button small" id="env-restart" type="button">Restart</button></div>
+              <div class="form-row"><label class="tag">Player seat <select class="select" id="env-seat" aria-label="Player seat"></select></label><label class="tag">Opponent <select class="select" id="env-opp" aria-label="Opponent"><option value="random">Random</option><option value="rule_based">Rule-based</option><option value="brain" disabled>Trained brain</option></select></label></div>
+              <div class="runtime" id="env-scene"><div class="runtime-empty">Generate or load an environment to see its real runtime view.</div></div>
+              <p class="hud" id="env-hud" aria-live="polite"></p>
+              <div class="game-controls"><button class="button" id="env-brain" type="button" disabled>Brain move</button><button class="button" id="env-auto" type="button" disabled>Let brain play</button><label class="tag"><input type="checkbox" id="env-textmode"> Text view</label></div>
+              <pre class="spec-code" id="env-text" hidden></pre><form class="form-row" id="env-textform" hidden><input class="input grow" id="env-textinput" aria-label="Your move" autocomplete="off" placeholder="Enter an action name or index"><button class="button" type="submit">Send move</button></form>
+              <div class="panel-head" style="margin-top:17px"><div><div class="kicker">ENVIRONMENT CONTRACT</div><h2>Generated specification</h2></div></div><pre class="spec-code" id="env-spec">No environment loaded.</pre>
+            </section>
+          </div>
+        </div>
+      </section>
+      <section class="tab" id="tab-training">
+        <div class="page">
+          <div class="page-head"><div><div class="eyebrow">STUDIO / 02 — POLICY EVOLUTION</div><h1>Training Visualizer<span style="color:var(--cyan)">.</span></h1><p>Live best and population-mean fitness, generation telemetry, and held-out evaluation from the active learner.</p></div><span class="status-pill" id="training-status-pill"><i class="dot"></i>No active run</span></div>
+          <div class="metric-grid" id="training-metrics">
+            <div class="metric"><span>Generation</span><b id="metric-generation">—</b></div><div class="metric"><span>Environment steps</span><b id="metric-steps">—</b></div><div class="metric"><span>Best fitness</span><b id="metric-best">—</b></div><div class="metric"><span>Population mean</span><b id="metric-mean">—</b></div>
+          </div>
+          <div class="grid two" style="margin-top:14px">
+            <section class="panel"><div class="panel-head"><div><div class="kicker">MEASURED TRAINING HISTORY</div><h2>Fitness per generation</h2></div></div><div class="chart-legend"><span><i class="best"></i>Best</span><span><i class="mean"></i>Population mean</span></div><div class="chart-wrap"><svg id="training-chart" viewBox="0 0 800 260" role="img" aria-label="Measured training fitness by generation"></svg></div><p class="muted" id="env-training"></p><p class="notice" id="env-popinfo"></p></section>
+            <section class="panel"><div class="panel-head"><div><div class="kicker">LATEST POPULATION SNAPSHOT</div><h2>Generation telemetry</h2></div></div><div class="metric-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><span>Species</span><b id="metric-species">—</b></div><div class="metric"><span>Average nodes</span><b id="metric-nodes">—</b></div><div class="metric"><span>Average connections</span><b id="metric-conns">—</b></div><div class="metric"><span>Held-out return</span><b id="metric-heldout">—</b></div></div><p class="muted" id="training-note" style="margin-top:15px">Progress appears when a learner starts training. No demonstration values are shown.</p></section>
+          </div>
+          <section class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="kicker">GENERATION RECORDS</div><h2>Observed training data</h2></div><span class="tag" id="history-count">0 points</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>GEN</th><th>STEPS</th><th>BEST</th><th>MEAN</th><th>SPECIES</th><th>AVG NODES</th><th>AVG CONNECTIONS</th></tr></thead><tbody id="history-rows"><tr><td colspan="7" class="dim">No training records yet.</td></tr></tbody></table></div></section>
+        </div>
+      </section>
+      <section class="tab" id="tab-concepts">
+        <div class="page">
+          <div class="page-head"><div><div class="eyebrow">STUDIO / 03 — REUSABLE FEATURES</div><h1>Concept Bank<span style="color:var(--violet)">.</span></h1><p>Expressions from the configured concept bank with their compatibility and admission metadata. The active learner's concepts are highlighted when an environment is loaded.</p></div><span class="status-pill" id="concept-status"><i class="dot"></i>Loading bank</span></div>
+          <div class="metric-grid"><div class="metric"><span>Bank entries</span><b id="concept-total">—</b></div><div class="metric"><span>Compatible with learner</span><b id="concept-compatible">—</b></div><div class="metric"><span>Active policy features</span><b id="concept-active-count">—</b></div><div class="metric"><span>Bank version</span><b id="concept-version">—</b></div></div>
+          <div class="concept-layout" style="margin-top:14px">
+            <section class="panel"><div class="panel-head"><div><div class="kicker">EXPRESSION RELATIONSHIPS</div><h2>Dependency graph</h2></div><input class="input" style="max-width:250px" id="concept-search" type="search" placeholder="Filter expressions"></div><div class="concept-graph"><canvas id="concept-graph-canvas" width="900" height="490" aria-label="Concept expression graph"></canvas></div><p class="muted" style="font-size:10px">Edges connect expressions sharing primitive dependencies. Nodes are bank entries; lime outline marks a feature in the active learner.</p><div class="concept-list" id="concept-list"></div></section>
+            <aside class="panel"><div class="panel-head"><div><div class="kicker">SELECTED ENTRY</div><h2 id="concept-name">Select a bank entry</h2></div></div><div class="concept-detail" id="concept-detail"><p class="muted">Concept metadata will be loaded from the configured bank.</p></div><div class="field">ACTIVE POLICY FEATURES</div><div class="concept-list" id="active-concepts"><div class="empty">Load or train an environment to see the concepts used by its learner.</div></div></aside>
+          </div>
+          <p class="notice error" id="concept-error" role="alert"></p>
+        </div>
+      </section>
+      <section class="tab" id="tab-gazebo">
+        <div class="page">
+          <div class="page-head"><div><div class="eyebrow" style="color:var(--cyan)">STUDIO / 04 — GAZEBO ROBOTICS</div><h1>Gazebo Sim Bridge<span style="color:var(--cyan)">.</span></h1><p>Gazebo integration is not connected to this local game-training service.</p></div><span class="status-pill" style="color:var(--cyan)"><i class="dot" style="background:var(--cyan)"></i>Prototype</span></div>
+          <div class="gazebo-notice"><b>Gazebo support is a prototype only.</b><br>There is no Gazebo parser, ROS bridge, simulation runtime, or robotics policy synthesis endpoint in this application. No uploaded files are processed and no telemetry is simulated.</div>
+        </div>
+      </section>
+    </main>
   </div>
+  <footer class="footer"><a class="brand" href="#" data-tab-link="overview"><span class="brand-mark">F</span><span>frameforge<em>.</em></span></a><span>Live game generation · training · concept transfer</span><span id="footer-service">Local service</span></footer>
   <script>
-    let currentGame = null;
-    let agentPlaying = false;
-    const form = document.querySelector("#create-form");
-    const errorBox = document.querySelector("#error");
-    const gamePanel = document.querySelector("#game");
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const SVG = "http://www.w3.org/2000/svg";
+      let env = null;
+      let pollToken = 0;
+      let pollTimer = null;
+      let autoTimer = null;
+      let busy = false;
+      let editorEnvId = null;
+      let savedEnvironments = [];
+      let bank = [];
+      let bankInfo = {};
+      let selectedConcept = null;
 
-    async function request(url, data, method = "POST") {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: method === "GET" ? {} : { "Content-Type": "application/json" },
-          body: method === "GET" ? undefined : JSON.stringify(data),
-          signal: controller.signal
-        });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
-        return payload;
-      } catch (error) {
-        if (error.name === "AbortError") {
-          throw new Error("The game server did not respond. Check its PowerShell window and try again.");
-        }
-        throw error;
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    function render(payload) {
-      currentGame = payload;
-      const { spec, state } = payload;
-      gamePanel.hidden = false;
-      const generationStatus = document.querySelector("#generation-status");
-      if (payload.generation_status !== "ready") {
-        document.querySelector("#title").textContent =
-          payload.generation_status === "failed" ? "Game generation failed" : "Creating your game...";
-        document.querySelector("#description").textContent = "";
-        generationStatus.textContent = payload.generation_status === "failed"
-          ? "The game contract could not be generated."
-          : "Asking the LLM to create and validate the game rules...";
-        generationStatus.classList.toggle("loading", payload.generation_status !== "failed");
-        document.querySelector("#runtime-status").textContent = "Waiting for the game contract.";
-        document.querySelector("#training-status").textContent = "Waiting for the game contract.";
-        document.querySelector("#board").replaceChildren();
-        document.querySelector("#status").textContent = "";
-        document.querySelectorAll("[data-action]").forEach((button) => { button.disabled = true; });
-        document.querySelector("#agent-button").disabled = true;
-        document.querySelector("#reset-button").disabled = true;
-        if (payload.generation_status === "failed") {
-          errorBox.textContent = payload.generation_error || "Unknown game generation error.";
-        }
-        return;
-      }
-      generationStatus.classList.remove("loading");
-      generationStatus.textContent = "Game rules validated.";
-      errorBox.textContent = "";
-      const runtime = payload.runtime || {
-        theme: "forest",
-        player_symbol: "●",
-        goal_symbol: "★",
-        wall_symbol: "■",
-        hazard_symbol: "!",
-        instructions: "Reach the goal and avoid hazards."
+      const setText = (id, value) => { $(id).textContent = value == null ? "—" : String(value); };
+      const number = (value, digits = 2) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : "—";
+      const svgEl = (tag, attrs = {}) => {
+        const node = document.createElementNS(SVG, tag);
+        for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+        return node;
       };
-      document.body.dataset.theme = runtime.theme;
-      document.querySelector("#title").textContent = spec.title;
-      document.querySelector("#description").textContent = spec.description;
-      const runtimeStatus = payload.runtime_status === "ready"
-        ? runtime.instructions
-        : payload.runtime_status === "failed"
-          ? `Runtime generation failed; using the trusted default renderer. ${payload.runtime_error}`
-          : `Creating game presentation (${payload.runtime_status})...`;
-      document.querySelector("#runtime-status").textContent = runtimeStatus;
-      const trainingStatus = payload.training_status === "ready"
-        ? "Brain training complete."
-        : payload.training_status === "failed"
-          ? `Brain training failed: ${payload.training_error}`
-          : `Brain training ${payload.training_status}...`;
-      document.querySelector("#training-status").textContent = trainingStatus;
-      const board = document.querySelector("#board");
-      board.replaceChildren();
-      board.style.gridTemplateColumns = `repeat(${spec.width}, 1fr)`;
-      for (let y = 0; y < spec.height; y++) {
-        for (let x = 0; x < spec.width; x++) {
-          const cell = document.createElement("div");
-          cell.className = "cell";
-          const point = `${x},${y}`;
-          if (spec.walls.some(([wx, wy]) => `${wx},${wy}` === point)) {
-            cell.classList.add("wall");
-            cell.textContent = runtime.wall_symbol;
-          } else if (spec.hazards.some(([hx, hy]) => `${hx},${hy}` === point)) {
-            cell.classList.add("hazard");
-            cell.textContent = runtime.hazard_symbol;
-          } else if (x === spec.goal[0] && y === spec.goal[1]) {
-            cell.classList.add("goal");
-            cell.textContent = runtime.goal_symbol;
+      async function request(url, data, method) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+        try {
+          const response = await fetch(url, {
+            method: method || (data === undefined ? "GET" : "POST"),
+            headers: data === undefined ? {} : { "Content-Type": "application/json" },
+            body: data === undefined ? undefined : JSON.stringify(data),
+            signal: controller.signal
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            const error = new Error(payload.error || `Request failed (${response.status})`);
+            error.payload = payload;
+            throw error;
           }
-          if (x === state.position[0] && y === state.position[1]) cell.textContent = runtime.player_symbol;
-          board.append(cell);
+          return payload;
+        } catch (error) {
+          if (error.name === "AbortError") throw new Error("The local game service timed out.");
+          throw error;
+        } finally {
+          clearTimeout(timeout);
         }
       }
-      const status = state.done
-        ? `${state.outcome.replaceAll("_", " ")} after ${state.turns} turns`
-        : `Turn ${state.turns} of ${spec.max_turns}`;
-      document.querySelector("#status").textContent = status;
-      document.querySelectorAll("[data-action]").forEach((button) => {
-        button.disabled = agentPlaying || state.done || !state.legal_actions.includes(button.dataset.action);
-      });
-      document.querySelector("#agent-button").disabled =
-        agentPlaying || state.done || payload.training_status !== "ready";
-      document.querySelector("#reset-button").disabled = agentPlaying;
-    }
 
-    async function pollStatus(gameId) {
-      while (currentGame && currentGame.id === gameId) {
-        const generationFailed = currentGame.generation_status === "failed";
-        const complete = generationFailed
-          || (currentGame.generation_status === "ready"
-            && ["ready", "failed"].includes(currentGame.runtime_status)
-            && ["ready", "failed"].includes(currentGame.training_status));
-        if (complete) return;
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        if (!currentGame || currentGame.id !== gameId) return;
-        try {
-          render(await request(`/api/games/${gameId}/status`, null, "GET"));
-        } catch (error) {
-          errorBox.textContent = error.message;
+      function switchTab(name) {
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.id === `tab-${name}`));
+        document.querySelectorAll(".side-link").forEach((link) => link.classList.toggle("active", link.dataset.tabLink === name));
+        if (name === "training") renderTraining();
+        if (name === "concepts") renderConcepts();
+      }
+      document.querySelectorAll("[data-tab-link]").forEach((link) => link.addEventListener("click", (event) => {
+        event.preventDefault();
+        switchTab(link.dataset.tabLink);
+      }));
+      document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => switchTab(button.dataset.go)));
+      $("header-build").addEventListener("click", () => switchTab("builder"));
+
+      function renderScene(view) {
+        const host = $("env-scene");
+        host.replaceChildren();
+        if ($("env-textmode").checked) {
+          $("env-text").hidden = false;
+          $("env-text").textContent = view ? (view.text || JSON.stringify(view.observation || view, null, 2)) : "No observation.";
+          host.hidden = true;
           return;
         }
+        $("env-text").hidden = true;
+        host.hidden = false;
+        if (!view || !view.scene) {
+          const empty = document.createElement("div");
+          empty.className = "runtime-empty";
+          empty.textContent = env && env.generation_status !== "ready" ? "Waiting for a validated environment…" : "No runtime observation yet.";
+          host.append(empty);
+          return;
+        }
+        const scene = view.scene;
+        const svg = svgEl("svg", { viewBox: `0 0 ${scene.width} ${scene.height}`, role: "img", "aria-label": "Generated environment runtime" });
+        if (scene.background) svg.style.background = scene.background;
+        for (const item of scene.items || []) {
+          let node;
+          if (item.type === "rect") node = svgEl("rect", { x: item.x, y: item.y, width: item.w, height: item.h, rx: item.radius || 0 });
+          else if (item.type === "circle") node = svgEl("circle", { cx: item.x, cy: item.y, r: item.r });
+          else if (item.type === "line") node = svgEl("line", { x1: item.x1, y1: item.y1, x2: item.x2, y2: item.y2, "stroke-linecap": "round" });
+          else if (item.type === "polygon") node = svgEl("polygon", { points: item.points.map((point) => point.join(",")).join(" ") });
+          else if (item.type === "text") {
+            node = svgEl("text", { x: item.x, y: item.y, "text-anchor": item.anchor || "middle", "dominant-baseline": "middle", "font-size": item.size || 16, "font-family": "system-ui,sans-serif" });
+            node.textContent = item.text || "";
+          } else continue;
+          node.setAttribute("fill", item.fill || (item.type === "text" ? "#e8eef5" : "none"));
+          if (item.stroke || item.type === "line") {
+            node.setAttribute("stroke", item.stroke || "#e8eef5");
+            node.setAttribute("stroke-width", item.stroke_width || 2);
+          }
+          if (item.opacity !== undefined) node.setAttribute("opacity", item.opacity);
+          if (item.rotation) {
+            const x = Number(item.x || 0), y = Number(item.y || 0);
+            node.setAttribute("transform", `rotate(${item.rotation} ${x} ${y})`);
+          }
+          const action = item.action;
+          if (action !== undefined && (view.legal || []).includes(action) && !view.terminal) {
+            node.classList.add("clickable");
+            node.style.cursor = "pointer";
+            node.addEventListener("click", () => sendAction(action));
+          }
+          svg.append(node);
+        }
+        host.append(svg);
       }
-    }
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      errorBox.textContent = "";
-      const createButton = document.querySelector("#create-button");
-      const prompt = document.querySelector("#prompt").value;
-      createButton.disabled = true;
-      createButton.textContent = "Starting...";
-      gamePanel.hidden = false;
-      document.querySelector("#title").textContent = "Starting game generation...";
-      document.querySelector("#generation-status").textContent = "Contacting the local game server...";
-      document.querySelector("#generation-status").classList.add("loading");
-      try {
-        const game = await request("/api/games", { prompt });
-        render(game);
-        void pollStatus(currentGame.id);
-      } catch (error) {
-        errorBox.textContent = error.message;
-        document.querySelector("#generation-status").textContent = "";
-        document.querySelector("#generation-status").classList.remove("loading");
-      } finally {
-        createButton.disabled = false;
-        createButton.textContent = "Generate game";
+      function renderTraining() {
+        const history = env && Array.isArray(env.training_history) ? env.training_history : [];
+        const last = history.length ? history[history.length - 1] : null;
+        const status = env ? env.training_status : "waiting";
+        const pill = $("training-status-pill");
+        pill.classList.toggle("running", ["queued", "running"].includes(status));
+        pill.lastChild.textContent = status === "waiting" ? "No active run" : status;
+        setText("metric-generation", last ? last.gen : "—");
+        setText("metric-steps", last ? Number(last.steps).toLocaleString() : "—");
+        setText("metric-best", last ? number(last.best) : "—");
+        setText("metric-mean", last ? number(last.mean) : "—");
+        setText("metric-species", last ? last.species : "—");
+        setText("metric-nodes", last ? number(last.nodes, 1) : "—");
+        setText("metric-conns", last ? number(last.conns, 1) : "—");
+        setText("metric-heldout", env && env.training_heldout !== null && env.training_heldout !== undefined ? number(env.training_heldout) : "—");
+        setText("history-count", `${history.length} points`);
+        $("env-training").textContent = !env ? "Create or load an environment to inspect its learner." :
+          status === "ready" ? `Training complete against ${env.training_opponent}. Held-out return: ${env.training_heldout == null ? "not reported" : number(env.training_heldout)}.${env.training_target_reached === true ? " Target reached." : env.training_target_reached === false ? " Training stopped before target." : ""}` :
+          status === "failed" ? `Training failed: ${env.training_error || "Unknown training error."}` :
+          status === "skipped" ? `Training skipped: ${env.training_error || "Training is not available for this environment."}` :
+          status === "waiting" ? "Training has not started." : `Training ${status}${env.training_note ? ` — ${env.training_note}` : ""}`;
+        $("training-note").textContent = env && env.training_note ? env.training_note : "Fitness values and population statistics are read directly from the active training history.";
+        $("env-popinfo").textContent = last ? `Latest record: generation ${last.gen}, ${Number(last.steps).toLocaleString()} environment steps, ${last.species} species.` : "No generation telemetry has been reported.";
+        renderChart(history);
+        const rows = $("history-rows");
+        rows.replaceChildren();
+        if (!history.length) {
+          const tr = document.createElement("tr"), td = document.createElement("td");
+          td.colSpan = 7; td.className = "dim"; td.textContent = "No training records yet."; tr.append(td); rows.append(tr);
+        } else {
+          history.slice().reverse().forEach((point) => {
+            const tr = document.createElement("tr");
+            [point.gen, Number(point.steps).toLocaleString(), number(point.best), number(point.mean), point.species, number(point.nodes, 1), number(point.conns, 1)].forEach((value) => {
+              const td = document.createElement("td"); td.textContent = value == null ? "—" : String(value); tr.append(td);
+            });
+            rows.append(tr);
+          });
+        }
       }
-    });
 
-    document.querySelectorAll("[data-action]").forEach((button) => {
-      button.addEventListener("click", async () => {
-        if (!currentGame || agentPlaying) return;
+      function renderChart(history) {
+        const svg = $("training-chart");
+        svg.replaceChildren();
+        const left = 54, right = 785, top = 18, bottom = 222;
+        for (let i = 0; i <= 4; i++) {
+          const y = top + (bottom - top) * i / 4;
+          svg.append(svgEl("line", { x1: left, y1: y, x2: right, y2: y, stroke: "#30392b", "stroke-dasharray": "4 5" }));
+        }
+        if (!history.length) {
+          const label = svgEl("text", { x: 400, y: 125, fill: "#737b6e", "text-anchor": "middle", "font-size": 13 });
+          label.textContent = "Training data will appear here";
+          svg.append(label);
+          return;
+        }
+        const values = history.flatMap((point) => [Number(point.best), Number(point.mean)]).filter(Number.isFinite);
+        let min = Math.min(...values), max = Math.max(...values);
+        if (max === min) { min -= 0.5; max += 0.5; }
+        const px = (i) => left + (history.length < 2 ? 0 : (right - left) * i / (history.length - 1));
+        const py = (value) => bottom - ((value - min) / (max - min)) * (bottom - top);
+        for (const [key, color] of [["mean", "#38e1ff"], ["best", "#c7f36b"]]) {
+          const points = history.map((point, index) => `${px(index)},${py(Number(point[key]))}`).join(" ");
+          if (history.length > 1) svg.append(svgEl("polyline", { points, fill: "none", stroke: color, "stroke-width": 2.5 }));
+          history.forEach((point, index) => svg.append(svgEl("circle", { cx: px(index), cy: py(Number(point[key])), r: 2.5, fill: color })));
+        }
+        const minLabel = svgEl("text", { x: 8, y: bottom, fill: "#737b6e", "font-size": 10 }); minLabel.textContent = number(min);
+        const maxLabel = svgEl("text", { x: 8, y: top + 4, fill: "#737b6e", "font-size": 10 }); maxLabel.textContent = number(max);
+        svg.append(minLabel, maxLabel);
+        const first = svgEl("text", { x: left, y: 247, fill: "#737b6e", "font-size": 9 }); first.textContent = `gen ${history[0].gen}`;
+        const final = svgEl("text", { x: right, y: 247, fill: "#737b6e", "font-size": 9, "text-anchor": "end" }); final.textContent = `gen ${history[history.length - 1].gen}`;
+        svg.append(first, final);
+      }
+
+      const operators = new Set(["add","sub","mul","div","min","max","abs","neg","square","sqrt","log1p","tanh"]);
+      function dependencies(expression) {
+        return [...new Set((String(expression || "").match(/[A-Za-z_][A-Za-z0-9_]*/g) || []).filter((token) => !operators.has(token)))];
+      }
+      function conceptExpression(item) {
+        return typeof item === "string" ? item : (item && (item.expression || item.formula || item.canonical)) || "";
+      }
+      function isActive(item) {
+        const expression = conceptExpression(item);
+        return !!(env && (env.concepts || []).includes(expression));
+      }
+      function renderConcepts() {
+        const query = $("concept-search").value.trim().toLowerCase();
+        const filtered = bank.filter((item) => conceptExpression(item).toLowerCase().includes(query));
+        setText("concept-total", bank.length);
+        setText("concept-compatible", bank.filter((item) => item.compatible !== false).length);
+        setText("concept-active-count", env && env.concepts ? env.concepts.length : 0);
+        setText("concept-version", bankInfo.version == null ? "—" : bankInfo.version);
+        $("concept-status").lastChild.textContent = bank.length ? `${bank.length} entries` : "Empty bank";
+        const list = $("concept-list"); list.replaceChildren();
+        filtered.forEach((item) => {
+          const expression = conceptExpression(item);
+          const row = document.createElement("button");
+          row.type = "button"; row.className = "concept-row" + (item === selectedConcept ? " active" : "");
+          row.textContent = expression || "(missing expression)";
+          const compat = document.createElement("span"); compat.className = "compat";
+          compat.textContent = isActive(item) ? "ACTIVE" : item.compatible === false ? "INCOMPATIBLE" : "AVAILABLE";
+          row.append(compat);
+          row.addEventListener("click", () => { selectedConcept = item; renderConcepts(); });
+          list.append(row);
+        });
+        const active = $("active-concepts"); active.replaceChildren();
+        const activeExpressions = env && Array.isArray(env.concepts) ? env.concepts : [];
+        if (!activeExpressions.length) {
+          const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = "No active learner concepts are available until an environment is loaded and training starts."; active.append(empty);
+        } else activeExpressions.forEach((expression) => {
+          const item = document.createElement("div"); item.className = "concept-row"; item.textContent = expression; active.append(item);
+        });
+        renderConceptDetail();
+        drawConceptGraph(filtered);
+      }
+      function renderConceptDetail() {
+        const item = selectedConcept;
+        setText("concept-name", item ? (item.id || conceptExpression(item).slice(0, 40)) : "Select a bank entry");
+        const panel = $("concept-detail"); panel.replaceChildren();
+        if (!item) {
+          const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = bank.length ? "Select an expression to inspect its stored metadata." : "No concept bank entries were returned by the service."; panel.append(empty); return;
+        }
+        const expression = conceptExpression(item);
+        const formula = document.createElement("div"); formula.className = "concept-expression"; formula.textContent = expression || "(no expression)"; panel.append(formula);
+        const deps = dependencies(expression);
+        const depsLabel = document.createElement("div"); depsLabel.className = "field"; depsLabel.textContent = "Primitive dependencies"; panel.append(depsLabel);
+        const pills = document.createElement("div"); pills.className = "pill-row";
+        deps.forEach((dep) => { const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = dep; pills.append(pill); });
+        if (deps.length) panel.append(pills);
+        const metadata = [
+          ["Admission", item.admission_status || (item.admitted_into_target === true ? "admitted" : "not recorded")],
+          ["Source environment", item.source_environment || "not recorded"],
+          ["Target environment", item.evaluated_target_environment || "not recorded"],
+          ["Primitive contract", item.primitive_contract || bankInfo.primitive_contract || "not recorded"],
+          ["Output standard deviation", item.target_output_std == null ? "not measured" : number(item.target_output_std, 5)],
+          ["Active in current learner", isActive(item) ? "yes" : "no"]
+        ];
+        metadata.forEach(([label, value]) => {
+          const p = document.createElement("p"); p.className = "muted"; p.style.fontSize = "10px"; p.textContent = `${label}: ${value}`; panel.append(p);
+        });
+        if (item.admission_reason) {
+          const reason = document.createElement("p"); reason.className = "muted"; reason.style.fontSize = "10px"; reason.textContent = `Admission note: ${item.admission_reason}`; panel.append(reason);
+        }
+      }
+      function drawConceptGraph(items) {
+        const canvas = $("concept-graph-canvas"), ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const width = canvas.width, height = canvas.height;
+        ctx.clearRect(0, 0, width, height); ctx.fillStyle = "#121711"; ctx.fillRect(0, 0, width, height);
+        const nodes = items.slice(0, 64).map((item, index, list) => {
+          const angle = 2 * Math.PI * index / Math.max(list.length, 1) - Math.PI / 2;
+          return { item, x: width / 2 + Math.cos(angle) * Math.min(width * .36, 330), y: height / 2 + Math.sin(angle) * Math.min(height * .36, 170), deps: new Set(dependencies(conceptExpression(item))) };
+        });
+        for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+          let shared = 0; nodes[i].deps.forEach((dependency) => { if (nodes[j].deps.has(dependency)) shared++; });
+          if (!shared) continue;
+          ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(56,225,255,${Math.min(.06 + shared * .07, .34)})`; ctx.lineWidth = 1; ctx.stroke();
+        }
+        nodes.forEach(({ item, x, y }, index) => {
+          const active = isActive(item), selected = item === selectedConcept;
+          ctx.beginPath(); ctx.arc(x, y, selected ? 9 : 6, 0, Math.PI * 2);
+          ctx.fillStyle = active ? "#c7f36b" : "#38e1ff"; ctx.fill();
+          ctx.strokeStyle = active ? "#efffbf" : selected ? "#a78bfa" : "#14231e"; ctx.lineWidth = selected || active ? 2 : 1; ctx.stroke();
+          if (nodes.length <= 28) {
+            ctx.fillStyle = "#a0a69a"; ctx.font = "9px Consolas, monospace"; ctx.textAlign = "center";
+            ctx.fillText(`C${index + 1}`, x, y - 11);
+          }
+        });
+        canvas.onclick = (event) => {
+          const rect = canvas.getBoundingClientRect();
+          const x = (event.clientX - rect.left) * canvas.width / rect.width;
+          const y = (event.clientY - rect.top) * canvas.height / rect.height;
+          const hit = nodes.find((node) => Math.hypot(node.x - x, node.y - y) < 14);
+          if (hit) { selectedConcept = hit.item; renderConcepts(); }
+        };
+        if (!nodes.length) {
+          ctx.fillStyle = "#737b6e"; ctx.font = "13px Arial"; ctx.textAlign = "center";
+          ctx.fillText("No concept entries to visualize", width / 2, height / 2);
+        }
+      }
+
+      function renderEnv(snapshot) {
+        env = snapshot;
+        const ready = env.generation_status === "ready";
+        setText("env-title", env.spec ? env.spec.name || env.spec.title || "Generated environment" : env.generation_status === "failed" ? "Generation failed" : "Generating environment…");
+        setText("env-description", env.spec ? env.spec.description || "" : "");
+        $("env-gen-status").textContent = env.generation_status === "failed" ? `Generation failed: ${env.generation_error || "Unknown error."}` : ready ? "Environment generated and validated." : (env.generation_notes || []).slice(-1)[0] || `Generation ${env.generation_status}…`;
+        $("env-validation").textContent = env.validation ? `Sandbox validation: ${env.validation.stats.episodes} random episodes; ${env.validation.stats.terminated} reached a terminal state; ${env.attempts} attempt${env.attempts === 1 ? "" : "s"}. ${env.validation.warnings.length ? `Warnings: ${env.validation.warnings.join("; ")}` : ""}` : "";
+        $("builder-status").classList.toggle("running", ["queued", "running"].includes(env.generation_status) || ["queued", "running"].includes(env.training_status));
+        $("builder-status").lastChild.textContent = `${env.generation_status} / training ${env.training_status}`;
+        $("env-create").disabled = ["queued", "running"].includes(env.generation_status);
+        const runDisabled = !ready || ["validating", "queued", "running"].includes(env.training_status);
+        $("run-training").disabled = runDisabled || !editorEnvId || editorEnvId !== env.id;
+        $("header-run").disabled = $("run-training").disabled;
+        $("env-restart").disabled = !ready;
+        const view = env.view;
+        const seat = $("env-seat");
+        if (env.spec && seat.options.length !== env.spec.agents.length) {
+          seat.replaceChildren(...env.spec.agents.map((agent) => new Option(`Player ${agent}`, agent)));
+        }
+        if (env.human_seat !== null && env.human_seat !== undefined) seat.value = String(env.human_seat);
+        $("env-opp").value = env.opponent || "random";
+        $("env-opp").querySelector('[value="brain"]').disabled = !env.brain_ready;
+        $("env-seat").disabled = !env.spec || busy;
+        $("env-opp").disabled = !env.spec || busy;
+        if (view && (view.terminal || view.truncated)) stopAuto();
+        renderScene(view);
+        $("env-textform").hidden = !$("env-textmode").checked;
+        let hud = view ? ((view.scene && view.scene.hud) || (view.terminal ? "Episode finished." : "Environment ready.")) : "";
+        if (view && view.terminal && view.results && env.human_seat !== null) {
+          const outcome = view.results[String(env.human_seat)];
+          hud += ` — You ${({ win: "won", loss: "lost", draw: "drew" })[outcome] || "finished"}.`;
+        } else if (view && view.truncated) {
+          hud += " — Episode step limit reached.";
+        }
+        $("env-hud").textContent = hud;
+        $("env-brain").disabled = !env.brain_ready || !view || view.terminal || busy;
+        $("env-auto").disabled = !env.brain_ready || !view || view.terminal;
+        $("env-auto").textContent = autoTimer ? "Stop brain" : "Let brain play";
+        $("env-spec").textContent = env.spec ? JSON.stringify(env.spec, null, 2) : "No environment loaded.";
+        if (env.concepts) { setText("overview-active", env.spec ? env.spec.name || env.spec.title || "Loaded" : "Loaded"); }
+        renderTraining();
+        renderConcepts();
+      }
+
+      async function poll(id) {
+        const token = ++pollToken;
+        clearTimeout(pollTimer);
+        while (token === pollToken && env && env.id === id) {
+          try {
+            const snapshot = await request(`/api/envs/${id}/status`);
+            renderEnv(snapshot);
+            if (snapshot.generation_status === "ready") {
+              if (editorEnvId !== id) await loadEditableSource(id);
+              renderEnv(snapshot);
+              if (["waiting", "ready", "failed", "skipped"].includes(snapshot.training_status)) return;
+            }
+            if (env.generation_status === "failed") return;
+          } catch (error) {
+            $("env-error").textContent = error.message;
+            $("env-error").classList.add("error");
+            return;
+          }
+          await new Promise((resolve) => { pollTimer = setTimeout(resolve, 900); });
+        }
+      }
+
+      async function sendAction(action, endpoint = "action") {
+        if (!env || busy || !env.view || env.view.terminal) return;
+        busy = true;
+        try { renderEnv(await request(`/api/envs/${env.id}/${endpoint}`, endpoint === "action" ? { action } : {})); }
+        catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); stopAuto(); }
+        finally { busy = false; if (env) renderEnv(env); }
+      }
+      function stopAuto() { if (autoTimer) clearInterval(autoTimer); autoTimer = null; if (env) setText("env-auto", "Let brain play"); }
+      function startAuto() {
+        stopAuto();
+        if (!env || !env.brain_ready) return;
+        autoTimer = setInterval(() => {
+          if (!env || !env.view || env.view.terminal) { stopAuto(); return; }
+          sendAction(null, "agent");
+        }, 450);
+        setText("env-auto", "Stop brain");
+      }
+      $("env-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        $("env-error").textContent = ""; $("env-error").classList.remove("error");
+        $("source-error").textContent = "";
+        editorEnvId = null;
+        $("env-source-input").value = "";
+        $("env-source-input").disabled = true;
+        $("run-training").disabled = true;
+        $("header-run").disabled = true;
+        const prompt = $("env-prompt").value.trim();
+        if (!prompt) { $("env-error").textContent = "Enter a game or simulation description."; $("env-error").classList.add("error"); return; }
+        stopAuto(); $("env-create").disabled = true;
         try {
-          render(await request(`/api/games/${currentGame.id}/actions`, { action: button.dataset.action }));
-          errorBox.textContent = "";
+          const snapshot = await request("/api/envs", { prompt, training_opponent: $("env-train-opp").value });
+          renderEnv(snapshot); void poll(snapshot.id);
         } catch (error) {
-          errorBox.textContent = error.message;
+          $("env-error").textContent = error.message; $("env-error").classList.add("error"); $("env-create").disabled = false;
         }
       });
-    });
-
-    document.querySelector("#agent-button").addEventListener("click", async () => {
-      if (!currentGame || currentGame.training_status !== "ready" || agentPlaying) return;
-      agentPlaying = true;
-      render(currentGame);
-      try {
-        while (currentGame && !currentGame.state.done) {
-          const gameId = currentGame.id;
-          render(await request(`/api/games/${gameId}/agent`, {}));
-          await new Promise((resolve) => setTimeout(resolve, 150));
+      async function loadEditableSource(id) {
+        const response = await fetch(`/api/envs/${id}/source`);
+        if (!response.ok) {
+          const payload = await response.json();
+          throw new Error(payload.error || `Could not load generated source (${response.status}).`);
         }
-      } catch (error) {
-        errorBox.textContent = error.message;
-      } finally {
-        agentPlaying = false;
-        if (currentGame) render(currentGame);
+        $("env-source-input").value = await response.text();
+        $("env-source-input").disabled = false;
+        editorEnvId = id;
       }
-    });
-
-    document.querySelector("#reset-button").addEventListener("click", async () => {
-      if (!currentGame) return;
-      try {
-        render(await request(`/api/games/${currentGame.id}/reset`, {}));
-        errorBox.textContent = "";
-      } catch (error) {
-        errorBox.textContent = error.message;
+      async function runTraining() {
+        if (!env || env.generation_status !== "ready" || editorEnvId !== env.id) return;
+        $("env-error").textContent = "";
+        $("env-error").classList.remove("error");
+        $("source-error").textContent = "";
+        $("run-training").disabled = true;
+        $("header-run").disabled = true;
+        stopAuto();
+        try {
+          const snapshot = await request(`/api/envs/${env.id}/train`, {
+            source: $("env-source-input").value,
+            training_opponent: $("env-train-opp").value
+          });
+          renderEnv(snapshot);
+          switchTab("training");
+          void poll(env.id);
+          try { renderEnv(await request(`/api/envs/${env.id}/reset`, {})); }
+          catch (error) {
+            $("env-error").textContent = `Training started, but the runtime could not be initialized: ${error.message}`;
+            $("env-error").classList.add("error");
+          }
+        } catch (error) {
+          $("env-error").textContent = error.message;
+          $("env-error").classList.add("error");
+          if (error.payload && error.payload.validation) {
+            $("source-error").textContent = error.payload.validation.errors.join("\n");
+          }
+          $("run-training").disabled = false;
+          $("header-run").disabled = false;
+        }
       }
-    });
+      $("run-training").addEventListener("click", runTraining);
+      $("header-run").addEventListener("click", runTraining);
+      $("env-restart").addEventListener("click", async () => {
+        if (!env) return;
+        stopAuto();
+        try { renderEnv(await request(`/api/envs/${env.id}/reset`, {})); }
+        catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
+      });
+      $("env-brain").addEventListener("click", () => sendAction(null, "agent"));
+      $("env-auto").addEventListener("click", () => autoTimer ? stopAuto() : startAuto());
+      $("env-textmode").addEventListener("change", () => renderScene(env && env.view));
+      $("env-seat").addEventListener("change", async () => {
+        if (!env) return;
+        stopAuto();
+        try { renderEnv(await request(`/api/envs/${env.id}/reset`, { seat: Number($("env-seat").value) })); }
+        catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
+      });
+      $("env-opp").addEventListener("change", async () => {
+        if (!env) return;
+        stopAuto();
+        try { renderEnv(await request(`/api/envs/${env.id}/reset`, { opponent: $("env-opp").value })); }
+        catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
+      });
+      $("env-textform").addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!env || !env.spec || !env.view) return;
+        const value = $("env-textinput").value.trim().toLowerCase();
+        $("env-textinput").value = "";
+        const actions = (env.spec.action_names || []).map((name) => String(name).toLowerCase());
+        const action = /^\d+$/.test(value) ? Number(value) : actions.indexOf(value);
+        if (action < 0 || !env.view.legal.includes(action)) {
+          $("env-error").textContent = `That move is not legal. Legal moves: ${env.view.legal.join(", ")}`;
+          $("env-error").classList.add("error");
+          return;
+        }
+        $("env-error").textContent = "";
+        sendAction(action);
+      });
+      $("env-load").addEventListener("click", async () => {
+        const id = $("env-saved").value;
+        if (!id) return;
+        stopAuto();
+        try {
+          const snapshot = await request("/api/envs/load", { id });
+          editorEnvId = null;
+          await loadEditableSource(id);
+          renderEnv(snapshot);
+          if (snapshot.training_status === "ready") renderEnv(await request(`/api/envs/${id}/reset`, {}));
+          void poll(snapshot.id);
+        } catch (error) { $("env-error").textContent = error.message; $("env-error").classList.add("error"); }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (!env || !env.spec || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) || $("env-textmode").checked) return;
+        const action = env.spec.controls && env.spec.controls[event.key];
+        if (action !== undefined) { event.preventDefault(); sendAction(action); }
+      });
+      $("concept-search").addEventListener("input", renderConcepts);
 
-    document.addEventListener("keydown", (event) => {
-      const actions = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
-      const action = actions[event.key];
-      if (action) document.querySelector(`[data-action="${action}"]`).click();
-    });
-  </script>
-
-  <script>
-  (() => {
-    const $ = (id) => document.getElementById(id);
-    const NS = "http://www.w3.org/2000/svg";
-    let env = null, busy = false, loopTimer = null, loopMode = null, pollToken = 0, heldAction = null, started = false;
-
-    document.querySelector("#tab-env").onclick = () => showMode("env");
-    document.querySelector("#tab-legacy").onclick = () => showMode("legacy");
-    function showMode(mode) {
-      $("env-mode").hidden = mode !== "env"; $("legacy-mode").hidden = mode !== "legacy";
-      $("tab-env").classList.toggle("active", mode === "env"); $("tab-legacy").classList.toggle("active", mode === "legacy");
-    }
-    showMode("env");
-
-    const fail = (error) => { $("env-error").textContent = error.message || String(error); };
-    const svgEl = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) if (v !== undefined && v !== null) e.setAttribute(k, String(v)); return e; };
-
-    function drawItem(item, legal, interactive) {
-      const n = (v) => Number(v);
-      let node, cx, cy;
-      if (item.type === "rect") { node = svgEl("rect", { x: n(item.x), y: n(item.y), width: n(item.w), height: n(item.h), rx: item.radius }); cx = item.x + item.w / 2; cy = item.y + item.h / 2; }
-      else if (item.type === "circle") { node = svgEl("circle", { cx: n(item.x), cy: n(item.y), r: n(item.r) }); cx = item.x; cy = item.y; }
-      else if (item.type === "line") { node = svgEl("line", { x1: n(item.x1), y1: n(item.y1), x2: n(item.x2), y2: n(item.y2), "stroke-linecap": "round" }); cx = (item.x1 + item.x2) / 2; cy = (item.y1 + item.y2) / 2; }
-      else if (item.type === "polygon") { node = svgEl("polygon", { points: item.points.map((p) => `${n(p[0])},${n(p[1])}`).join(" ") }); cx = item.points.reduce((a, p) => a + p[0], 0) / item.points.length; cy = item.points.reduce((a, p) => a + p[1], 0) / item.points.length; }
-      else { node = svgEl("text", { x: n(item.x), y: n(item.y), "text-anchor": item.anchor || "middle", "dominant-baseline": "middle", "font-size": item.size || 16, "font-family": "system-ui, sans-serif" }); node.textContent = item.text; cx = item.x; cy = item.y; }
-      const isLine = item.type === "line", isText = item.type === "text";
-      node.setAttribute("fill", item.fill || (isText ? "#e8eef5" : "none"));
-      if (item.stroke || isLine) { node.setAttribute("stroke", item.stroke || "#e8eef5"); node.setAttribute("stroke-width", item.stroke_width || 2); }
-      if (item.opacity !== undefined) node.setAttribute("opacity", item.opacity);
-      if (item.rotation) node.setAttribute("transform", `rotate(${n(item.rotation)} ${cx} ${cy})`);
-      if (item.effect) node.classList.add(`fx-${item.effect}`);
-      if (item.action !== undefined && interactive && legal.includes(item.action)) {
-        node.classList.add("clickable");
-        node.addEventListener("click", () => sendAction(item.action));
+      async function loadSaved() {
+        const result = await request("/api/envs");
+        savedEnvironments = result.environments || [];
+        $("env-saved").replaceChildren(new Option("Load a saved environment…", ""));
+        savedEnvironments.forEach((item) => $("env-saved").append(new Option(`${item.title} (${item.created.slice(0, 16)})`, item.id)));
+        $("overview-saved").textContent = String(savedEnvironments.length);
+        const host = $("overview-environments"); host.replaceChildren();
+        if (!savedEnvironments.length) {
+          const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = "No saved environments yet. Create one to begin."; host.append(empty);
+        } else savedEnvironments.slice(0, 8).forEach((item) => {
+          const row = document.createElement("div"); row.className = "saved-item";
+          const title = document.createElement("span"); title.textContent = `${item.title} · ${item.created.slice(0, 16)}`;
+          const button = document.createElement("button"); button.className = "button small"; button.textContent = "Load";
+          button.addEventListener("click", () => { $("env-saved").value = item.id; switchTab("builder"); $("env-load").click(); });
+          row.append(title, button); host.append(row);
+        });
       }
-      return node;
-    }
-
-    function renderScene(view, interactive) {
-      const host = $("env-scene");
-      if (!view || !view.scene) { host.textContent = view && view.render_error ? `Render error: ${view.render_error}` : ""; return; }
-      const scene = view.scene;
-      const svg = svgEl("svg", { viewBox: `0 0 ${scene.width} ${scene.height}`, role: "img" });
-      if (scene.background) svg.style.background = scene.background;
-      for (const item of scene.items) svg.append(drawItem(item, view.legal || [], interactive));
-      host.replaceChildren(svg);
-    }
-
-    function renderChart(history) {
-      const svg = $("env-chart"); svg.replaceChildren();
-      if (history.length < 2) return;
-      const all = history.flatMap((h) => [h.best, h.mean]); let lo = Math.min(...all), hi = Math.max(...all);
-      if (hi - lo < 1e-6) { hi += 0.5; lo -= 0.5; }
-      const x = (i) => 10 + (540 * i) / (history.length - 1), y = (v) => 140 - (130 * (v - lo)) / (hi - lo);
-      svg.append(svgEl("line", { x1: 10, y1: y(0) > 140 || y(0) < 10 ? 140 : y(0), x2: 550, y2: y(0) > 140 || y(0) < 10 ? 140 : y(0), stroke: "#3b4d60", "stroke-dasharray": "4 4" }));
-      for (const [key, color] of [["mean", "#f0cf75"], ["best", "#82d5bb"]]) {
-        svg.append(svgEl("polyline", { points: history.map((h, i) => `${x(i)},${y(h[key])}`).join(" "), fill: "none", stroke: color, "stroke-width": 2 }));
+      async function loadConceptBank() {
+        try {
+          const result = await request("/api/concepts");
+          bankInfo = result;
+          bank = Array.isArray(result.concepts) ? result.concepts : [];
+          $("concept-error").textContent = "";
+          $("overview-concepts").textContent = String(bank.filter((item) => item.compatible !== false).length);
+          setText("footer-service", `Bank v${result.version == null ? "?" : result.version}`);
+          renderConcepts();
+        } catch (error) {
+          $("concept-error").textContent = `Could not load configured concept bank: ${error.message}`;
+          $("concept-status").lastChild.textContent = "Unavailable";
+        }
       }
-    }
-
-    function apply(snapshot) {
-      env = snapshot;
-      const spec = env.spec, view = env.view;
-      $("env-panel").hidden = false;
-      const ready = env.generation_status === "ready";
-      $("env-title").textContent = spec ? spec.title : (env.generation_status === "failed" ? "Environment generation failed" : "Creating your environment...");
-      $("env-description").textContent = spec ? spec.description : "";
-      const notes = (env.generation_notes || []).slice(-1)[0] || "";
-      $("env-gen-status").textContent = env.generation_status === "failed" ? "" : (ready ? "Environment generated and validated." : `${notes || "Waiting..."}`);
-      $("env-gen-status").classList.toggle("loading", !ready && env.generation_status !== "failed");
-      if (env.generation_status === "failed") $("env-error").textContent = env.generation_error || "Unknown generation error.";
-      const v = env.validation;
-      $("env-validation").textContent = v ? `Validated in a sandbox on ${v.stats.episodes} random episodes (${v.stats.terminated} reached a terminal state, ${env.attempts} generation attempt${env.attempts === 1 ? "" : "s"}).${v.warnings.length ? " Warnings: " + v.warnings.join("; ") : ""}` : "";
-      if (spec) {
-        const seat = $("env-seat");
-        if (seat.options.length !== spec.agents.length) seat.replaceChildren(...spec.agents.map((a) => new Option(`Player ${a}`, a)));
-        if (env.human_seat !== null) seat.value = String(env.human_seat);
-        $("env-opp").value = env.opponent; $("env-opp").querySelector('[value="brain"]').disabled = !env.brain_ready;
-        $("env-play").hidden = spec.turn_based;
-      }
-      const ts = env.training_status;
-      const last = (env.training_history || []).slice(-1)[0];
-      const finalWinRate = last && last.win_rate !== undefined ? ` Final win rate ${(last.win_rate * 100).toFixed(1)}%.` : "";
-      const targetStatus = env.training_target_reached === true ? " Target reached."
-        : env.training_target_reached === false ? " Target not reached before training stopped." : "";
-      $("env-training").textContent = ts === "ready" ? `Training complete (trained against: ${env.training_opponent}). Held-out return ${env.training_heldout ?? "n/a"}.${finalWinRate}${targetStatus}`
-        : ts === "failed" ? `Training failed: ${env.training_error}` : ts === "skipped" ? `Training skipped: ${env.training_error || "no environment"}` : ts === "waiting" ? "" : `Training ${ts}...`;
-      renderChart(env.training_history || []);
-      $("env-popinfo").textContent = last ? `gen ${last.gen} | ${last.steps} env steps | ${last.species} species | ${last.nodes.toFixed(1)} nodes, ${last.conns.toFixed(1)} connections (population avg)` : "";
-      $("env-concept-summary").textContent = `Concepts available to the learner (${(env.concepts || []).length})`;
-      $("env-concepts").textContent = (env.concepts || []).join("\n") || "Concepts appear after training starts. Only these GP expressions transfer between games; every game's learner starts from scratch.";
-      const interactive = !!view && !view.terminal && loopMode !== "brain";
-      renderScene(view, interactive);
-      const textMode = $("env-textmode").checked;
-      $("env-scene").hidden = textMode; $("env-text").hidden = !textMode; $("env-textform").hidden = !textMode;
-      $("env-text").textContent = view ? (view.text || "(no text view)") : "";
-      let hud = view && view.scene && view.scene.hud ? view.scene.hud : "";
-      if (view && view.terminal && view.results && env.human_seat !== null) hud += ` - You ${({ win: "won", loss: "lost", draw: "drew" })[view.results[String(env.human_seat)]] || ""}.`;
-      $("env-hud").textContent = hud;
-      $("env-brain").disabled = !env.brain_ready || !view || view.terminal || !!(spec && !spec.trainable);
-      $("env-brain").textContent = loopMode === "brain" ? "Stop brain" : "Let brain play my seat";
-      $("env-play").textContent = loopMode === "human" ? "Pause" : "Play";
-      if (view && view.terminal) stopLoop();
-    }
-
-    async function poll(id) {
-      const token = ++pollToken;
-      while (token === pollToken) {
-        try { apply(await request(`/api/envs/${id}/status`, null, "GET")); } catch (e) { fail(e); return; }
-        if (env.generation_status === "ready" && !started) { started = true; try { apply(await request(`/api/envs/${id}/reset`, {})); } catch (e) { fail(e); } }
-        const trainingDone = ["ready", "failed", "skipped"].includes(env.training_status);
-        if (env.generation_status === "failed" || (env.generation_status === "ready" && trainingDone)) return;
-        await new Promise((r) => setTimeout(r, 1200));
-      }
-    }
-
-    async function sendAction(action) {
-      if (busy || !env || !env.view || env.view.terminal) return;
-      busy = true;
-      try { apply(await request(`/api/envs/${env.id}/action`, { action })); $("env-error").textContent = ""; } catch (e) { fail(e); stopLoop(); } finally { busy = false; }
-    }
-    async function brainStep() {
-      if (busy || !env || !env.view || env.view.terminal) return;
-      busy = true;
-      try { apply(await request(`/api/envs/${env.id}/agent`, {})); } catch (e) { fail(e); stopLoop(); } finally { busy = false; }
-    }
-    function stopLoop() { if (loopTimer) clearInterval(loopTimer); loopTimer = null; loopMode = null; if (env) { $("env-brain").textContent = "Let brain play my seat"; $("env-play").textContent = "Play"; } }
-    function startLoop(mode) {
-      stopLoop(); loopMode = mode; const spec = env.spec;
-      const interval = spec.real_time ? spec.tick_ms : 450;
-      loopTimer = setInterval(() => (mode === "brain" ? brainStep() : sendAction(heldAction)), interval);
-      apply(env);
-    }
-
-    async function restart(extra = {}) {
-      if (!env || env.generation_status !== "ready") return;
-      stopLoop(); heldAction = null;
-      try { apply(await request(`/api/envs/${env.id}/reset`, extra)); $("env-error").textContent = ""; } catch (e) { fail(e); }
-    }
-
-    $("env-form").addEventListener("submit", async (event) => {
-      event.preventDefault(); $("env-error").textContent = ""; stopLoop(); started = false;
-      $("env-create").disabled = true;
-      try {
-        const snapshot = await request("/api/envs", { prompt: $("env-prompt").value, training_opponent: $("env-train-opp").value });
-        env = null; apply(snapshot); poll(snapshot.id);
-      } catch (e) { fail(e); } finally { $("env-create").disabled = false; }
-    });
-    $("env-restart").onclick = () => restart();
-    $("env-textmode").onchange = () => { if (env) apply(env); if ($("env-textmode").checked) $("env-textinput").focus(); };
-    $("env-textform").addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (!env || !env.spec || !env.view || env.view.terminal) return;
-      const raw = $("env-textinput").value.trim().toLowerCase(); $("env-textinput").value = "";
-      const names = (env.spec.action_names || []).map((n) => n.toLowerCase());
-      let action = /^\d+$/.test(raw) ? Number(raw) : names.indexOf(raw);
-      if (raw === "") action = null;
-      else if (!env.view.legal.includes(action)) { $("env-error").textContent = `Not allowed. Legal moves: ${env.view.legal.join(", ")}`; return; }
-      $("env-error").textContent = "";
-      sendAction(action);
-    });
-    $("env-seat").onchange = () => restart({ seat: Number($("env-seat").value) });
-    $("env-opp").onchange = () => restart({ opponent: $("env-opp").value });
-    $("env-brain").onclick = () => (loopMode === "brain" ? stopLoop() : startLoop("brain"));
-    $("env-play").onclick = () => (loopMode === "human" ? stopLoop() : startLoop("human"));
-    $("env-source-box").addEventListener("toggle", async () => {
-      if ($("env-source-box").open && env && env.generation_status === "ready") {
-        try { const r = await fetch(`/api/envs/${env.id}/source`); $("env-source").textContent = await r.text(); } catch (e) { fail(e); }
-      }
-    });
-    $("env-load").onclick = async () => {
-      const id = $("env-saved").value; if (!id) return;
-      try { started = true; stopLoop(); const snap = await request("/api/envs/load", { id }); env = null; apply(snap); apply(await request(`/api/envs/${id}/reset`, {})); poll(id); } catch (e) { fail(e); }
-    };
-    request("/api/envs", null, "GET").then((r) => { for (const item of r.environments) $("env-saved").append(new Option(`${item.title} (${item.created.slice(0, 16)})`, item.id)); }).catch(() => {});
-
-    document.addEventListener("keydown", (event) => {
-      if (!env || !env.spec || $("env-mode").hidden || /^(TEXTAREA|INPUT|SELECT)$/.test(event.target.tagName)) return;
-      const action = env.spec.controls[event.key];
-      if (action === undefined) return;
-      event.preventDefault();
-      if (env.spec.turn_based) sendAction(action); else { heldAction = action; if (!loopMode) startLoop("human"); }
-    });
-    document.addEventListener("keyup", (event) => {
-      if (!env || !env.spec || env.spec.hold_last_action) return;
-      if (env.spec.controls[event.key] === heldAction) heldAction = null;
-    });
-  })();
+      Promise.all([loadSaved(), loadConceptBank()]).then(() => {
+        $("service-status").lastChild.textContent = "Connected";
+      }).catch((error) => {
+        $("service-status").lastChild.textContent = "Unavailable";
+        $("service-status").classList.remove("running");
+        $("footer-service").textContent = error.message;
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && env && ["queued", "running"].includes(env.training_status)) void poll(env.id);
+      });
+      renderTraining();
+      renderConcepts();
+    })();
   </script>
 </body>
 </html>

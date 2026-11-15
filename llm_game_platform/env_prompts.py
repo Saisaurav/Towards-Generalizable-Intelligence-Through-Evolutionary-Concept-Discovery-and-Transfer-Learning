@@ -12,13 +12,13 @@ import random
 
 SPEC = {
     "title": "Coin Runner",
-    "description": "Run along a 1-D track and grab coins before time runs out.",
+    "description": "Run along a 1-D track and collect all the coins.",
     "agents": [0],
     "observation_size": 4,
     "action": {"type": "discrete", "n": 3},
     "turn_based": False,
     "real_time": True,
-    "max_steps": 40,
+    "max_steps": 0,
     "noop_action": 1,
     "tick_ms": 250,
     "controls": {"ArrowLeft": 0, "ArrowRight": 2},
@@ -39,7 +39,7 @@ class Environment:
     def observe(self, agent_id):
         nearest = min((abs(c - self.pos) for c in self.coins), default=LENGTH)
         return [self.pos / (LENGTH - 1), len(self.coins) / 3.0,
-                nearest / LENGTH, 1.0 - self.t / SPEC["max_steps"]]
+                nearest / LENGTH, self.collected / 3.0]
 
     def legal_actions(self, agent_id):
         return [] if self.is_terminal() else [0, 1, 2]
@@ -60,14 +60,14 @@ class Environment:
         return {0: reward}
 
     def is_terminal(self):
-        return not self.coins or self.t >= SPEC["max_steps"]
+        return not self.coins
 
     def result(self, agent_id):
         return "win" if not self.coins else "loss"
 
     def render_text(self):
         track = "".join("@" if i == self.pos else ("o" if i in self.coins else ".") for i in range(LENGTH))
-        return "%s\\ncoins %d/3  time %d/%d\\nActions: 0=left 1=stay 2=right" % (track, self.collected, self.t, SPEC["max_steps"])
+        return "%s\\ncoins %d/3  frames %d\\nActions: 0=left 1=stay 2=right" % (track, self.collected, self.t)
 
     def render(self):
         cell = 40
@@ -78,7 +78,7 @@ class Environment:
                 items.append({"type": "circle", "x": i * cell + cell / 2, "y": 20 + cell / 2, "r": 10, "fill": "#f0cf75", "effect": "pulse"})
         items.append({"type": "circle", "x": self.pos * cell + cell / 2, "y": 20 + cell / 2, "r": 14, "fill": "#82d5bb"})
         return {"width": LENGTH * cell, "height": cell + 40, "items": items,
-                "hud": f"coins {self.collected}/3   time {self.t}/{SPEC['max_steps']}"}
+                "hud": f"coins {self.collected}/3   frames {self.t}"}
 '''
 
 SYSTEM_PROMPT = f"""\
@@ -117,14 +117,17 @@ RULES THE RUNTIME ENFORCES (violations are reported back to you for repair)
   games, all agents acting in the current frame for real-time games, [] when terminal.
 - step(actions) receives {{agent_id: action}} for exactly the active agents and
   returns {{agent_id: reward}}. For real-time games, set SPEC["real_time"] = True,
-  SPEC["turn_based"] = False, and SPEC["tick_ms"] to the desired frame interval
-  in milliseconds. One step() call advances exactly one frame; the learner
+  SPEC["turn_based"] = False, SPEC["max_steps"] = 0, and SPEC["tick_ms"] to the
+  desired frame interval in milliseconds. One step() call advances exactly one frame; the learner
   chooses actions each frame without waiting for a turn. Rewards are finite and |r| <= 1000; give the
   learner a usable signal (e.g. +1 win, -1 loss, small shaping for progress) from
   each agent's own perspective.
 - result(agent_id) returns "win", "loss" or "draw" once is_terminal() is True.
-- Every episode must end: either by the game's rules or by SPEC["max_steps"].
-  Set max_steps generously above a normal game length but at most 10000.
+- Every episode must end by its game rules. Turn-based games use max_steps from
+  1 through 10000 as a runtime safety limit. Real-time games use max_steps = 0
+  (no frame-count limit) and must terminate through gameplay, never by running
+  out of frames or time. For Snake, collision is a loss and filling the board
+  is a win; reaching a frame count is never a win.
 - If all agents have identical roles and observe() is perspective-relative, set
   "symmetric_agents": True so the learner trains from every seat.
 - Prefer discrete actions (the learner can train on them). Use a continuous action
@@ -143,8 +146,9 @@ RULES THE RUNTIME ENFORCES (violations are reported back to you for repair)
 - Optional: implement clone() returning an independent copy (copy every list/dict/set; sharing the
   rng object is fine). It makes the generic look-ahead opponent ~100x faster; without it the runtime
   falls back to copy.deepcopy.
-- For real-time games set "real_time": True, "controls" (key -> action), and
-  "tick_ms" in SPEC. tick_ms controls both human-play and brain-play frame speed.
+- For real-time games set "real_time": True, "max_steps": 0, "controls"
+  (key -> action), and "tick_ms" in SPEC. tick_ms controls both human-play and
+  brain-play frame speed.
 - Keep each call fast (well under a millisecond-scale game tick); no unbounded loops.
 
 EXAMPLE (an unrelated tiny game, showing every required piece):

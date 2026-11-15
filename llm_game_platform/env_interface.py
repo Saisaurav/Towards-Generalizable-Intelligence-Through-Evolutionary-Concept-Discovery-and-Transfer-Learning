@@ -14,7 +14,7 @@ class only implements game logic.
         # or {"type": "continuous", "dim": 2, "low": -1.0, "high": 1.0}
         "turn_based": True,               # False => several agents act per step
         "real_time": False,               # True => each step is one frame; all active agents act together
-        "max_steps": 20,                  # hard truncation limit (runtime enforced)
+        "max_steps": 20,                  # 1..10000 for turn-based; 0 for real-time (no step cap)
         # optional:
         "learner_agent": 0,               # default: first agent
         "symmetric_agents": True,         # randomise the learner's seat each episode
@@ -37,15 +37,15 @@ class only implements game logic.
         def render(self): ...                    # scene dict, see render_protocol
         def render_text(self): ...               # str: plain-text picture for the CLI/text mode (strongly recommended)
         # optional:
-        def is_truncated(self): ...              # env-defined time-out (runtime also truncates at max_steps)
+        def is_truncated(self): ...              # optional env-defined stop (real-time games have no step cap)
         def scripted_action(self, agent_id): ... # hand-written rule-based opponent hook
         def clone(self): ...                     # independent copy (new lists/dicts; RNG may be shared); makes the rule-based opponent fast, deepcopy otherwise
 
 Turn-based games return one agent from ``active_agents()``. For real-time games,
-set ``real_time`` to True, set ``tick_ms`` to the desired frame interval, and
-return all agents that act during each frame from ``active_agents()``. Each
-``step()`` advances exactly one frame. ``real_time`` defaults to the inverse of
-``turn_based`` for older environments. Continuous action spaces are supported
+set ``real_time`` to True, set ``max_steps`` to 0, set ``tick_ms`` to the desired
+frame interval, and return all agents that act during each frame from
+``active_agents()``. Each ``step()`` advances exactly one frame, and the episode
+ends only through game rules, not a frame count. ``real_time`` defaults to the inverse of
 by the runtime and validator, but the NEAT/PPO learner currently only trains on
 discrete action spaces (see ``EnvSpec.trainable``).
 """
@@ -176,7 +176,11 @@ class EnvSpec:
             raise ValueError("SPEC.real_time must be a boolean")
         if real_time and value["turn_based"]:
             raise ValueError("SPEC.real_time=True requires SPEC.turn_based=False")
-        max_steps = _int(value["max_steps"], "max_steps", 1, 10000)
+        max_steps = _int(value["max_steps"], "max_steps", 0, 10000)
+        if not real_time and max_steps == 0:
+            raise ValueError("SPEC.max_steps must be at least 1 for non-real-time environments")
+        if value.get("real_time") is True and max_steps != 0:
+            raise ValueError("SPEC.max_steps must be 0 when SPEC.real_time=True")
         learner = value.get("learner_agent", agents[0])
         if learner not in agents:
             raise ValueError("SPEC.learner_agent must be one of SPEC.agents")

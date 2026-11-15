@@ -25,6 +25,7 @@ server.py -> EnvService -> EnvGenerator --LLM--> env.py + meta.json (generated_e
                               v
                       sandbox_worker.py  (one subprocess per env instance)
                               ^ line protocol "R seed" / "A action"
+browser editor --POST /api/envs/<id>/train {source}--> revalidate + persist exact edited source
 EnvTrainer relay <----stdout/stdin----> src/brain ext   (ExternalEnv -> ConceptEnv -> NEAT+PPO, V8 code)
    |                                                      concepts: results/concept_bank.json via V8 screen_concepts
    v
@@ -39,8 +40,8 @@ NeatPolicy (Python inference of the exported policy) -> /agent endpoint -> brows
 
 ## Lifecycles
 
-* **Environment:** prompt -> generating (repair loop, up to `max_attempts`) -> ready | failed. Validated source is stored with a SHA-256 and re-validated on reload.
-* **Training:** waiting -> running (per-generation points parsed from the learner's log) -> ready | failed | skipped (non-trainable env, e.g. continuous actions). Brain play is enabled only when `brain_ready`.
+* **Environment:** prompt -> generating (repair loop, up to `max_attempts`) -> ready | failed. Validated source is stored with a SHA-256 and re-validated on reload; the ready source is editable in the browser.
+* **Training:** waiting -> validating edited source -> queued -> running (per-generation points parsed from the learner's log) -> ready | failed | skipped (non-trainable env, e.g. continuous actions). Generation alone never starts training; the `train` request validates and persists its submitted source before queuing the learner. The runtime starts from the same accepted source when the user requests training. Brain play is enabled only when `brain_ready`.
 * **Episode:** `/reset` (seat, opponent) -> repeated `/action` or `/agent` -> terminal; the runtime truncates at `max_steps`.
 
 ## Errors

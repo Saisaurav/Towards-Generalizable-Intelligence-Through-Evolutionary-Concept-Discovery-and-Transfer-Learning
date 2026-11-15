@@ -3,6 +3,7 @@
 #include <thread>
 #include <atomic>
 #include <cstdio>
+#include <stdexcept>
 #include "ppo.h"
 
 struct NeatCfg {
@@ -85,8 +86,9 @@ public:
   }
 
   bool run_until_win_rate(double target, int eval_episodes, int eval_every_generations,
-                          long max_steps, const char* csv = nullptr) {
-    if (!(target > 0.0 && target <= 1.0) || eval_episodes < 1 || eval_every_generations < 1)
+                          long max_steps, const char* csv = nullptr, int max_generations = 0) {
+    if (!(target > 0.0 && target <= 1.0) || eval_episodes < 1 ||
+        eval_every_generations < 1 || max_generations < 0)
       throw std::invalid_argument("invalid win-rate stopping configuration");
     FILE* f = csv ? std::fopen(csv, "w") : nullptr;
     if (f) std::fprintf(f, "gen,steps,best,mean,species,nodes,conns\n");
@@ -94,10 +96,11 @@ public:
     int last_eval_gen = -1;
     auto check_quality = [&]() {
       Trainer::EvalDetail detail = evaluate_champion_detail(
-          eval_episodes, cfg.seed ^ (0xD1B54A32D192ED03ULL + (uint64_t)gen * 7919ULL));
+          eval_episodes, cfg.seed ^ (0xD1B54A32D192ED03ULL + (uint64_t)gen * 7919ULL),
+          cfg.ppo.greedy_eval);
       const double win_rate = (double)detail.wins / std::max(1, detail.episodes);
       std::printf("QUALITY gen %d steps %ld win_rate %.4f wins %d losses %d draws %d mean_return %.4f\n",
-                  gen, steps.load(), win_rate, detail.wins, detail.losses, detail.draws, detail.mean);
+                  gen - 1, steps.load(), win_rate, detail.wins, detail.losses, detail.draws, detail.mean);
       last_eval_gen = gen;
       return win_rate >= target;
     };
@@ -114,9 +117,12 @@ public:
         reached = true;
         break;
       }
+      if (max_generations > 0 && gen >= max_generations) break;
     }
     if (!reached && gen > 0 && last_eval_gen != gen) reached = check_quality();
     std::printf("TARGET_REACHED %d\n", reached ? 1 : 0);
+    std::printf("GENERATION_LIMIT_REACHED %d\n",
+                (!reached && max_generations > 0 && gen >= max_generations) ? 1 : 0);
     if (f) std::fclose(f);
     return reached;
   }

@@ -3,6 +3,7 @@
 #include "concept_env.h"
 #include "external_env.h"
 #include <fstream>
+#include <cstdlib>
 #include <iomanip>
 #include <string>
 
@@ -13,11 +14,12 @@ static std::vector<std::string> load_concepts(const char* path) {
   return out;
 }
 
-static void save_policy(const char* path, const Genome& genome, const Env& env) {
+static void save_policy(const char* path, const Genome& genome, const Env& env, bool action_onehot) {
   std::ofstream out(path);
   if (!out) throw std::runtime_error(std::string("cannot write policy: ") + path);
   out << std::setprecision(9);
-  out << "{\"n_logit\":" << env.n_logit() << ",\"input_ids\":[";
+  out << "{\"n_logit\":" << env.n_logit() << ",\"action_onehot\":"
+      << (action_onehot ? "true" : "false") << ",\"input_ids\":[";
   bool first = true;
   for (const auto& node : genome.nodes) if (node.type == N_IN) {
     if (!first) out << ",";
@@ -52,7 +54,7 @@ int main(int argc,char**argv){
     return 0;
   }
   try {
-    if(argc<5){std::fprintf(stderr,"usage: %s <game> <concept-file> <budget> <seed> [pop] [model-output]\n       %s ext <concept-file> <budget> <seed> [pop] [model-output]   (generated env via trainer relay on stdin/stdout)\n       %s grid <grid-spec-file> <concept-file> <budget> <seed> [pop] [model-output]\n",argv[0],argv[0],argv[0]);return 2;}
+    if(argc<5){std::fprintf(stderr,"usage: %s <game> <concept-file> <budget> <seed> [pop] [model-output]\n       %s ext <concept-file> <budget> <seed> [pop] [model-output] [--target-win-rate F --eval-episodes N --eval-interval N --max-generations N]\n       %s grid <grid-spec-file> <concept-file> <budget> <seed> [pop] [model-output]\n",argv[0],argv[0],argv[0]);return 2;}
     std::string game=argv[1];
     int arg=2;
     std::unique_ptr<Env> base;
@@ -71,29 +73,40 @@ int main(int argc,char**argv){
     auto ex=load_concepts(argv[arg++]);
     long budget=std::atol(argv[arg++]);
     uint64_t seed=std::atoll(argv[arg++]);
+    const bool action_onehot = game == "ext";
     NeatCfg c=preset("lam"); c.eval_episodes=100; c.threads=(game=="ext")?1:2; c.seed=seed;
+    if (game == "ext") {
+      c.eval_episodes = 10;
+      c.mlp_hidden = {16};
+      c.ppo.iters = 4;
+      c.ppo.greedy_eval = true;
+    }
     c.pop=argc>arg?std::atoi(argv[arg++]):24;
     const char* model_path=argc>arg && argv[arg][0]!='-'?argv[arg++]:nullptr;
     double target_win_rate = -1.0;
-    int eval_episodes = 100, eval_interval = 5;
+    int eval_episodes = 100, eval_interval = 5, max_generations = 0;
     while (arg < argc) {
       std::string option = argv[arg++];
       if (arg >= argc) throw std::runtime_error("missing value for " + option);
       if (option == "--target-win-rate") target_win_rate = std::atof(argv[arg++]);
       else if (option == "--eval-episodes") eval_episodes = std::atoi(argv[arg++]);
       else if (option == "--eval-interval") eval_interval = std::atoi(argv[arg++]);
+      else if (option == "--max-generations") max_generations = std::atoi(argv[arg++]);
       else throw std::runtime_error("unknown option: " + option);
     }
-    ConceptEnv e(std::move(base),ex); Population p(e,c);
+    if (max_generations < 0) throw std::runtime_error("--max-generations cannot be negative");
+    ConceptEnv e(std::move(base),ex,action_onehot); Population p(e,c);
     std::string csv=game+"_concept_seed"+std::to_string(c.seed)+".csv";
     if (target_win_rate >= 0.0) {
       if (game != "ext") throw std::runtime_error("win-rate stopping is only supported for ext environments");
-      p.run_until_win_rate(target_win_rate, eval_episodes, eval_interval, budget, csv.c_str());
+      p.run_until_win_rate(target_win_rate, eval_episodes, eval_interval, budget, csv.c_str(), max_generations);
     } else {
       p.run(budget,csv.c_str());
     }
-    std::printf("HELDOUT return %.6f episodes 1000\n",p.evaluate_champion(1000,c.seed^0xD1B54A32D192ED03ULL));
-    if(model_path) save_policy(model_path,p.champion,e);
+    const int heldout_episodes = target_win_rate >= 0.0 ? eval_episodes : 1000;
+    std::printf("HELDOUT return %.6f episodes %d\n",
+                p.evaluate_champion(heldout_episodes,c.seed^0xD1B54A32D192ED03ULL), heldout_episodes);
+    if(model_path) save_policy(model_path,p.champion,e,action_onehot);
   } catch (const std::exception& error) {
     std::fprintf(stderr,"brain error: %s\n",error.what());
     return 1;

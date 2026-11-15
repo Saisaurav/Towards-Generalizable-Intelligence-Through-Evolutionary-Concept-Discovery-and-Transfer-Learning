@@ -21,14 +21,14 @@ async function until(fn, ms, what) { const end = Date.now() + ms; while (Date.no
   const errors = []; window.addEventListener("error", (e) => errors.push(String(e.message)));
 
   // ---- Frontend: structure & navigation
-  check("page loads with generated-env tab active", $("tab-env").classList.contains("active") && !$("env-mode").hidden);
-  check("research link present in nav", $("tab-research") && $("tab-research").getAttribute("href") === "/research");
-  $("tab-legacy").click(); await sleep(100);
-  check("tab switch to legacy grid mode works", !$("legacy-mode").hidden && $("env-mode").hidden);
-  $("tab-env").click(); await sleep(100);
-  check("tab switch back to generated mode works", !$("env-mode").hidden && $("legacy-mode").hidden);
+  check("page loads with live overview active", $("tab-overview").classList.contains("active"));
+  check("research link present in header", window.document.querySelector('a[href="/research"]') !== null);
+  window.document.querySelector('[data-tab-link="training"]').click(); await sleep(100);
+  check("training visualizer navigation works", $("tab-training").classList.contains("active"));
+  window.document.querySelector('[data-tab-link="builder"]').click(); await sleep(100);
+  check("game builder navigation works", $("tab-builder").classList.contains("active"));
 
-  // ---- Game builder: describe a game and submit
+  // ---- Game builder: generate an editable environment without starting training
   $("env-prompt").value = "Tic-tac-toe on a 3x3 board for two players, X moves first, three in a row wins";
   $("env-train-opp").value = "random";
   $("env-form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
@@ -40,21 +40,30 @@ async function until(fn, ms, what) { const end = Date.now() + ms; while (Date.no
   check("generated SPEC title shown", $("env-title").textContent === "Tic-Tac-Toe");
   await until(() => /generated and validated/i.test($("env-gen-status").textContent), 60000, "generation status");
   check("generation status says generated and validated", true, $("env-gen-status").textContent);
-  check("sandbox validation report displayed", /Validated in a sandbox on \d+ random episodes/.test($("env-validation").textContent), $("env-validation").textContent.slice(0, 90));
-  await until(() => requests.some((r) => r === "POST /api/envs/" + (window.__id || "") + "/reset") || requests.some((r) => /POST \/api\/envs\/[0-9a-f]{32}\/reset/.test(r)), 30000, "auto reset (environment initialisation)");
-  check("environment initialised via /reset", true);
+  check("sandbox validation report displayed", /Sandbox validation: \d+ random episodes/.test($("env-validation").textContent), $("env-validation").textContent.slice(0, 90));
+  await until(() => $("env-source-input").value.includes("Tic-Tac-Toe") && !$("run-training").disabled, 30000, "editable generated source");
+  check("generated Python appears in an enabled editable textbox", $("env-source-input").value.includes("class Environment") && !$("env-source-input").disabled);
+  check("generation alone does not start training", $("env-training").textContent === "Training has not started." && !requests.some((r) => /POST \/api\/envs\/[0-9a-f]{32}\/train/.test(r)));
+  $("env-source-input").value = $("env-source-input").value.replace('"title": "Tic-Tac-Toe"', '"title": "Edited Tic-Tac-Toe"');
+  $("run-training").click();
+  await until(() => requests.some((r) => /POST \/api\/envs\/[0-9a-f]{32}\/train/.test(r)), 15000, "POST /train");
+  check("Run Training submits the edited environment", true);
+  await until(() => $("env-title").textContent === "Edited Tic-Tac-Toe", 30000, "runtime uses edited environment source");
+  check("runtime starts from the edited source", true, $("env-title").textContent);
   await until(() => $("env-scene").querySelectorAll("svg .clickable").length === 9, 30000, "9 clickable board cells");
-  check("board scene rendered with 9 legal clickable cells (initial observation/legal actions)", true);
+  check("edited environment runtime renders its legal actions", true);
 
-  // ---- Brain training in the generated environment (real C++ NEAT+PPO via relay)
+  // ---- Brain training in the edited generated environment (real C++ NEAT+PPO via relay)
   await until(() => /Training complete/.test($("env-training").textContent) || /Training failed/.test($("env-training").textContent), 240000, "training to finish");
   check("training completed (not failed)", /Training complete/.test($("env-training").textContent), $("env-training").textContent);
-  check("per-generation chart drawn from training_history (polylines)", $("env-chart").querySelectorAll("polyline").length === 2);
-  check("population info line populated", /gen \d+ \| \d+ env steps \| \d+ species/.test($("env-popinfo").textContent), $("env-popinfo").textContent);
-  const concepts = $("env-concepts").textContent.split("\n").filter(Boolean);
-  check("concept list from V8 concept bank displayed", concepts.length > 0 && /^Concepts available to the learner \(\d+\)/.test($("env-concept-summary").textContent), `${concepts.length} concepts; e.g. ${concepts[0]}`);
   const id = (await (await fetch(BASE + "/api/envs")).json()).environments[0].id;
   const status = await (await fetch(`${BASE}/api/envs/${id}/status`)).json();
+  const historyCount = status.training_history.length;
+  const chartLines = $("training-chart").querySelectorAll("polyline").length;
+  const chartPoints = $("training-chart").querySelectorAll("circle").length;
+  check("fitness chart plots measured history points and lines", historyCount > 0 && chartPoints === historyCount * 2 && chartLines === (historyCount > 1 ? 2 : 0), `${historyCount} records, ${chartPoints} points, ${chartLines} lines`);
+  check("population info line populated from latest generation", /generation \d+, [\d,]+ environment steps, \d+ species/.test($("env-popinfo").textContent), $("env-popinfo").textContent);
+  check("active concepts shown in concept bank", Number($("concept-active-count").textContent) > 0, $("concept-active-count").textContent);
   check("status API reports ready brain + held-out return", status.brain_ready === true && typeof status.training_heldout === "number", `heldout=${status.training_heldout}`);
   check("concepts reaching the brain are plain V8 bank expressions (no NaN-primitive concepts)", status.concepts.every((c) => !/board_|transition_|action_wins|action_blocks|state_boundary_margin/.test(c)));
 
@@ -71,7 +80,8 @@ async function until(fn, ms, what) { const end = Date.now() + ms; while (Date.no
   await until(() => requests.some((r) => /POST \/api\/envs\/[0-9a-f]{32}\/agent/.test(r)), 15000, "POST /agent (brain acts)");
   await until(() => $("env-scene").querySelectorAll("svg .clickable").length !== legalBefore || /won|lost|drew/.test($("env-hud").textContent), 20000, "brain move applied");
   check("trained brain acted through Python policy inference (no error)", $("env-error").textContent === "", $("env-error").textContent || "no error");
-  // let the game play out to a terminal state
+  // Let the active policy play to a terminal state.
+  $("env-auto").click();
   await until(() => /won|lost|drew/.test($("env-hud").textContent), 60000, "episode termination");
   check("episode terminates and result displayed in HUD", true, $("env-hud").textContent);
   window.close();
@@ -81,6 +91,8 @@ async function until(fn, ms, what) { const end = Date.now() + ms; while (Date.no
   check("/research page served", r.status === 200 && /research view/i.test(html));
   const c = await fetch(BASE + "/data/concepts.json"); const cj = await c.json();
   check("/data/concepts.json served and parseable", c.status === 200 && Array.isArray(cj.concepts) && cj.concepts.length > 0, `${cj.concepts.length} concepts`);
+  const liveBank = await fetch(BASE + "/api/concepts"); const liveBankJson = await liveBank.json();
+  check("/api/concepts serves the configured real bank with compatibility", liveBank.status === 200 && liveBankJson.concepts.length > 0 && liveBankJson.concepts.every((x) => typeof x.compatible === "boolean"), `${liveBankJson.concepts.length} bank entries`);
   const e = await fetch(BASE + "/data/experiments.json"); const ej = await e.json();
   check("/data/experiments.json served and parseable", e.status === 200 && Array.isArray(ej.groups) && ej.groups.length > 0, `${ej.groups.length} run groups`);
   check("no uncaught JS errors in page", errors.length === 0, errors.join("; "));

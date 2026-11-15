@@ -210,6 +210,7 @@ public:
     has_transition=true;
     return reward;
   }
+  int episode_result() const override { return base->episode_result(); }
   std::unique_ptr<Env> make() const override { return std::make_unique<ConceptEnv>(base->make(), raw(), act_onehot, state_onehot_k); }
   std::vector<std::string> raw() const { std::vector<std::string> x; for(auto& c:concepts)x.push_back(c.s); return x; }
 };

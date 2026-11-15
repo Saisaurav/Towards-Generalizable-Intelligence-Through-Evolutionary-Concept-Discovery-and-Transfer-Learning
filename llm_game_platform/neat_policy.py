@@ -19,7 +19,7 @@ except ImportError:  # imported by path inside the sandbox worker
 
 
 def concept_features(trees: Sequence[Any], observation: Sequence[float], legal: Sequence[int],
-                     n_actions: int) -> list[list[float]]:
+                     n_actions: int, action_onehot: bool = False) -> list[list[float]]:
     """Concept values per legal action for a generic environment (one row per legal action).
 
     INTEGRATION ADAPTER: uses V8's complete state-primitive set (the Python mirror of the C++
@@ -34,7 +34,10 @@ def concept_features(trees: Sequence[Any], observation: Sequence[float], legal: 
     for action in legal:
         prims = dict(base)
         prims["action_norm"] = 2.0 * action / (n_actions - 1) - 1.0 if n_actions > 1 else 0.0
-        rows.append([_concept_value(tree, prims) for tree in trees])
+        row = [_concept_value(tree, prims) for tree in trees]
+        if action_onehot:
+            row.extend(1.0 if action == index else 0.0 for index in range(n_actions))
+        rows.append(row)
     return rows
 
 
@@ -43,7 +46,11 @@ class NeatPolicy(GridPolicy):
         super().__init__(model)
         if n_actions < 1:
             raise ValueError("n_actions must be positive")
+        action_onehot = model.get("action_onehot", False)
+        if not isinstance(action_onehot, bool):
+            raise ValueError("exported brain policy has an invalid action_onehot flag")
         self.n_actions = n_actions
+        self.action_onehot = action_onehot
 
     @classmethod
     def from_file(cls, path, n_actions: int) -> "NeatPolicy":  # type: ignore[override]
@@ -61,7 +68,9 @@ class NeatPolicy(GridPolicy):
         if not legal:
             raise ValueError("no legal actions to score")
         state = [float(v) for v in observation]
-        rows = concept_features(self.concept_trees, state, legal, self.n_actions)
+        rows = concept_features(
+            self.concept_trees, state, legal, self.n_actions, self.action_onehot
+        )
         return [self._scores(state + concepts)[0] for concepts in rows]
 
     def choose(self, observation: Sequence[float], legal: Sequence[int],

@@ -6,6 +6,7 @@ differently from the brain that was trained. This test drives V8's real C++ Conc
 how a generated game is wrapped) and compares every legal-action concept value with
 ``llm_game_platform.neat_policy.concept_features`` over randomized observations.
 """
+import math
 import random
 import shutil
 import subprocess
@@ -101,6 +102,12 @@ class ExtPrimitiveParity(unittest.TestCase):
         prims = sorted(_GRID_PRIMITIVES)
         worst, ill, total = self._compare(prims, tol=2e-4)
         print(f"\n  [parity] {len(prims)} primitives, {total} comparisons, max |py-cpp| = {worst:.3g}, ill-conditioned excused = {ill}")
+
+    def test_one_hot_action_identity_follows_concept_features(self):
+        trees = [parse_expression("action_norm")]
+        rows = concept_features(trees, [0.0], [1, 3], 4, action_onehot=True)
+        self.assertEqual(rows, [[math.tanh(2.0 / 3.0 - 1.0), 0.0, 1.0, 0.0, 0.0],
+                                [math.tanh(1.0), 0.0, 0.0, 0.0, 1.0]])
 
     def test_all_accepted_bank_concepts_match_cpp(self):
         accepted, _ = screen_concepts(ROOT / "results" / "concept_bank.json")

@@ -181,6 +181,18 @@ trained policy. Game-contract generation runs asynchronously with visible browse
 status and errors; both LLM outputs have bounded validation-and-repair loops.
 Generated source code is not executed.
 
+The browser workspace at `/` provides the environment builder, interactive runtime,
+live per-generation training visualizer, and concept bank. Training plots and
+telemetry come from the active environment's training history; concept entries and
+compatibility are read from the same configured bank used by the learner
+(`GAME_CONCEPT_BANK`, defaulting to `results/concept_bank.json`). Gazebo is shown
+as a prototype because this service does not provide a Gazebo or ROS integration.
+For LLM-generated Python environments, generation only produces and validates a
+draft. Edit the source in the builder and select **Run Training** to sandbox-
+validate and persist those exact edits, start the learner, and initialize the
+runtime from the same environment implementation (including its `render()`
+output).
+
 Configure an OpenAI-compatible chat endpoint, then start the server from the
 package root:
 

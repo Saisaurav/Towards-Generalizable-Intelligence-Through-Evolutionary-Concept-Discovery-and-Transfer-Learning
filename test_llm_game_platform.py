@@ -322,6 +322,41 @@ class GridPolicyTests(unittest.TestCase):
 
 
 class GameServiceTests(unittest.TestCase):
+    def test_concept_api_serves_configured_bank_with_compatibility(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bank_path = Path(directory) / "bank.json"
+            bank_path.write_text(json.dumps({
+                "version": 7,
+                "primitive_contract": "generic_state_action_v3",
+                "concepts": [
+                    {"id": "valid", "expression": "add(state_mean,action_norm)"},
+                    {"id": "invalid", "expression": "not_a_primitive"},
+                ],
+            }), encoding="utf-8")
+            service = type("TestEnvService", (), {
+                "trainer": type("TestEnvTrainer", (), {"concept_bank": bank_path})(),
+            })()
+            handler = type(
+                "TestConceptRequestHandler",
+                (GameRequestHandler,),
+                {"env_service": service},
+            )
+            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with urlopen(f"http://127.0.0.1:{server.server_port}/api/concepts") as response:
+                    payload = json.loads(response.read())
+                self.assertEqual(payload["version"], 7)
+                self.assertEqual(
+                    [(item["id"], item["compatible"]) for item in payload["concepts"]],
+                    [("valid", True), ("invalid", False)],
+                )
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
+
     def test_http_create_and_play_flow(self):
         class StaticClient:
             def complete(self, system_prompt, user_prompt):

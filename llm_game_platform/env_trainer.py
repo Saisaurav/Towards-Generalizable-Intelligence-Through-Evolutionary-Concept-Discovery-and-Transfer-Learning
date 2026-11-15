@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .neat_policy import NeatPolicy
+from .online_concepts import discover_concepts
 from .policy import load_compatible_concepts
 from .sandbox import SandboxError, SandboxProcess
 from .trainer import BrainTrainer, BrainTrainingError
@@ -37,6 +38,7 @@ _QUALITY = re.compile(
     r"wins\s+(\d+)\s+losses\s+(\d+)\s+draws\s+(\d+)\s+mean_return\s+(-?[\d.]+)"
 )
 _TARGET_REACHED = re.compile(r"TARGET_REACHED\s+([01])")
+_GENERATION_LIMIT_REACHED = re.compile(r"GENERATION_LIMIT_REACHED\s+([01])")
 
 
 @dataclass
@@ -49,6 +51,9 @@ class EnvTrainResult:
     opponent: str
     policy: NeatPolicy = field(repr=False, default=None)  # type: ignore[assignment]
     target_reached: bool = False
+    generation_limit_reached: bool = False
+    concepts_added: list[str] = field(default_factory=list)
+    concept_refresh_note: str | None = None
 
     def save_policy(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -61,7 +66,7 @@ def opponent_label(opponent: dict[str, Any] | str) -> str:
 
 
 class EnvTrainer(BrainTrainer):
-    """Train generated games until a win-rate target or optional step cap is reached."""
+    """Train generated games to a target, with one optional generation-20 feature refresh."""
 
     def __init__(
         self,
@@ -73,6 +78,9 @@ class EnvTrainer(BrainTrainer):
         target_win_rate: float | None = None,
         evaluation_episodes: int | None = None,
         evaluation_interval_generations: int | None = None,
+        concept_refresh_generation: int | None = None,
+        concept_refresh_episodes: int = 16,
+        concept_refresh_max_steps: int = 96,
     ) -> None:
         if budget is None:
             raw_budget = os.getenv(
@@ -84,6 +92,13 @@ class EnvTrainer(BrainTrainer):
                 raise ValueError("GAME_ENV_MAX_STEPS must be an integer") from error
         if budget < 0 or budget > 5_000_000:
             raise ValueError("environment training step cap must be between 0 and 5000000")
+        if population is None:
+            population = self._setting(
+                "GAME_ENV_TRAINING_POPULATION",
+                self._setting("GAME_TRAINING_POPULATION", 3, 2, 128),
+                2,
+                128,
+            )
         super().__init__(
             brain_binary=brain_binary,
             concept_bank=concept_bank,
@@ -113,6 +128,16 @@ class EnvTrainer(BrainTrainer):
             raise ValueError("evaluation_episodes must be between 1 and 10000")
         if self.evaluation_interval_generations < 1 or self.evaluation_interval_generations > 10000:
             raise ValueError("evaluation_interval_generations must be between 1 and 10000")
+        self.concept_refresh_generation = (
+            concept_refresh_generation if concept_refresh_generation is not None
+            else self._setting("GAME_ENV_CONCEPT_REFRESH_GENERATION", 20, 0, 10000)
+        )
+        self.concept_refresh_episodes = concept_refresh_episodes
+        self.concept_refresh_max_steps = concept_refresh_max_steps
+        if not 1 <= self.concept_refresh_episodes <= 64:
+            raise ValueError("concept_refresh_episodes must be between 1 and 64")
+        if not 1 <= self.concept_refresh_max_steps <= 10000:
+            raise ValueError("concept_refresh_max_steps must be between 1 and 10000")
 
     def train_env(
         self,
@@ -122,6 +147,8 @@ class EnvTrainer(BrainTrainer):
         seed: int | None = None,
         progress: Callable[[dict[str, float]], None] | None = None,
         concepts: list[str] | None = None,
+        status: Callable[[str], None] | None = None,
+        _allow_concept_refresh: bool = True,
     ) -> EnvTrainResult:
         if not spec.get("trainable"):
             raise BrainTrainingError(spec.get("untrainable_reason") or "environment is not trainable")
@@ -132,8 +159,13 @@ class EnvTrainer(BrainTrainer):
         history: list[dict[str, float]] = []
         heldout: float | None = None
         target_reached = False
+        generation_limit_reached = False
         errors: list[str] = []
         workers: dict[int, SandboxProcess] = {}
+        refresh_at = (
+            self.concept_refresh_generation
+            if _allow_concept_refresh else 0
+        )
         with tempfile.TemporaryDirectory(prefix="env-training-") as directory:
             workdir = Path(directory)
             (workdir / "concepts.txt").write_text("\n".join(concepts) + "\n", encoding="ascii")
@@ -142,6 +174,8 @@ class EnvTrainer(BrainTrainer):
                        str(self.population), str(model_path), "--target-win-rate", str(self.target_win_rate),
                        "--eval-episodes", str(self.evaluation_episodes),
                        "--eval-interval", str(self.evaluation_interval_generations)]
+            if refresh_at:
+                command.extend(["--max-generations", str(refresh_at)])
             brain = subprocess.Popen(command, cwd=workdir, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
             stderr_lines: list[str] = []
@@ -188,9 +222,12 @@ class EnvTrainer(BrainTrainer):
                             g, steps, win_rate, wins, losses, draws, mean_return = quality.groups()
                             point = next((p for p in reversed(history) if int(p["gen"]) == int(g)), None)
                             if point is not None:
+                                win_count, loss_count, draw_count = int(wins), int(losses), int(draws)
                                 point.update({
-                                    "win_rate": float(win_rate), "wins": int(wins), "losses": int(losses),
-                                    "draws": int(draws), "quality_return": float(mean_return),
+                                    "win_rate": float(win_rate),
+                                    "win_or_draw_rate": (win_count + draw_count) / self.evaluation_episodes,
+                                    "wins": win_count, "losses": loss_count, "draws": draw_count,
+                                    "quality_return": float(mean_return),
                                     "quality_steps": int(steps),
                                 })
                                 if progress:
@@ -198,6 +235,9 @@ class EnvTrainer(BrainTrainer):
                         reached = _TARGET_REACHED.search(line)
                         if reached:
                             target_reached = reached.group(1) == "1"
+                        generation_limit = _GENERATION_LIMIT_REACHED.search(line)
+                        if generation_limit:
+                            generation_limit_reached = generation_limit.group(1) == "1"
                         continue
                     parts = line.split()
                     try:
@@ -253,8 +293,109 @@ class EnvTrainer(BrainTrainer):
                 policy = NeatPolicy(model, spec["action"]["n"])
             except ValueError as error:
                 raise BrainTrainingError(f"brain exported an unusable policy: {error}") from error
+        result = EnvTrainResult(
+            model, history, heldout, concepts, seed, opponent_label(opponent_cfg), policy,
+            target_reached, generation_limit_reached
+        )
+        if not (refresh_at and generation_limit_reached and not target_reached):
+            return result
+
+        refresh_deadline = time.monotonic() + self.timeout
+        if status:
+            status(
+                f"Generation {refresh_at} reached below the {self.target_win_rate:.0%} target; "
+                "collecting game episodes for concept discovery."
+            )
+        try:
+            with tempfile.TemporaryDirectory(prefix="env-concept-refresh-") as directory:
+                policy_path = Path(directory) / "stage-one-policy.json"
+                result.save_policy(policy_path)
+                with SandboxProcess(
+                    source_path, cpu_seconds=self.timeout + 60, call_timeout=120.0
+                ) as sandbox:
+                    sandbox.request("configure", default=opponent_cfg)
+                    collected = sandbox.request(
+                        "collect_concept_data",
+                        learner={"kind": "policy", "policy_path": str(policy_path), "greedy": False},
+                        episodes=self.concept_refresh_episodes,
+                        seed=seed ^ 0x5EEDC0DE,
+                        max_steps=self.concept_refresh_max_steps,
+                    )["episodes"]
+            discovered = discover_concepts(
+                collected, spec["action"]["n"], concepts, seed ^ 0xC0FFEE
+            )
+        except (OSError, RuntimeError, ValueError, SandboxError) as error:
+            raise BrainTrainingError(f"automatic concept discovery failed: {error}") from error
+
+        combined_concepts = list(concepts)
+        combined_concepts.extend(expression for expression in discovered if expression not in combined_concepts)
+        note = (
+            f"Generation {refresh_at}: discovered {len(discovered)} new concepts; "
+            "restarted training with the combined concept set."
+            if discovered else
+            f"Generation {refresh_at}: no new concepts passed validation; "
+            "restarted training with the current concept set."
+        )
+        if status:
+            status(note)
+
+        remaining = refresh_deadline - time.monotonic()
+        if remaining < 1:
+            raise BrainTrainingError(
+                "automatic concept discovery used the available time; no time remained for the restarted learner"
+            )
+        second_trainer = EnvTrainer(
+            brain_binary=binary,
+            concept_bank=self.concept_bank,
+            budget=self.budget,
+            population=self.population,
+            timeout=max(1, math.ceil(remaining)),
+            target_win_rate=self.target_win_rate,
+            evaluation_episodes=self.evaluation_episodes,
+            evaluation_interval_generations=self.evaluation_interval_generations,
+            concept_refresh_generation=0,
+            concept_refresh_episodes=self.concept_refresh_episodes,
+            concept_refresh_max_steps=self.concept_refresh_max_steps,
+        )
+        generation_offset = max((int(point["gen"]) for point in history), default=-1) + 1
+        step_offset = max((int(point["steps"]) for point in history), default=0)
+
+        def second_progress(point: dict[str, float]) -> None:
+            if progress:
+                adjusted = dict(point)
+                adjusted["gen"] += generation_offset
+                adjusted["steps"] += step_offset
+                progress(adjusted)
+
+        second_seed = seed + 1 if seed is not None else result.seed + 1
+        restarted = second_trainer.train_env(
+            source_path,
+            spec,
+            opponent_cfg,
+            seed=second_seed,
+            progress=second_progress,
+            concepts=combined_concepts,
+            status=status,
+            _allow_concept_refresh=False,
+        )
+        restarted_history = []
+        for point in restarted.history:
+            adjusted = dict(point)
+            adjusted["gen"] += generation_offset
+            adjusted["steps"] += step_offset
+            restarted_history.append(adjusted)
         return EnvTrainResult(
-            model, history, heldout, concepts, seed, opponent_label(opponent_cfg), policy, target_reached
+            restarted.model,
+            history + restarted_history,
+            restarted.heldout_return,
+            combined_concepts,
+            restarted.seed,
+            restarted.opponent,
+            restarted.policy,
+            restarted.target_reached,
+            False,
+            discovered,
+            note,
         )
 
     def train_self_play(
@@ -266,13 +407,16 @@ class EnvTrainer(BrainTrainer):
         first_opponent: dict[str, Any] | str = "random",
         progress: Callable[[dict[str, float]], None] | None = None,
         concepts: list[str] | None = None,
+        status: Callable[[str], None] | None = None,
     ) -> list[EnvTrainResult]:
         """Round 1 trains against ``first_opponent``; each later round starts a FRESH learner
         that trains against the frozen champion of the previous round (staged self-play)."""
         results: list[EnvTrainResult] = []
         opponent: dict[str, Any] | str = first_opponent
         for index in range(rounds):
-            result = self.train_env(source_path, spec, opponent, progress=progress, concepts=concepts)
+            result = self.train_env(
+                source_path, spec, opponent, progress=progress, concepts=concepts, status=status
+            )
             path = result.save_policy(policy_dir / f"selfplay_round_{index + 1}.json")
             results.append(result)
             opponent = {"kind": "policy", "policy_path": str(path), "greedy": False}

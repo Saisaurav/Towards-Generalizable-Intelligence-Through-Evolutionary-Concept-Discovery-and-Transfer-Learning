@@ -35,7 +35,7 @@ natural language ──► EnvGenerator (LLM, repair loop) ──► env.py + me
 ```
 
 * **Environment logic** – generated `Environment` class (`env_interface.py` documents the contract).
-* **Environment runtime** – `sandbox_worker.py` `Runner`: contract checks, truncation at `max_steps`,
+* **Environment runtime** – `sandbox_worker.py` `Runner`: contract checks, turn-based truncation at `max_steps`,
   seat selection, opponents (random / rule-based / frozen policy), result bookkeeping.
 * **Renderer** – `render()` returns a *scene* (`render_protocol.py`); `index.html` has a generic SVG
   renderer. Scenes never reach the learner; observations never reach the renderer.
@@ -54,7 +54,7 @@ identically and different seeds differ.
 ```python
 SPEC = {"title", "description", "agents": [0, 1], "observation_size": N,
         "action": {"type": "discrete", "n": K}  # or continuous {dim, low, high}
-        "turn_based": bool, "max_steps": int,
+        "turn_based": bool, "max_steps": int,  # turn-based: 1..10000; real-time: 0 (unlimited)
         # optional: real_time, learner_agent, symmetric_agents, noop_action, tick_ms, hold_last_action,
         #           controls, action_names, cooperative
        }
@@ -67,8 +67,9 @@ class Environment:
 * Turn-based: one active agent per step. Real-time/simultaneous: all agents are active and act in one `step`.
 * Variable legal actions: `legal_actions` (action mask as an id list); the runtime refuses anything else.
 * Rewards are per-agent dicts, so competitive, cooperative and self-play views all work.
-* Termination vs truncation: `is_terminal()` is the game's own end; the runtime truncates at `max_steps`
-  (and honours optional `is_truncated()`); truncated episodes count as draws.
+* Termination vs truncation: `is_terminal()` is the game's own end; the runtime truncates turn-based
+  episodes at `max_steps` (and honours optional `is_truncated()`); truncated episodes count as draws.
+  Real-time games set `max_steps: 0` and end only through game rules, not a frame count.
 * Deterministic seeding: `reset(seed)`; `random` inside generated code only exposes `random.Random`, and
   the validator replays an episode on the same and on a fresh instance and compares trajectory hashes.
 
@@ -114,6 +115,13 @@ Opponents: `random`; `rule_based` (the env's own `scripted_action`, else a gener
 look-ahead on copies); `policy` (a frozen exported brain – used for staged self-play: each round a *fresh*
 learner trains against the previous round's champion); and the human in the UI.
 
+If the target win rate is still unmet after generation 20, generated-game training collects episodes from
+that exact environment, runs a bounded GP search over policy-supported state/action summaries, and starts
+one fresh learner with the old and newly screened concepts. This refresh is attempted once; its discovery
+and restarted training share one additional timeout window. If no candidates pass the train/validation
+correlation and output-diversity checks, the learner still restarts with the existing concepts and the
+status explains that no new features were admitted.
+
 ## 7b. Measured results (hand-written fixtures through the real pipeline, one CPU core, single seeds)
 
 *Environment execution* (all pass; `test_generated_envs.py`): TTT, Snake and Pong validate first try in the
@@ -133,15 +141,25 @@ playable in the browser (jsdom smoke test: generate → board renders → click 
 
 Python policy inference matches the C++ evaluation (|diff| ≤ 0.02 over 3 seeds at 150k budget; unit test uses tolerance 0.15).
 For reference the original built-in Tic-Tac-Toe reached held-out returns of -0.03 / 0.005 at 150k steps, so these numbers are
-in line with the existing learner, not a regression. **Do not read this as "the learner plays Tic-Tac-Toe".**
+in line with the existing learner, not a regression. These results predate the generated-game fixes below and are not measurements of the updated setup. **Do not read this as "the learner plays Tic-Tac-Toe".**
 
-Likely cause (not tested by an ablation): in per-action mode the network sees `[observation ‖ concept features]`, and the
-only per-action information is the scalar `action_norm` (id rescaled to [-1,1]) inside concepts. Choosing "the empty cell
-that blocks" or "the direction without a wall" needs the net to decode that scalar against the observation. That is the
-existing design (and the `baseline_action_id` experiment condition); I did not change it because it would change what
-transfers. A gated option (e.g. one-hot action features, or letting the env supply per-action features) is the obvious next experiment.
+The low generated-game results exposed two training mismatches, now corrected: an opponent-only terminal reward previously
+left the learner with zero reward instead of a loss penalty, and the exported brain's action inputs did not match the
+stronger action-identity experiment. Generated games now append one-hot action identity after concept features in both
+C++ training and Python inference. Their defaults use the measured TTT experiment's 16-unit hidden layer, four PPO
+iterations, and greedy fitness/held-out evaluation; generated-game population defaults to 3 (override with
+`GAME_ENV_TRAINING_POPULATION`). The historical table above is retained as a pre-fix baseline; the post-fix single-seed
+check is in section 7c and is not enough to establish multi-seed performance.
 
-## 7c. Text mode / terminal player (no graphics)
+## 7c. Post-fix Tic-Tac-Toe check (single seed)
+
+Using the updated `src/brain.exe`, the hand-written TTT fixture, a 150k-step budget, population 3, seed 11, and no
+concept refresh, the greedy exported policy was evaluated for 1,000 episodes against random with seed 3001. It won
+82.5%, lost 13.0%, drew 4.5%, and returned +0.695. Random-vs-random on the same seeds won 43.0%, lost 45.0%, drew
+12.0%, and returned -0.020. The 200-episode training checkpoint was 81.5% wins / 87.0% wins-or-draws, so the strict
+90% win-only stopping target was not reached. This is a one-seed sanity check, not a multi-seed benchmark.
+
+## 7d. Text mode / terminal player (no graphics)
 
 The LLM also writes `render_text()` in the same `Environment` (the prompt asks for an ASCII picture of the state that
 shows the numbers/names a player can type). It is validated like everything else (must return a string; a missing one is
@@ -162,9 +180,10 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 
 ## 8. Known limitations (read these)
 
-* **Learner capability is unchanged.** The generalisation removes *interface* limits, not the limits of
-  NEAT+PPO with the current concept bank and these budgets. See section 7b: none of the three acceptance games is
-  learned to a useful level; Tic-Tac-Toe matches the original built-in game's weak result at the same budget. Arbitrary observations do not make arbitrary tasks learnable.
+* **Updated generated-game training has not yet been benchmarked at scale.** Section 7b's low scores predate the
+  terminal-reward, action-identity, and PPO-configuration fixes above. Rerun the benchmark before drawing conclusions
+  about the updated setup. The generalisation removes *interface* limits, not the limits of NEAT+PPO; arbitrary
+  observations do not make arbitrary tasks learnable.
 * Observations are fixed-length vectors (entity lists must be padded by the generated code). There is no
   variable-length/set encoder in the network.
 * Discrete actions only for training (≤128 actions, a C++ buffer limit). Continuous action spaces run and validate
@@ -175,7 +194,7 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 * Training uses 1 learner thread in `ext` mode (relay is serial): ≈10–15k env steps/s for simple games; slower for
   Pong-like long episodes and for the rule-based opponent (copies the env per candidate move).
 * Opponent-in-training choices: random, rule-based, staged self-play. There is no simultaneous co-evolution of two learners.
-* Real-time environments set `real_time: True`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The learner supplies an action each frame; browser human/brain playback uses that interval. Older non-turn-based specs default to real-time behavior.
+* Real-time environments set `real_time: True` and `max_steps: 0`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The learner supplies an action each frame; browser human/brain playback uses that interval. Older non-turn-based specs default to real-time behavior.
 * The page has no *live* population view beyond per-generation fitness/species/node/connection counts parsed from the
   learner's log (the README already listed a full visualizer as not implemented).
 * Python-level sandbox limits above; the generated code was never run against a **live** LLM in this repo's tests –
@@ -188,7 +207,12 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 cd src && make && cd ..              # builds brain (now with `ext` mode)
 pip install -r requirements.txt
 export LLM_API_KEY=...               # as before (see llm_game_platform/llm.py)
-export GAME_ENV_TRAINING_BUDGET=150000   # env steps per training run (default 150000)
+export GAME_ENV_TARGET_WIN_RATE=0.90     # stop when win rate reaches 90% (fraction, default 0.90)
+export GAME_ENV_EVAL_EPISODES=100        # episodes per quality check (default 100)
+export GAME_ENV_EVAL_INTERVAL_GENERATIONS=5  # generations between checks (default 5)
+export GAME_ENV_MAX_STEPS=0              # optional training-step cap; 0 means no step cap
+export GAME_ENV_CONCEPT_REFRESH_GENERATION=20  # one GP refresh/restart if target is unmet
+# GAME_TRAINING_TIMEOUT is 900 seconds per phase by default; refresh allows one extra phase.
 python -m llm_game_platform.server   # open the page; default tab = "Any game (generated Python)"
 python generate_env.py --acceptance ttt --train      # CLI: generate + validate + train
 python -m unittest test_generated_envs test_llm_game_platform   # ≈2 min on one core
