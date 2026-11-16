@@ -1,0 +1,104 @@
+{
+ "game": "snake",
+ "opp": "random",
+ "seed": 1,
+ "pop": 24,
+ "head": "fixed",
+ "budget": 300000,
+ "mode": "return",
+ "bar": 5.503157499999965,
+ "curve": [
+  {
+   "gen": 2,
+   "steps": 128784,
+   "win_rate": 0.0,
+   "wins": 0,
+   "losses": 50,
+   "draws": 0,
+   "mean_return": -0.375,
+   "sec": 5.6
+  },
+  {
+   "gen": 5,
+   "steps": 288961,
+   "win_rate": 0.0,
+   "wins": 0,
+   "losses": 50,
+   "draws": 0,
+   "mean_return": -0.3074,
+   "sec": 12.1
+  },
+  {
+   "gen": 6,
+   "steps": 346010,
+   "win_rate": 0.0,
+   "wins": 0,
+   "losses": 50,
+   "draws": 0,
+   "mean_return": -0.3237,
+   "sec": 14.6
+  }
+ ],
+ "gens": {
+  "0": {
+   "steps": 38028,
+   "best": -0.6,
+   "mean": -1.03,
+   "train": 12288,
+   "eval": 25740,
+   "sec": 1.7
+  },
+  "1": {
+   "steps": 80221,
+   "best": -0.47,
+   "mean": -0.92,
+   "train": 24576,
+   "eval": 55645,
+   "sec": 3.6
+  },
+  "2": {
+   "steps": 128784,
+   "best": -0.37,
+   "mean": -0.84,
+   "train": 36864,
+   "eval": 91920,
+   "sec": 5.6
+  },
+  "3": {
+   "steps": 179753,
+   "best": -0.45,
+   "mean": -0.7,
+   "train": 49152,
+   "eval": 130601,
+   "sec": 7.6
+  },
+  "4": {
+   "steps": 232549,
+   "best": -0.27,
+   "mean": -0.6,
+   "train": 61440,
+   "eval": 171109,
+   "sec": 10.2
+  },
+  "5": {
+   "steps": 288961,
+   "best": -0.41,
+   "mean": -0.56,
+   "train": 73728,
+   "eval": 215233,
+   "sec": 12.1
+  },
+  "6": {
+   "steps": 346010,
+   "best": -0.31,
+   "mean": -0.45,
+   "train": 86016,
+   "eval": 259994,
+   "sec": 14.5
+  }
+ },
+ "env_steps_relayed": 349916,
+ "sec": 14.614457368850708,
+ "rc": 0,
+ "stderr": ""
+}

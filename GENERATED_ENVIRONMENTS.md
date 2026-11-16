@@ -208,7 +208,7 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
   Pong-like long episodes and for the rule-based opponent (copies the env per candidate move).
 * Opponent-in-training choices: random, rule-based, staged self-play. There is no simultaneous co-evolution of two learners.
 * Real-time environments set `real_time: True` and `max_steps: 0`, use one `step()` per frame, and configure the frame interval with `tick_ms`. The browser's **Play frames** control steps a human-played game at that interval; keyboard controls steer each frame, and `hold_last_action` determines whether a direction persists after the key is released. Brain autoplay uses the same frame interval. Older non-turn-based specs default to real-time behavior.
-* To keep evaluation bounded when a real-time policy can avoid ending a game, generated-game training truncates each episode after 256 frames (counted as a draw); this does not limit browser play.
+* Real-time training episodes are bounded by the runtime frame cap / stall truncation described under "Frame cap / stall truncation" below (truncation counts as a draw); this does not limit browser play.
 * The standalone `pointmass` CLI task is a robotics research proxy, not a simulator or physical robot
   integration. It uses Gaussian continuous-action PPO, optional observation-difference/action stacking,
   persisted optimizer moments, and held-out noise/delay/mass robustness checks. Example:
@@ -233,10 +233,18 @@ export GAME_ENV_TARGET_WIN_RATE=0.90     # stop when win rate reaches 90% (fract
 export GAME_ENV_EVAL_EPISODES=100        # episodes per quality check (default 100)
 export GAME_ENV_EVAL_INTERVAL_GENERATIONS=5  # generations between checks (default 5)
 export GAME_ENV_MAX_STEPS=0              # optional training-step cap; 0 means no step cap
-export GAME_ENV_CONCEPT_REFRESH_GENERATION=20  # one GP refresh/restart if target is unmet
+export GAME_ENV_CONCEPT_REFRESH_GENERATION=20  # one GP refresh/restart if target is unmet (per-action head only)
 # GAME_TRAINING_TIMEOUT is 900 seconds per phase by default; refresh allows one extra phase.
 python -m llm_game_platform.server   # open the page; default tab = "Any game (generated Python)"
 python generate_env.py --acceptance ttt --train      # CLI: generate + validate + train
 python -m unittest test_generated_envs test_llm_game_platform   # ≈2 min on one core
 cd src && make test-envs             # original C++ env smoke tests
 ```
+
+## Real-time safety and learnability (Nov 2026)
+
+- **Frame cap / stall truncation.** Every real-time episode is truncated at `SPEC["max_frames"]` (default 3000) and, if `SPEC["stall_frames"]` > 0, after that many frames without a new best cumulative return. Truncation is a draw, never a win, so a policy that learns to survive forever cannot hang training.
+- **Quality metric.** Games with real win/loss outcomes keep win rate. Single-agent score games where no win is ever observed (Snake) are scored by *success rate*: an episode succeeds when its return is above a bar calibrated from random play (90th percentile, raised a quarter of the way to the scripted policy when that is clearly better). The UI labels it accordingly. Override with `GAME_ENV_QUALITY_MODE=result|return`.
+- **Learnability gate (validator).** 60 calibration episodes compare random play with `scripted_action()` (or the generic look-ahead player for turn-based games). A reward under which competent play scores significantly *worse* than random is a validation error and goes back to the LLM for repair; "not clearly better", raw-grid observations, no `scripted_action` and always-capped episodes are warnings.
+- **Training limits.** `GAME_ENV_MAX_GENERATIONS`, `GAME_ENV_MIN_GENERATIONS` (auto: 4 for real-time games with a step budget) and a soft wall-clock stop at 85% of the timeout. The soft stop is graceful: the champion is still exported instead of the run failing with a timeout. These are `brain ext` options (`--max-generations`, `--min-generations`, `--max-seconds`); rebuild `brain` / `brain.exe` to use them.
+- **Fixed output head (`--head fixed`, `GAME_ENV_HEAD=auto|per_action|fixed`).** The default per-action scorer only tells actions apart by a scalar `action_norm`, which is a hard function for a minimal NEAT net when an action's meaning depends on the state (Snake headings, Pong paddle moves). The fixed head feeds the state (plus state-level concepts) once and reads one logit per action. `auto` = fixed for real-time games, per-action for turn-based ones. Concepts that use `action_norm`, `action_wins_now`, `action_blocks_opponent` or `transition_*` are dropped under the fixed head. The exported policy carries `"head"`, and `NeatPolicy` mirrors it. Measured on the Snake fixture (one seed each): per-action head about -1.0 return for 3M steps (no learning); fixed head reached +5.2 (greedy, Python) after about 280 s / 100 generations, scripted +25, random -1.0. Pong did not show learning in 18 generations (about 9M steps).

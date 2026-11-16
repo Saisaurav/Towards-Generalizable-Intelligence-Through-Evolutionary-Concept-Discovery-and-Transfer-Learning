@@ -198,6 +198,19 @@ int main(int argc,char**argv){
       c.eval_episodes = 1;
     } else if (game == "ext" && head == "fixed") {
       wrapped = std::make_unique<FixedHeadEnv>(std::move(base), ex);
+      // Real-time (fixed-head) defaults: the configuration measured on the Snake fixture in baseline/results
+      // (pop 8, 16 hidden units, 16 PPO iterations, fitness from PPO rollouts, persisted Adam moments, carry 0.5,
+      // no entropy bonus). Applied only for options the caller did not set; --preset opts out entirely.
+      // Imitation of the env's scripted_action stays OFF here: the learner must learn from the reward.
+      if (preset_name.empty()) {
+        if (hidden.empty()) c.mlp_hidden = {16};
+        if (iters < 0) c.ppo.iters = 16;
+        if (train_fitness < 0) c.ppo.train_fitness = true;
+        if (carry < 0.f) c.carry = 0.5f;
+        if (ent < 0.f) c.ppo.ent = 0.f;
+        if (imitation < 0.f) c.ppo.imitation = 0.f;
+        c.ppo.greedy_eval = false;
+      }
       if (persist_adam < 0) c.ppo.persist_adam = true;
     } else {
       wrapped = std::make_unique<ConceptEnv>(std::move(base), ex, action_onehot);

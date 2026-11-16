@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
+from . import learnability
 from .neat_policy import NeatPolicy, fixed_head_usable_concept
 from .online_concepts import discover_concepts
 from .policy import load_compatible_concepts
@@ -37,11 +38,9 @@ _QUALITY = re.compile(
     r"QUALITY gen\s+(\d+)\s+steps\s+(\d+)\s+win_rate\s+([\d.]+)\s+"
     r"wins\s+(\d+)\s+losses\s+(\d+)\s+draws\s+(\d+)\s+mean_return\s+(-?[\d.]+)"
 )
+_REALTIME_POPULATION = 8
 _TARGET_REACHED = re.compile(r"TARGET_REACHED\s+([01])")
 _GENERATION_LIMIT_REACHED = re.compile(r"GENERATION_LIMIT_REACHED\s+([01])")
-_REALTIME_TRAINING_STEP_LIMIT = 256
-_SNAKE_SCORE_TRAINING_GENERATIONS = 60
-_SNAKE_TITLE = re.compile(r"\bsnake\b", re.I)
 
 
 @dataclass
@@ -57,6 +56,11 @@ class EnvTrainResult:
     generation_limit_reached: bool = False
     concepts_added: list[str] = field(default_factory=list)
     concept_refresh_note: str | None = None
+    # "result": win rate from real game outcomes. "return": success = episode return beats the
+    # calibrated random-play bar (score-style games such as Snake, where "win" is unreachable).
+    quality_mode: str = "result"
+    success_return: float | None = None
+    calibration: dict[str, Any] | None = None
 
     def save_policy(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -84,6 +88,12 @@ class EnvTrainer(BrainTrainer):
         concept_refresh_generation: int | None = None,
         concept_refresh_episodes: int = 16,
         concept_refresh_max_steps: int = 96,
+        max_generations: int | None = None,
+        min_generations: int | None = None,
+        max_seconds: float | None = None,
+        quality: str | None = None,
+        head: str | None = None,
+        imitation: float | None = None,
     ) -> None:
         if budget is None:
             raw_budget = os.getenv(
@@ -95,6 +105,11 @@ class EnvTrainer(BrainTrainer):
                 raise ValueError("GAME_ENV_MAX_STEPS must be an integer") from error
         if budget < 0 or budget > 5_000_000:
             raise ValueError("environment training step cap must be between 0 and 5000000")
+        self.population_is_default = (
+            population is None
+            and "GAME_ENV_TRAINING_POPULATION" not in os.environ
+            and "GAME_TRAINING_POPULATION" not in os.environ
+        )
         if population is None:
             population = self._setting(
                 "GAME_ENV_TRAINING_POPULATION",
@@ -127,6 +142,34 @@ class EnvTrainer(BrainTrainer):
             if evaluation_interval_generations is not None
             else self._setting("GAME_ENV_EVAL_INTERVAL_GENERATIONS", 5, 1, 10000)
         )
+        self.max_generations = (
+            max_generations if max_generations is not None else self._setting("GAME_ENV_MAX_GENERATIONS", 0, 0, 100000)
+        )
+        # None => auto: real-time games with a step budget get a few generations minimum, because one
+        # generation of long real-time episodes can already exceed a small step budget.
+        self.min_generations = (
+            min_generations if min_generations is not None
+            else (self._setting("GAME_ENV_MIN_GENERATIONS", 0, 0, 100000) if os.getenv("GAME_ENV_MIN_GENERATIONS") else None)
+        )
+        self.max_seconds = max_seconds  # None => 85% of the hard timeout (graceful stop, model is kept)
+        self.quality = quality or os.getenv("GAME_ENV_QUALITY_MODE", "auto")
+        # Imitation of the env's scripted_action: per-action head defaults to the C++ default (on); the real-time
+        # fixed head defaults to OFF (learns from reward). Set explicitly (0 disables, >0 weights the auxiliary loss).
+        if imitation is None and os.getenv("GAME_ENV_IMITATION"):
+            try:
+                imitation = float(os.environ["GAME_ENV_IMITATION"])
+            except ValueError as error:
+                raise ValueError("GAME_ENV_IMITATION must be a number >= 0") from error
+        if imitation is not None and (not math.isfinite(imitation) or imitation < 0):
+            raise ValueError("imitation must be a finite number >= 0")
+        self.imitation = imitation
+        # "per_action": net scores each legal action from [state | action features] (original design).
+        # "fixed": one output per action, state-only input (see src/fixed_head_env.h). auto => fixed for real-time games.
+        self.head = head or os.getenv("GAME_ENV_HEAD", "auto")
+        if self.head not in ("auto", "per_action", "fixed"):
+            raise ValueError("head must be 'auto', 'per_action' or 'fixed'")
+        if self.quality not in ("auto", "result", "return"):
+            raise ValueError("quality must be 'auto', 'result' or 'return'")
         if self.evaluation_episodes < 1 or self.evaluation_episodes > 10000:
             raise ValueError("evaluation_episodes must be between 1 and 10000")
         if self.evaluation_interval_generations < 1 or self.evaluation_interval_generations > 10000:
@@ -157,9 +200,15 @@ class EnvTrainer(BrainTrainer):
             raise BrainTrainingError(spec.get("untrainable_reason") or "environment is not trainable")
         opponent_cfg = {"kind": opponent} if isinstance(opponent, str) else dict(opponent)
         concepts = list(concepts) if concepts is not None else load_compatible_concepts(self.concept_bank)
-        game_label = f"{spec.get('title', '')} {spec.get('description', '')}"
-        score_based_snake = bool(_SNAKE_TITLE.search(game_label))
         binary = self._binary()
+        mode, bar, calibration = self._quality_plan(source_path, spec, opponent_cfg)
+        min_gens = self.min_generations
+        if min_gens is None:
+            min_gens = 4 if (spec.get("real_time") and self.budget > 0) else 0
+        head = self.head if self.head != "auto" else ("fixed" if spec.get("real_time") else "per_action")
+        soft_seconds = self.max_seconds if self.max_seconds is not None else self.timeout * 0.85
+        # Real-time (fixed head) games use the population measured on the Snake fixture (8); turn-based keep 3.
+        population = _REALTIME_POPULATION if (head == "fixed" and self.population_is_default) else self.population
         seed = seed if seed is not None else secrets.randbelow(2**31 - 1) + 1
         history: list[dict[str, float]] = []
         heldout: float | None = None
@@ -167,28 +216,31 @@ class EnvTrainer(BrainTrainer):
         generation_limit_reached = False
         errors: list[str] = []
         workers: dict[int, SandboxProcess] = {}
+        # The generation-20 GP concept refresh is for the per-action head. The fixed (real-time) head drops every
+        # action-dependent concept and reaches its target well before that, so the refresh is not armed for it.
         refresh_at = (
             self.concept_refresh_generation
-            if _allow_concept_refresh and not score_based_snake else 0
+            if _allow_concept_refresh and head != "fixed" else 0
         )
         with tempfile.TemporaryDirectory(prefix="env-training-") as directory:
             workdir = Path(directory)
             (workdir / "concepts.txt").write_text("\n".join(concepts) + "\n", encoding="ascii")
             model_path = workdir / "brain-policy.json"
             command = [str(binary), "ext", str(workdir / "concepts.txt"), str(self.budget), str(seed),
-                       str(self.population), str(model_path),
+                       str(population), str(model_path),
                        "--eval-episodes", str(self.evaluation_episodes),
                        "--eval-interval", str(self.evaluation_interval_generations),
-                       "--head", "fixed" if spec["real_time"] else "per_action",
-                       "--max-seconds", str(max(1, int(self.timeout * 0.8)))]
-            if not score_based_snake:
-                command.extend(["--target-win-rate", str(self.target_win_rate)])
-            elif self.budget == 0:
-                command.extend(["--max-generations", str(_SNAKE_SCORE_TRAINING_GENERATIONS)])
-            if spec["real_time"]:
-                command.extend(["--max-episode-steps", str(_REALTIME_TRAINING_STEP_LIMIT)])
-            if refresh_at:
-                command.extend(["--max-generations", str(refresh_at)])
+                       "--max-seconds", f"{soft_seconds:.1f}",
+                       "--target-win-rate", str(self.target_win_rate),
+                       "--head", "fixed" if head == "fixed" else "per_action"]
+            # Generation cap: the explicit cap, tightened to the concept-refresh generation when a refresh is armed.
+            gen_cap = min((g for g in (self.max_generations, refresh_at) if g), default=0)
+            if gen_cap:
+                command += ["--max-generations", str(gen_cap)]
+            if min_gens:
+                command += ["--min-generations", str(min_gens)]
+            if self.imitation is not None:
+                command += ["--imitation", str(self.imitation)]
             brain = subprocess.Popen(command, cwd=workdir, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
             stderr_lines: list[str] = []
@@ -256,7 +308,8 @@ class EnvTrainer(BrainTrainer):
                     try:
                         if parts[0] == "@NEW":
                             worker = SandboxProcess(source_path, cpu_seconds=self.timeout + 60)
-                            worker.request("configure", default=opponent_cfg)
+                            worker.request("configure", default=opponent_cfg, success_return=bar,
+                                           send_expert=(head != "fixed" or bool(self.imitation)))
                             workers[next_id] = worker
                             reply(f"OK {next_id} {spec['observation_size']} {spec['action']['n']}")
                             next_id += 1
@@ -312,7 +365,8 @@ class EnvTrainer(BrainTrainer):
                 raise BrainTrainingError(f"brain exported an unusable policy: {error}") from error
         result = EnvTrainResult(
             model, history, heldout, concepts, seed, opponent_label(opponent_cfg), policy,
-            target_reached, generation_limit_reached
+            target_reached, generation_limit_reached,
+            quality_mode=mode, success_return=bar, calibration=_calibration_summary(calibration),
         )
         if not (refresh_at and generation_limit_reached and not target_reached):
             return result
@@ -365,11 +419,16 @@ class EnvTrainer(BrainTrainer):
             brain_binary=binary,
             concept_bank=self.concept_bank,
             budget=self.budget,
-            population=self.population,
+            population=population,
             timeout=max(1, math.ceil(remaining)),
             target_win_rate=self.target_win_rate,
             evaluation_episodes=self.evaluation_episodes,
             evaluation_interval_generations=self.evaluation_interval_generations,
+            max_generations=self.max_generations,
+            min_generations=self.min_generations,
+            quality=self.quality,
+            head=self.head,
+            imitation=self.imitation,
             concept_refresh_generation=0,
             concept_refresh_episodes=self.concept_refresh_episodes,
             concept_refresh_max_steps=self.concept_refresh_max_steps,
@@ -413,7 +472,27 @@ class EnvTrainer(BrainTrainer):
             False,
             discovered,
             note,
+            quality_mode=restarted.quality_mode,
+            success_return=restarted.success_return,
+            calibration=restarted.calibration,
         )
+
+    def _quality_plan(self, source_path: Path, spec: dict[str, Any], opponent_cfg: dict[str, Any]):
+        """Decide how progress is scored and, for return-based quality, the success bar."""
+        single = len(spec["agents"]) == 1 or bool(spec.get("cooperative"))
+        if self.quality == "result" or (self.quality == "auto" and not single):
+            return "result", None, None
+        episodes = self._setting("GAME_ENV_CALIBRATION_EPISODES", 100, 10, 2000)
+        try:
+            with SandboxProcess(source_path, cpu_seconds=self.timeout + 60) as sandbox:
+                sandbox.request("configure", default=opponent_cfg)
+                calibration = learnability.run_calibration(sandbox, episodes=episodes)
+        except SandboxError as error:
+            raise BrainTrainingError(f"baseline calibration failed: {error.describe()}") from error
+        mode = learnability.quality_mode(spec, calibration, self.quality)
+        if mode == "result":
+            return "result", None, calibration
+        return "return", learnability.success_bar(calibration), calibration
 
     def train_self_play(
         self,
@@ -440,6 +519,17 @@ class EnvTrainer(BrainTrainer):
         return results
 
 
+def _calibration_summary(calibration: dict[str, Any] | None) -> dict[str, Any] | None:
+    if calibration is None:
+        return None
+    scripted = calibration["scripted"]
+    return {
+        "random_mean_return": calibration["random"]["mean_return"],
+        "random_mean_length": calibration["random"]["mean_length"],
+        "scripted_mean_return": scripted["mean_return"] if scripted else None,
+    }
+
+
 def evaluate_policy(
     source_path: Path,
     learner: dict[str, Any] | str,
@@ -456,4 +546,5 @@ def evaluate_policy(
         sandbox.request("configure", default=as_cfg(opponent))
         response = sandbox.request("evaluate", learner=as_cfg(learner), episodes=episodes, seed=seed)
     response.pop("ok", None)
+    response.pop("returns", None)
     return response

@@ -21,7 +21,11 @@ struct NeatCfg {
 };
 
 struct Stats { int gen; long steps; float best, mean; int species; float nodes, conns; long train_steps = 0, eval_steps = 0; std::vector<float> fitness; float diversity = 0, champ_nodes = 0, champ_conns = 0; };
-struct StopLimits { int max_gens = 0, min_gens = 0; double max_seconds = 0.0; };
+
+// Loop control for Population::run_until_win_rate (no effect on learning): a hard generation cap, a
+// wall-clock cap (stops gracefully so the champion is still exported), and a minimum number of
+// generations that overrides the step budget (long real-time episodes can exhaust a step budget in one generation).
+struct StopLimits { int max_gens = 0; int min_gens = 0; double max_seconds = 0.0; };
 
 class Population {
 public:

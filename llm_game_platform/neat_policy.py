@@ -13,9 +13,9 @@ import random
 from typing import Any, Sequence
 
 try:  # package import
-    from .policy import GridPolicy, _concept_value, _state_primitives
+    from .policy import GridPolicy, _concept_value, _state_primitives, parse_expression
 except ImportError:  # imported by path inside the sandbox worker
-    from policy import GridPolicy, _concept_value, _state_primitives  # type: ignore
+    from policy import GridPolicy, _concept_value, _state_primitives, parse_expression  # type: ignore
 
 
 def concept_features(trees: Sequence[Any], observation: Sequence[float], legal: Sequence[int],
@@ -51,6 +51,12 @@ def fixed_head_usable_concept(expression: str) -> bool:
             "transition_",
         )
     )
+_FIXED_HEAD_BANNED = ("action_norm", "action_wins_now", "action_blocks_opponent", "transition_")
+
+
+def fixed_head_concepts(concepts: Sequence[str]) -> list[str]:
+    """Concept expressions usable by the fixed head; mirrors C++ fixed_head_usable_concept()."""
+    return [c for c in concepts if not any(token in c for token in _FIXED_HEAD_BANNED)]
 
 
 class NeatPolicy(GridPolicy):

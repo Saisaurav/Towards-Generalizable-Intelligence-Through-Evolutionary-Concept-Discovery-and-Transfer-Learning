@@ -49,6 +49,8 @@ class EnvSession:
     target_reached: bool | None = None
     training_note: str | None = None
     concepts_added: list[str] = field(default_factory=list)
+    quality_mode: str = "result"
+    success_return: float | None = None
     concepts: list[str] = field(default_factory=list)
     policy_path: Path | None = None
     opponent: str = "random"
@@ -238,6 +240,7 @@ class EnvService:
             session.target_reached = result.target_reached
             session.concepts_added = result.concepts_added
             session.training_note = result.concept_refresh_note or session.training_note
+            session.quality_mode, session.success_return = result.quality_mode, result.success_return
             session.policy_path, session.training_status = policy_dir / "brain.json", "ready"
             self._configure(session)
 
@@ -336,6 +339,8 @@ class EnvService:
                 "training_target_reached": session.target_reached,
                 "training_note": session.training_note,
                 "training_concepts_added": session.concepts_added,
+                "training_quality_mode": session.quality_mode,
+                "training_success_return": session.success_return,
                 "concepts": session.concepts,
                 "opponent": session.opponent,
                 "human_seat": session.human_seat,

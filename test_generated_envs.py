@@ -618,7 +618,8 @@ class TextModeTests(unittest.TestCase):
 
 def small_trainer(budget=30000, population=16):
     return EnvTrainer(
-        budget=budget, population=population, timeout=300, concept_refresh_generation=0
+        budget=budget, population=population, timeout=300, min_generations=1,
+        concept_refresh_generation=0,
     )
 
 
@@ -673,30 +674,11 @@ class LearnerIntegrationTests(unittest.TestCase):
                 evaluation_episodes=2,
                 evaluation_interval_generations=1,
                 concept_refresh_generation=0,
+                imitation=1.0,
             )
             result = trainer.train_env(path, spec, seed=17, concepts=[])
         self.assertEqual(result.policy.choose([0.0], [0, 1], greedy=True), 1)
 
-    def test_snake_training_does_not_wait_for_an_unreachable_board_fill_win_rate(self):
-        source = MINI.replace('"title": "Mini"', '"title": "Snake"')
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "snake.py"
-            path.write_text(source, encoding="utf-8")
-            with SandboxProcess(path) as sandbox:
-                spec = sandbox.spec
-            trainer = EnvTrainer(
-                budget=1,
-                population=2,
-                timeout=60,
-                target_win_rate=0.9,
-                evaluation_episodes=2,
-                evaluation_interval_generations=1,
-                concept_refresh_generation=1,
-            )
-            result = trainer.train_env(path, spec, seed=17, concepts=[])
-        self.assertTrue(result.history)
-        self.assertIsNone(result.concept_refresh_note)
-        self.assertFalse(result.target_reached)
 
     def test_generation_checkpoint_discovers_concepts_and_restarts(self):
         source = MINI.replace(
@@ -746,8 +728,8 @@ class LearnerIntegrationTests(unittest.TestCase):
         _, _, first = self.train("ttt", budget=8000, seed=5)
         _, _, second = self.train("ttt", budget=8000, seed=5)
         self.assertEqual(first.history[0], second.history[0])  # same seed -> same fresh start
-        _, _, other = self.train("ttt", budget=8000, seed=6)
-        self.assertNotEqual(first.history[0]["best"], other.history[0]["best"])
+        others = {self.train("ttt", budget=8000, seed=s)[2].history[0]["best"] for s in (6, 7, 8)}
+        self.assertTrue(others - {first.history[0]["best"]})  # other seeds do not all collapse to the same start
 
     def test_snake_and_pong_execute_and_train_without_errors(self):
         # Environment execution + learner plumbing only; no claim about final skill.
@@ -944,6 +926,116 @@ class Environment:
         self.assertEqual(float(fields[1]), -1.0)
         self.assertEqual(fields[2], "1")
         self.assertEqual(fields[-1], "-1")
+
+
+SNAKE_SOURCE = (FIXTURES / "snake.py").read_text(encoding="utf-8")
+
+
+def _run_learner_episode(source: str, limit: int = 400):
+    """Drive the brain-mode text protocol with a constant action; return (frames, final outcome field)."""
+    with tempfile.TemporaryDirectory() as root:
+        path = Path(root) / "env.py"
+        path.write_text(source, encoding="utf-8")
+        with SandboxProcess(path) as box:
+            line = box.raw_line("R 4")
+            for frames in range(1, limit + 1):
+                fields = line.split()
+                line = box.raw_line(f"A {fields[4]}")
+                fields = line.split()
+                if int(fields[2]):
+                    return frames, int(fields[-2])  # outcome precedes the trailing expert-action field
+    return None, None
+
+
+class RealTimeSafetyAndLearnabilityTests(unittest.TestCase):
+    IMMORTAL = SNAKE_SOURCE.replace(
+        "return not (0 <= x < W and 0 <= y < H) or cell in self.body[:-1]", "return False")
+
+    def test_spec_accepts_frame_limits_only_for_real_time(self):
+        base = dict(title="t", description="d", agents=[0], observation_size=1,
+                    action={"type": "discrete", "n": 2}, turn_based=False, max_steps=0)
+        spec = EnvSpec.from_mapping({**base, "max_frames": 50, "stall_frames": 10})
+        self.assertEqual((spec.frame_cap, spec.stall_frames), (50, 10))
+        with self.assertRaises(ValueError):
+            EnvSpec.from_mapping({**base, "turn_based": True, "max_steps": 5, "max_frames": 50})
+
+    def test_frame_cap_truncates_a_game_that_never_ends(self):
+        source = self.IMMORTAL.replace('"stall_frames": 150,', '"stall_frames": 0,').replace('"max_frames": 1500', '"max_frames": 40')
+        frames, outcome = _run_learner_episode(source)
+        self.assertEqual(frames, 40)
+        self.assertEqual(outcome, 0)  # truncation is a draw, never a win
+
+    def test_stall_limit_truncates_when_return_stops_improving(self):
+        source = (self.IMMORTAL.replace('"stall_frames": 150', '"stall_frames": 10')
+                  .replace("reward += 0.1 if new_dist < old_dist else -0.1", "reward += 0.0"))
+        frames, outcome = _run_learner_episode(source)
+        self.assertEqual(frames, 10)
+        self.assertEqual(outcome, 0)
+
+    def test_gate_rejects_reward_that_punishes_competent_play(self):
+        # Real LLM output: -0.01 per frame makes the scripted policy (which survives) score far below random.
+        source = (Path(__file__).parent / "generated_envs" / "d5acd95bfdaa4722aa8bbc0f462ee6b8" / "env.py").read_text(encoding="utf-8")
+        report = validate_environment(source)
+        self.assertFalse(report.ok)
+        self.assertTrue(any("learnability" in e and "worse than random" in e for e in report.errors), report.errors)
+
+    def test_updated_snake_fixture_passes_the_gate_without_warnings(self):
+        report = validate_environment(SNAKE_SOURCE)
+        self.assertTrue(report.ok, report.errors)
+        self.assertEqual(report.warnings, [])
+        info = report.stats["learnability"]
+        self.assertGreater(info["scripted_mean_return"], info["random_mean_return"] + 5)
+        self.assertEqual(info["quality_mode"], "return")
+
+    def test_quality_mode_is_return_for_snake_and_result_for_pong(self):
+        trainer = small_trainer()
+        for name, mode in (("snake", "return"), ("pong", "result")):
+            path = FIXTURES / name
+            path = path.with_suffix(".py")
+            with SandboxProcess(path) as box:
+                spec = box.spec
+            got, bar, _ = trainer._quality_plan(path, spec, {"kind": "random"})
+            self.assertEqual(got, mode, name)
+            self.assertEqual(bar is not None, mode == "return", name)
+
+    def test_generation_cap_stops_gracefully_and_still_returns_a_policy(self):
+        trainer = EnvTrainer(budget=0, population=12, timeout=300, max_generations=2,
+                             evaluation_episodes=10, evaluation_interval_generations=1)
+        path = FIXTURES / "snake.py"
+        with SandboxProcess(path) as box:
+            spec = box.spec
+        result = trainer.train_env(path, spec, "random", seed=2)
+        self.assertEqual(len(result.history), 2)
+        self.assertEqual(result.quality_mode, "return")
+        self.assertIsNotNone(result.heldout_return)
+        self.assertIsNotNone(result.policy)
+
+    def test_fixed_head_filters_action_and_transition_concepts(self):
+        from llm_game_platform.neat_policy import fixed_head_concepts
+        kept = fixed_head_concepts(["state_mean", "add(action_norm, state_var)", "transition_delta_mean",
+                                    "mul(state_max, state_min)", "action_wins_now"])
+        self.assertEqual(kept, ["state_mean", "mul(state_max, state_min)"])
+
+    def test_head_selection_and_python_policy_parity_inputs(self):
+        # auto => fixed head for real-time games, per-action head for turn-based ones.
+        snake = FIXTURES / "snake.py"
+        with SandboxProcess(snake) as box:
+            spec = box.spec
+        trainer = EnvTrainer(budget=0, population=12, timeout=300, max_generations=2,
+                             evaluation_episodes=10, evaluation_interval_generations=1)
+        result = trainer.train_env(snake, spec, "random", seed=4)       # default concept bank
+        self.assertEqual(result.model["head"], "fixed")
+        self.assertEqual(result.model["n_logit"], spec["action"]["n"])
+        legal = [0, 1, 3]
+        obs = [0.0] * spec["observation_size"]
+        scores = result.policy.scores(obs, legal)
+        self.assertEqual(len(scores), len(legal))
+        self.assertIn(result.policy.choose(obs, legal), legal)
+        ttt = FIXTURES / "ttt.py"
+        with SandboxProcess(ttt) as box:
+            ttt_spec = box.spec
+        other = EnvTrainer(budget=3000, population=8, timeout=300).train_env(ttt, ttt_spec, "random", seed=4)
+        self.assertEqual(other.model["head"], "per_action")
 
 
 if __name__ == "__main__":

@@ -52,12 +52,16 @@ class Environment:
             raise ValueError("episode finished")
         self.pos = max(0, min(LENGTH - 1, self.pos + actions[0] - 1))
         self.t += 1
-        reward = -0.01
+        reward = -0.001
         if self.pos in self.coins:
             self.coins.discard(self.pos)
             self.collected += 1
             reward += 1.0
         return {0: reward}
+
+    def scripted_action(self, agent_id):
+        target = min(self.coins, key=lambda c: abs(c - self.pos)) if self.coins else self.pos
+        return 0 if target < self.pos else (2 if target > self.pos else 1)
 
     def is_terminal(self):
         return not self.coins
@@ -124,10 +128,13 @@ RULES THE RUNTIME ENFORCES (violations are reported back to you for repair)
   each agent's own perspective.
 - result(agent_id) returns "win", "loss" or "draw" once is_terminal() is True.
 - Every episode must end by its game rules. Turn-based games use max_steps from
-  1 through 10000 as a runtime safety limit. Real-time games use max_steps = 0
-  (no frame-count limit) and must terminate through gameplay, never by running
-  out of frames or time. For Snake, collision is a loss and filling the board
-  is a win; reaching a frame count is never a win.
+  1 through 10000 as a runtime safety limit. Real-time games use max_steps = 0 and end
+  through gameplay whenever the rules allow (for Snake, collision is a loss and filling the
+  board is a win). The runtime ALSO truncates every real-time episode at SPEC["max_frames"]
+  (default 3000) and, if SPEC["stall_frames"] > 0, after that many frames without a new best
+  cumulative return; truncation is a draw, never a win. Set both for survival-style games
+  (e.g. "max_frames": 1500, "stall_frames": 150 for Snake) so a policy that learns to circle
+  safely forever cannot stall training.
 - If all agents have identical roles and observe() is perspective-relative, set
   "symmetric_agents": True so the learner trains from every seat.
 - Prefer discrete actions (the learner can train on them). Use a continuous action
@@ -151,13 +158,30 @@ RULES THE RUNTIME ENFORCES (violations are reported back to you for repair)
   brain-play frame speed.
 - For Snake, default to a real-time, one-action-per-frame game unless the user
   explicitly requests turn-based play. Keep the snake's head/body ordering
-  consistent with its initial heading, and expose food, head, body, and direction
-  in the observation. Exclude reverse moves; when any safe move exists, legal
-  actions should also exclude moves into a wall or the body (including the tail
-  cell only when it will not move). Give food-seeking progress a small bounded
-  reward and implement scripted_action(agent_id) as a safe, legal food-seeking
-  controller so it can guide learner training.
+  consistent with its initial heading. Exclude reverse moves; when any safe move
+  exists, legal actions should also exclude moves into a wall or the body (including
+  the tail cell only when it will not move). scripted_action(agent_id) must be a safe,
+  legal food-seeking controller: the validator uses it as the competence reference.
 - Keep each call fast (well under a millisecond-scale game tick); no unbounded loops.
+
+MAKE THE GAME LEARNABLE (a small evolved network must be able to learn it; the validator
+measures this and rejects games whose reward does not separate good play from random play)
+- Observation: give EGOCENTRIC / RELATIVE features, not a raw grid or absolute coordinates. Good: signed
+  offset (dx, dy) to the goal/target/ball scaled to [-1, 1], danger flags for the cells/directions the
+  next move would enter (wall, hazard, own body), own heading/velocity as one-hot or signed numbers,
+  distances to the nearest hazard. Keep observation_size small (about 8-32). For Snake that means
+  food direction, danger straight/left/right (or up/down/left/right) and current heading, NOT a 10x10 grid.
+  For a ball-and-paddle game: ball.y - paddle.y, ball velocity, ball.x distance, not absolute pixels.
+- Actions: if some actions are illegal or pointless in a state (e.g. reversing into your own neck), leave
+  them out of legal_actions() instead of punishing them.
+- Reward: terminal outcomes dominate (+1 win / -1 loss), plus small dense shaping for measurable progress
+  (e.g. +0.1 for moving closer to the goal or returning the ball, -0.1 for moving away). Any per-frame
+  penalty must be tiny (<= 0.001); a step penalty that makes surviving cost more than dying teaches the
+  agent to die immediately. Staying alive and succeeding must always score higher than failing.
+- Always implement scripted_action(agent_id) for the learner's seat as a simple but competent policy; the
+  validator compares it with random play and rejects rewards under which competent play scores worse.
+- Make early success reachable by chance: the goal must be reachable within a few dozen random moves so the
+  learner sees positive reward in its first generations.
 
 EXAMPLE (an unrelated tiny game, showing every required piece):
 ```python

@@ -17,12 +17,12 @@ struct NetSpec {
 };
 
 struct Node { int id; uint8_t type; };
-struct Conn { int innov, from, to; float w; bool en; float am = 0.f, av = 0.f; };
+struct Conn { int innov, from, to; float w; bool en; float am = 0.f, av = 0.f; };   // am/av: persisted Adam moments (used only with PPOCfg.persist_adam)
 struct Genome {
   std::vector<Node> nodes;
   std::vector<Conn> conns;                       // kept sorted by innov
   float fitness = 0, prev_fit = 0; int species = -1; long adam_t = 0;
-  std::vector<float> logstd, ls_m, ls_v;
+  std::vector<float> logstd, ls_m, ls_v;           // continuous-action head: state-independent log-std (+ persisted Adam moments)
   int type_of(int id) const { for (auto& n : nodes) if (n.id == id) return n.type; return -1; }
   bool has_conn(int f, int t) const { for (auto& c : conns) if (c.from == f && c.to == t) return true; return false; }
 };

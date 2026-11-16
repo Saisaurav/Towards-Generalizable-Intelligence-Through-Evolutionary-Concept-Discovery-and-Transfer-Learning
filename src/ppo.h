@@ -6,8 +6,8 @@
 struct PPOCfg {
   int iters = 2;          // PPO iterations per genome per generation (0 => pure neuroevolution)
   int rollout = 256, epochs = 4, minibatch = 64;
-  bool train_fitness = false;
-  bool persist_adam = false;
+  bool train_fitness = false;   // fitness = mean episode return seen during PPO rollouts (no separate eval episodes)
+  bool persist_adam = false;    // Adam moments live on the genome's connections and survive across generations
   bool greedy_eval = false;   // fitness evaluation episodes take argmax over legal actions instead of sampling
   float imitation = 0.f;
   float lr = 2e-3f, gamma = 0.99f, lam = 0.95f, clip = 0.2f, vf = 0.5f, ent = 0.01f, max_grad = 0.5f;
