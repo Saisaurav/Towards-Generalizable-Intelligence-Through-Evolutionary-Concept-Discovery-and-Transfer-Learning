@@ -1,0 +1,78 @@
+{
+  "id": "ae42e3a5d94f2743b635d882c31d82aa",
+  "created": "2026-11-16T13:24:59Z",
+  "prompt": "[built-in] Tic-Tac-Toe, two players on a 3x3 board",
+  "model": "hand-written",
+  "attempts": 1,
+  "source_sha256": "47d342a53a80b799cee0f07704fd21fd9be54fe56f3b2a7710f495c5d6ef81e3",
+  "spec": {
+    "title": "Tic-Tac-Toe",
+    "description": "Two players alternate placing marks on a 3x3 board; three in a row wins, a full board is a draw.",
+    "agents": [
+      0,
+      1
+    ],
+    "observation_size": 18,
+    "action": {
+      "type": "discrete",
+      "n": 9
+    },
+    "turn_based": true,
+    "real_time": false,
+    "max_steps": 10,
+    "learner_agent": 0,
+    "symmetric_agents": true,
+    "noop_action": null,
+    "tick_ms": 150,
+    "controls": {},
+    "action_names": [
+      "top-left",
+      "top",
+      "top-right",
+      "left",
+      "center",
+      "right",
+      "bottom-left",
+      "bottom",
+      "bottom-right"
+    ],
+    "cooperative": false,
+    "hold_last_action": false,
+    "max_frames": 0,
+    "stall_frames": 0,
+    "trainable": true,
+    "untrainable_reason": null,
+    "has_render_text": true
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "stats": {
+      "episodes": 24,
+      "terminated": 24,
+      "truncated": 0,
+      "mean_steps": 7.583333333333333,
+      "max_steps_seen": 9,
+      "results": {
+        "0": {
+          "win": 17,
+          "draw": 3,
+          "loss": 4
+        },
+        "1": {
+          "loss": 17,
+          "draw": 3,
+          "win": 4
+        }
+      },
+      "learnability": {
+        "random_mean_return": -0.18333333333333332,
+        "scripted_mean_return": 0.9166666666666666,
+        "random_mean_length": 3.783333333333333,
+        "quality_mode": "result"
+      }
+    },
+    "validator_version": 1
+  }
+}

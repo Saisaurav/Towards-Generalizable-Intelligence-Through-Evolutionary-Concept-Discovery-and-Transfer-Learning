@@ -1,0 +1,75 @@
+{
+  "id": "806b58aee103d0989ac9180249565f9f",
+  "created": "2026-11-16T13:25:00Z",
+  "prompt": "[built-in] Pong, real-time, two paddles",
+  "model": "hand-written",
+  "attempts": 1,
+  "source_sha256": "ec6637ffc073ce2487f3fb00982422bef07f1b17a644cae5bfad2838b0388798",
+  "spec": {
+    "title": "Pong (real-time)",
+    "description": "Two paddles, one ball, played in real time. Return the ball and score when the opponent misses; first to 5 points wins.",
+    "agents": [
+      0,
+      1
+    ],
+    "observation_size": 8,
+    "action": {
+      "type": "discrete",
+      "n": 3
+    },
+    "turn_based": false,
+    "real_time": true,
+    "max_steps": 0,
+    "learner_agent": 0,
+    "symmetric_agents": true,
+    "noop_action": 1,
+    "tick_ms": 40,
+    "controls": {
+      "ArrowUp": 0,
+      "ArrowDown": 2,
+      "w": 0,
+      "s": 2
+    },
+    "action_names": [
+      "up",
+      "stay",
+      "down"
+    ],
+    "cooperative": false,
+    "hold_last_action": false,
+    "max_frames": 4000,
+    "stall_frames": 500,
+    "trainable": true,
+    "untrainable_reason": null,
+    "has_render_text": true
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "stats": {
+      "episodes": 24,
+      "terminated": 24,
+      "truncated": 0,
+      "mean_steps": 355.6666666666667,
+      "max_steps_seen": 601,
+      "results": {
+        "0": {
+          "win": 13,
+          "loss": 11
+        },
+        "1": {
+          "loss": 13,
+          "win": 11
+        }
+      },
+      "learnability": {
+        "random_mean_return": -0.17833333333333332,
+        "scripted_mean_return": 5.198333333333333,
+        "random_mean_length": 309.45,
+        "quality_mode": "result"
+      }
+    },
+    "validator_version": 1
+  }
+}

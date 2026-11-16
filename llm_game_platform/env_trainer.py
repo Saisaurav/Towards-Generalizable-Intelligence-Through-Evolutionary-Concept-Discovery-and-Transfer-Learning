@@ -73,7 +73,7 @@ def opponent_label(opponent: dict[str, Any] | str) -> str:
 
 
 class EnvTrainer(BrainTrainer):
-    """Train generated games to a target, with one optional generation-20 feature refresh."""
+    """Train to staged win-rate checkpoints, with one optional generation-60 feature refresh."""
 
     def __init__(
         self,
@@ -176,7 +176,7 @@ class EnvTrainer(BrainTrainer):
             raise ValueError("evaluation_interval_generations must be between 1 and 10000")
         self.concept_refresh_generation = (
             concept_refresh_generation if concept_refresh_generation is not None
-            else self._setting("GAME_ENV_CONCEPT_REFRESH_GENERATION", 20, 0, 10000)
+            else self._setting("GAME_ENV_CONCEPT_REFRESH_GENERATION", 60, 0, 10000)
         )
         self.concept_refresh_episodes = concept_refresh_episodes
         self.concept_refresh_max_steps = concept_refresh_max_steps
@@ -216,7 +216,7 @@ class EnvTrainer(BrainTrainer):
         generation_limit_reached = False
         errors: list[str] = []
         workers: dict[int, SandboxProcess] = {}
-        # The generation-20 GP concept refresh is for the per-action head. The fixed (real-time) head drops every
+        # The generation-60 GP concept refresh is for the per-action head. The fixed (real-time) head drops every
         # action-dependent concept and reaches its target well before that, so the refresh is not armed for it.
         refresh_at = (
             self.concept_refresh_generation
@@ -237,6 +237,8 @@ class EnvTrainer(BrainTrainer):
             gen_cap = min((g for g in (self.max_generations, refresh_at) if g), default=0)
             if gen_cap:
                 command += ["--max-generations", str(gen_cap)]
+            if refresh_at:
+                command += ["--target-stop-generation", str(max(1, (refresh_at + 1) // 2))]
             if min_gens:
                 command += ["--min-generations", str(min_gens)]
             if self.imitation is not None:

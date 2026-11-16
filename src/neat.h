@@ -23,9 +23,15 @@ struct NeatCfg {
 struct Stats { int gen; long steps; float best, mean; int species; float nodes, conns; long train_steps = 0, eval_steps = 0; std::vector<float> fitness; float diversity = 0, champ_nodes = 0, champ_conns = 0; };
 
 // Loop control for Population::run_until_win_rate (no effect on learning): a hard generation cap, a
-// wall-clock cap (stops gracefully so the champion is still exported), and a minimum number of
-// generations that overrides the step budget (long real-time episodes can exhaust a step budget in one generation).
-struct StopLimits { int max_gens = 0; int min_gens = 0; double max_seconds = 0.0; };
+// wall-clock cap (stops gracefully so the champion is still exported), a minimum number of
+// generations that overrides the step budget, and an optional first generation checkpoint for
+// target-based stopping.
+struct StopLimits {
+  int max_gens = 0;
+  int min_gens = 0;
+  int target_stop_generation = 0;
+  double max_seconds = 0.0;
+};
 
 class Population {
 public:
@@ -111,7 +117,8 @@ public:
                           long max_steps, const char* csv = nullptr,
                           const StopLimits& limits = StopLimits{}) {
     if (!(target > 0.0 && target <= 1.0) || eval_episodes < 1 || eval_every_generations < 1 ||
-        limits.max_gens < 0 || limits.min_gens < 0 || limits.max_seconds < 0.0)
+        limits.max_gens < 0 || limits.min_gens < 0 || limits.target_stop_generation < 0 ||
+        limits.max_seconds < 0.0)
       throw std::invalid_argument("invalid win-rate stopping configuration");
     FILE* f = csv ? std::fopen(csv, "w") : nullptr;
     if (f) std::fprintf(f, "gen,steps,best,mean,species,nodes,conns\n");
@@ -136,6 +143,11 @@ public:
       if (gen < limits.min_gens) return true;
       return max_steps <= 0 || (cfg.budget_train_only ? train_steps.load() : steps.load()) < max_steps;
     };
+    auto may_stop_for_quality = [&](int generation) {
+      return limits.target_stop_generation == 0 ||
+          generation == limits.target_stop_generation ||
+          (limits.max_gens > 0 && generation >= limits.max_gens);
+    };
     while (may_continue()) {
       Stats s = step();
       std::printf("gen %3d steps %9ld best %8.2f mean %8.2f sp %2d nodes %5.1f conns %5.1f train %ld eval %ld\n",
@@ -145,12 +157,17 @@ public:
                      s.gen, s.steps, s.best, s.mean, s.species, s.nodes, s.conns);
         std::fflush(f);
       }
-      if (gen % eval_every_generations == 0 && check_quality()) {
-        reached = true;
-        break;
+      const bool checkpoint = gen == limits.target_stop_generation ||
+          (limits.max_gens > 0 && gen >= limits.max_gens);
+      if (gen % eval_every_generations == 0 || checkpoint) {
+        if (check_quality() && may_stop_for_quality(gen)) {
+          reached = true;
+          break;
+        }
       }
     }
-    if (!reached && gen > 0 && last_eval_gen != gen) reached = check_quality();
+    if (!reached && gen > 0 && last_eval_gen != gen)
+      reached = check_quality() && may_stop_for_quality(gen);
     std::printf("TARGET_REACHED %d\n", reached ? 1 : 0);
     std::printf("GENERATION_LIMIT_REACHED %d\n",
                 (!reached && limits.max_gens > 0 && gen >= limits.max_gens) ? 1 : 0);

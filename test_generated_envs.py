@@ -317,8 +317,8 @@ class SnakeAndPongRuleTests(unittest.TestCase):
         self.assertEqual(env.result(0), "win")
 
     def test_saved_snake_has_no_frame_count_win(self):
-        source = Path(__file__).parent / "generated_envs" / "bc35b744ff9244d49dad31c10fa507f1" / "env.py"
-        spec = importlib.util.spec_from_file_location("saved_snake", source)
+        source = Path(__file__).parent / "builtin_envs" / "snake.py"
+        spec = importlib.util.spec_from_file_location("builtin_snake", source)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         env = module.Environment()
@@ -645,12 +645,13 @@ class LearnerIntegrationTests(unittest.TestCase):
                 timeout=60,
                 target_win_rate=0.9,
                 evaluation_episodes=5,
-                evaluation_interval_generations=1,
+                evaluation_interval_generations=30,
             )
             result = trainer.train_env(path, spec, seed=17, concepts=[])
         self.assertTrue(result.target_reached)
         self.assertEqual(result.history[-1]["win_rate"], 1.0)
         self.assertEqual(result.history[-1]["win_or_draw_rate"], 1.0)
+        self.assertEqual(result.history[-1]["gen"], 29)
 
     def test_training_imitates_scripted_actions(self):
         source = MINI.replace(
@@ -692,13 +693,13 @@ class LearnerIntegrationTests(unittest.TestCase):
                 spec = sandbox.spec
             notes = []
             trainer = EnvTrainer(
-                budget=1,
+                budget=0,
                 population=2,
                 timeout=60,
                 target_win_rate=0.9,
                 evaluation_episodes=2,
-                evaluation_interval_generations=1,
-                concept_refresh_generation=1,
+                evaluation_interval_generations=30,
+                concept_refresh_generation=60,
                 concept_refresh_episodes=8,
                 concept_refresh_max_steps=12,
             )
@@ -707,9 +708,11 @@ class LearnerIntegrationTests(unittest.TestCase):
             )
         self.assertFalse(result.target_reached)
         self.assertIn("restarted training", result.concept_refresh_note)
+        self.assertIn("Generation 60", result.concept_refresh_note)
         self.assertTrue(any("collecting game episodes" in note for note in notes))
-        self.assertGreaterEqual(len(result.history), 2)
-        self.assertGreater(result.history[-1]["gen"], result.history[0]["gen"])
+        self.assertEqual(result.history[29]["gen"], 29)
+        self.assertEqual(result.history[59]["gen"], 59)
+        self.assertGreater(result.history[-1]["gen"], result.history[59]["gen"])
 
     def test_ttt_trains_and_python_policy_matches_cpp_heldout(self):
         path, spec, result = self.train("ttt", budget=60000)
@@ -974,7 +977,11 @@ class RealTimeSafetyAndLearnabilityTests(unittest.TestCase):
 
     def test_gate_rejects_reward_that_punishes_competent_play(self):
         # Real LLM output: -0.01 per frame makes the scripted policy (which survives) score far below random.
-        source = (Path(__file__).parent / "generated_envs" / "d5acd95bfdaa4722aa8bbc0f462ee6b8" / "env.py").read_text(encoding="utf-8")
+        # Snake whose per-frame penalty outweighs everything: dying early beats surviving and eating.
+        source = (fixture_source("snake")
+                  .replace("reward = -0.001", "reward = -0.5")
+                  .replace("reward += 0.1 if new_dist < old_dist else -0.1", "reward += 0.0")
+                  .replace("reward += 1.0", "reward += 0.2"))
         report = validate_environment(source)
         self.assertFalse(report.ok)
         self.assertTrue(any("learnability" in e and "worse than random" in e for e in report.errors), report.errors)

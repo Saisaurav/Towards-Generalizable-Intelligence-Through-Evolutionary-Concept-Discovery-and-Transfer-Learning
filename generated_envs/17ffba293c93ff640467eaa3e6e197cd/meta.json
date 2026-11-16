@@ -1,0 +1,74 @@
+{
+  "id": "17ffba293c93ff640467eaa3e6e197cd",
+  "created": "2026-11-16T14:38:44Z",
+  "prompt": "[built-in] Snake, real-time, single player",
+  "model": "hand-written",
+  "attempts": 1,
+  "source_sha256": "87e134cf9af66916088668ef3f77b0de7903f0a1da5be96421ee3926c2196778",
+  "spec": {
+    "title": "Snake (real-time)",
+    "description": "Steer a growing snake around a 10x10 board in real time. Eat food, avoid the walls and your own body; fill the board to win.",
+    "agents": [
+      0
+    ],
+    "observation_size": 15,
+    "action": {
+      "type": "discrete",
+      "n": 4
+    },
+    "turn_based": false,
+    "real_time": true,
+    "max_steps": 0,
+    "learner_agent": 0,
+    "symmetric_agents": false,
+    "noop_action": 1,
+    "tick_ms": 150,
+    "controls": {
+      "ArrowUp": 0,
+      "ArrowRight": 1,
+      "ArrowDown": 2,
+      "ArrowLeft": 3,
+      "w": 0,
+      "d": 1,
+      "s": 2,
+      "a": 3
+    },
+    "action_names": [
+      "up",
+      "right",
+      "down",
+      "left"
+    ],
+    "cooperative": false,
+    "hold_last_action": true,
+    "max_frames": 2000,
+    "stall_frames": 200,
+    "trainable": true,
+    "untrainable_reason": null,
+    "has_render_text": true
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "stats": {
+      "episodes": 24,
+      "terminated": 24,
+      "truncated": 0,
+      "mean_steps": 25.166666666666668,
+      "max_steps_seen": 76,
+      "results": {
+        "0": {
+          "loss": 24
+        }
+      },
+      "learnability": {
+        "random_mean_return": -1.006666666666667,
+        "scripted_mean_return": 24.53500000000001,
+        "random_mean_length": 21.48333333333333,
+        "quality_mode": "return"
+      }
+    },
+    "validator_version": 1
+  }
+}

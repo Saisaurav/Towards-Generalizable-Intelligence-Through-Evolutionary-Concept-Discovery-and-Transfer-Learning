@@ -229,11 +229,11 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 cd src && make && cd ..              # builds brain (now with `ext` mode)
 pip install -r requirements.txt
 export LLM_API_KEY=...               # as before (see llm_game_platform/llm.py)
-export GAME_ENV_TARGET_WIN_RATE=0.90     # stop when win rate reaches 90% (fraction, default 0.90)
+export GAME_ENV_TARGET_WIN_RATE=0.90     # threshold at G30/G60 for per-action-head training (default 0.90)
 export GAME_ENV_EVAL_EPISODES=100        # episodes per quality check (default 100)
 export GAME_ENV_EVAL_INTERVAL_GENERATIONS=5  # generations between checks (default 5)
 export GAME_ENV_MAX_STEPS=0              # optional training-step cap; 0 means no step cap
-export GAME_ENV_CONCEPT_REFRESH_GENERATION=20  # one GP refresh/restart if target is unmet (per-action head only)
+export GAME_ENV_CONCEPT_REFRESH_GENERATION=60  # refresh/restart only if still below target at G60 (per-action head)
 # GAME_TRAINING_TIMEOUT is 900 seconds per phase by default; refresh allows one extra phase.
 python -m llm_game_platform.server   # open the page; default tab = "Any game (generated Python)"
 python generate_env.py --acceptance ttt --train      # CLI: generate + validate + train

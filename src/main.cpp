@@ -69,7 +69,7 @@ int main(int argc,char**argv){
     return 0;
   }
   try {
-    if(argc<5){std::fprintf(stderr,"usage: %s <game> <concept-file> <budget> <seed> [pop] [model-output] [options]\n       %s ext <concept-file> <budget> <seed> [pop] [model-output] [--head fixed|per_action --max-episode-steps N --target-win-rate F --max-generations N --max-seconds S]\n       %s pointmass <concept-file> <budget> <seed> [pop] [model-output] [--env-args key=value,... --stack N --robust N]\n       %s grid <grid-spec-file> <concept-file> <budget> <seed> [pop] [model-output]\n",argv[0],argv[0],argv[0],argv[0]);return 2;}
+    if(argc<5){std::fprintf(stderr,"usage: %s <game> <concept-file> <budget> <seed> [pop] [model-output] [options]\n       %s ext <concept-file> <budget> <seed> [pop] [model-output] [--head fixed|per_action --max-episode-steps N --target-win-rate F --target-stop-generation N --max-generations N --max-seconds S]\n       %s pointmass <concept-file> <budget> <seed> [pop] [model-output] [--env-args key=value,... --stack N --robust N]\n       %s grid <grid-spec-file> <concept-file> <budget> <seed> [pop] [model-output]\n",argv[0],argv[0],argv[0],argv[0]);return 2;}
     std::string game=argv[1];
     int arg=2;
     std::unique_ptr<Env> base;
@@ -130,6 +130,7 @@ int main(int argc,char**argv){
       else if (option == "--imitation") imitation = (float)std::atof(argv[arg++]);
       else if (option == "--max-generations") limits.max_gens = std::atoi(argv[arg++]);
       else if (option == "--min-generations") limits.min_gens = std::atoi(argv[arg++]);
+      else if (option == "--target-stop-generation") limits.target_stop_generation = std::atoi(argv[arg++]);
       else if (option == "--max-seconds") limits.max_seconds = std::atof(argv[arg++]);
       else if (option == "--max-episode-steps") max_episode_steps = std::atoi(argv[arg++]);
       else throw std::runtime_error("unknown option: " + option);
@@ -168,6 +169,7 @@ int main(int argc,char**argv){
       throw std::runtime_error("--head fixed is only supported for ext environments");
     if (stack_k < 1 || stack_k > 32) throw std::runtime_error("--stack must be in 1..32");
     if (robust_eps < 0 || max_episode_steps < 0 || limits.max_gens < 0 || limits.min_gens < 0 ||
+        limits.target_stop_generation < 0 ||
         !std::isfinite(limits.max_seconds) || limits.max_seconds < 0.0)
       throw std::runtime_error("invalid robustness or stopping limit");
     if (eval_episodes < 1 || eval_interval < 1)

@@ -6,7 +6,12 @@ src/regression_test
 *.o
 __pycache__/
 src/*.csv
-generated_envs/
+# user/LLM-generated envs stay local; the hand-written built-ins (see install_builtin_envs.py) are tracked
+generated_envs/*
+!generated_envs/ae42e3a5d94f2743b635d882c31d82aa/
+!generated_envs/09afe11ba8547c9c2a839c7a5b95a751/
+!generated_envs/17ffba293c93ff640467eaa3e6e197cd/
+!generated_envs/806b58aee103d0989ac9180249565f9f/
 node_modules/
 src/brain
 src/runner

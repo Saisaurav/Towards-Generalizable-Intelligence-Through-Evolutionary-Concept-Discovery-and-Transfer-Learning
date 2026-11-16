@@ -263,6 +263,12 @@ python3 generate_env.py --acceptance ttt --train   # CLI: generate + validate + 
 python3 play_cli.py generated_env_fixtures/ttt.py  # terminal play of a hand-written fixture, no LLM needed
 ```
 
+Built-in environments: `generated_envs/` ships with four hand-written, untrained games (no policies) -
+Tic-Tac-Toe, Connect 4, Snake (real-time) and Pong (real-time). Sources live in `builtin_envs/`; run
+`python3 install_builtin_envs.py` to re-validate and re-install them. In the web UI pick one under
+"Load a saved environment..." and press train; the trained policy is written to
+`generated_envs/<id>/policies/brain.json`.
+
 Tests: `python3 -m unittest test_generated_envs test_llm_game_platform test_concept_bank` (platform; slow),
 `python3 -m unittest test_novelty_monitor test_gp_selection test_action_primitives` (research),
 `cd src && make test-envs` (C++; includes the fixed-head and continuous-action integration test).
