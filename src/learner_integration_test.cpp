@@ -4,6 +4,9 @@
 #include <cassert>
 #include <cmath>
 #include <memory>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 
 class FixedHeadTestEnv : public Env {
 public:
@@ -97,14 +100,26 @@ int main() {
     learner.ppo.minibatch = 8;
     learner.ppo.train_fitness = true;
     learner.ppo.persist_adam = true;
-    Population population(env, learner);
-    population.step();
-    assert(population.pop[0].logstd.size() == 2);
-    assert(population.pop[0].ls_m.size() == 2);
-    assert(population.pop[0].adam_t > 0);
-    population.step();
-    assert(population.pop[0].adam_t > 0);
-    for (float value : population.pop[0].logstd) assert(std::isfinite(value));
+    const auto record_dir = std::filesystem::temp_directory_path() / "frameforge_genome_recorder_test";
+    std::filesystem::remove_all(record_dir);
+    {
+      Population population(env, learner);
+      population.enable_genome_recording(record_dir);
+      population.step();
+      assert(population.pop[0].logstd.size() == 2);
+      assert(population.pop[0].ls_m.size() == 2);
+      assert(population.pop[0].adam_t > 0);
+      population.step();
+      assert(population.pop[0].adam_t > 0);
+      for (float value : population.pop[0].logstd) assert(std::isfinite(value));
+    }  // recorder joins and flushes its pending snapshots here
+    const auto snapshot_path = record_dir / "generation_0.json";
+    assert(std::filesystem::is_regular_file(snapshot_path));
+    std::ifstream snapshot_file(snapshot_path);
+    std::ostringstream snapshot_text; snapshot_text << snapshot_file.rdbuf();
+    assert(snapshot_text.str().find("\"population\"") != std::string::npos);
+    assert(snapshot_text.str().find("\"connections\"") != std::string::npos);
+    std::filesystem::remove_all(record_dir);
   }
   return 0;
 }

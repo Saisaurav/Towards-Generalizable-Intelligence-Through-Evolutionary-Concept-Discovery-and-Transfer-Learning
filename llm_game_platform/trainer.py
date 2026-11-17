@@ -58,11 +58,34 @@ class BrainTrainer:
     def _binary(self) -> Path:
         if self.brain_binary is not None:
             candidates = [self.brain_binary]
-        else:
+        elif os.name == "nt":
             candidates = [_REPO_ROOT / "src" / "brain.exe", _REPO_ROOT / "src" / "brain"]
+        else:
+            candidates = [_REPO_ROOT / "src" / "brain", _REPO_ROOT / "src" / "brain.exe"]
+        stale: list[Path] = []
+        source_files = [
+            _REPO_ROOT / "src" / "main.cpp",
+            _REPO_ROOT / "src" / "neat.h",
+            _REPO_ROOT / "src" / "genome.h",
+            _REPO_ROOT / "src" / "robot_envs.h",
+            _REPO_ROOT / "src" / "robotics_env.h",
+        ]
         for candidate in candidates:
-            if candidate.is_file():
-                return candidate.resolve()
+            if not candidate.is_file():
+                continue
+            try:
+                newest_source = max(path.stat().st_mtime for path in source_files if path.is_file())
+                if candidate.stat().st_mtime < newest_source:
+                    stale.append(candidate)
+                    continue
+            except OSError:
+                pass
+            return candidate.resolve()
+        if stale:
+            raise BrainTrainingError(
+                "the bundled brain executable is older than the updated C++ trainer; "
+                "rebuild it once with `cd src && make brain` before training"
+            )
         raise BrainTrainingError(
             "brain executable not found; build it from src before starting game training"
         )

@@ -633,7 +633,10 @@ class LearnerIntegrationTests(unittest.TestCase):
         return path, spec, small_trainer(budget).train_env(path, spec, opponent, seed=seed)
 
     def test_training_stops_when_configured_win_rate_is_met(self):
-        source = MINI.replace("else [0, 1]", "else [1]")
+        source = MINI.replace(
+            '"turn_based": True, "max_steps": 10',
+            '"turn_based": False, "real_time": True, "max_steps": 0',
+        ).replace("else [0, 1]", "else [1]")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "always-win.py"
             path.write_text(source, encoding="utf-8")
@@ -646,6 +649,8 @@ class LearnerIntegrationTests(unittest.TestCase):
                 target_win_rate=0.9,
                 evaluation_episodes=5,
                 evaluation_interval_generations=30,
+                concept_refresh_generation=60,
+                head="fixed",
             )
             result = trainer.train_env(path, spec, seed=17, concepts=[])
         self.assertTrue(result.target_reached)

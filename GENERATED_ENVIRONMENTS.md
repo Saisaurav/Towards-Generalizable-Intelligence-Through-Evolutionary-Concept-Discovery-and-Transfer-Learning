@@ -229,11 +229,11 @@ one-tick-per-input in the terminal, so they are playable but slow-paced.
 cd src && make && cd ..              # builds brain (now with `ext` mode)
 pip install -r requirements.txt
 export LLM_API_KEY=...               # as before (see llm_game_platform/llm.py)
-export GAME_ENV_TARGET_WIN_RATE=0.90     # threshold at G30/G60 for per-action-head training (default 0.90)
+export GAME_ENV_TARGET_WIN_RATE=0.90     # stop at G30/G60 only if the 90% target is met (default 0.90)
 export GAME_ENV_EVAL_EPISODES=100        # episodes per quality check (default 100)
 export GAME_ENV_EVAL_INTERVAL_GENERATIONS=5  # generations between checks (default 5)
 export GAME_ENV_MAX_STEPS=0              # optional training-step cap; 0 means no step cap
-export GAME_ENV_CONCEPT_REFRESH_GENERATION=60  # refresh/restart only if still below target at G60 (per-action head)
+export GAME_ENV_CONCEPT_REFRESH_GENERATION=60  # below 90% at G30 continues to G60, then refresh/restart (default)
 # GAME_TRAINING_TIMEOUT is 900 seconds per phase by default; refresh allows one extra phase.
 python -m llm_game_platform.server   # open the page; default tab = "Any game (generated Python)"
 python generate_env.py --acceptance ttt --train      # CLI: generate + validate + train
@@ -248,3 +248,29 @@ cd src && make test-envs             # original C++ env smoke tests
 - **Learnability gate (validator).** 60 calibration episodes compare random play with `scripted_action()` (or the generic look-ahead player for turn-based games). A reward under which competent play scores significantly *worse* than random is a validation error and goes back to the LLM for repair; "not clearly better", raw-grid observations, no `scripted_action` and always-capped episodes are warnings.
 - **Training limits.** `GAME_ENV_MAX_GENERATIONS`, `GAME_ENV_MIN_GENERATIONS` (auto: 4 for real-time games with a step budget) and a soft wall-clock stop at 85% of the timeout. The soft stop is graceful: the champion is still exported instead of the run failing with a timeout. These are `brain ext` options (`--max-generations`, `--min-generations`, `--max-seconds`); rebuild `brain` / `brain.exe` to use them.
 - **Fixed output head (`--head fixed`, `GAME_ENV_HEAD=auto|per_action|fixed`).** The default per-action scorer only tells actions apart by a scalar `action_norm`, which is a hard function for a minimal NEAT net when an action's meaning depends on the state (Snake headings, Pong paddle moves). The fixed head feeds the state (plus state-level concepts) once and reads one logit per action. `auto` = fixed for real-time games, per-action for turn-based ones. Concepts that use `action_norm`, `action_wins_now`, `action_blocks_opponent` or `transition_*` are dropped under the fixed head. The exported policy carries `"head"`, and `NeatPolicy` mirrors it. Measured on the Snake fixture (one seed each): per-action head about -1.0 return for 3M steps (no learning); fixed head reached +5.2 (greedy, Python) after about 280 s / 100 generations, scripted +25, random -1.0. Pong did not show learning in 18 generations (about 9M steps).
+
+
+## 8. Built-in chess endgames
+
+Full chess is deliberately not registered as a built-in training task. It has a large action/observation
+space and sparse terminal rewards, making early learning difficult to interpret. The builtin registry
+instead installs two reduced checkmate tasks:
+
+- `chess_kqk`: White king + queen versus Black king.
+- `chess_krk`: White king + rook versus Black king.
+
+Both reuse the legal-move generator from `builtin_envs/chess.py`, but expose a compact 322-value observation
+(4 piece planes, selected-square plane, and two phase/check flags) and 64 discrete square actions. A move
+is represented as two actions: select a piece, then select its destination. White is the learner seat;
+Black is controlled by the configured opponent. Stalemate, insufficient material, repetition, and the
+move limit are draws; checkmate is the only win condition.
+
+Install or refresh the registered built-ins with:
+
+```bash
+python install_builtin_envs.py
+```
+
+The endgame environments are validated and saved in the same `generated_envs/<id>/` store used by the
+website's saved-environment selector. The scripted mating player is a training/evaluation reference, not
+a proof of optimal play; it can still draw by repetition from some starting positions.

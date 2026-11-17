@@ -1,6 +1,6 @@
 {
   "id": "17ffba293c93ff640467eaa3e6e197cd",
-  "created": "2026-11-16T14:38:44Z",
+  "created": "2026-11-17T14:32:34Z",
   "prompt": "[built-in] Snake, real-time, single player",
   "model": "hand-written",
   "attempts": 1,
@@ -63,8 +63,8 @@
         }
       },
       "learnability": {
-        "random_mean_return": -1.006666666666667,
-        "scripted_mean_return": 24.53500000000001,
+        "random_mean_return": -1.0066666666666666,
+        "scripted_mean_return": 24.535000000000018,
         "random_mean_length": 21.48333333333333,
         "quality_mode": "return"
       }

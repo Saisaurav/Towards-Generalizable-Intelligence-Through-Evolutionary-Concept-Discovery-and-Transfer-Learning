@@ -39,8 +39,8 @@ async function until(fn, ms, what) { const end = Date.now() + ms; while (Date.no
   await until(() => $("env-title").textContent === "Tic-Tac-Toe", 60000, "title from generated SPEC");
   check("generated SPEC title shown", $("env-title").textContent === "Tic-Tac-Toe");
   check("real-time frame control stays hidden for turn-based games", $("env-play").hidden);
-  await until(() => /generated and validated/i.test($("env-gen-status").textContent), 60000, "generation status");
-  check("generation status says generated and validated", true, $("env-gen-status").textContent);
+  await until(() => /environment validated/i.test($("env-gen-status").textContent), 60000, "generation status");
+  check("generation status says environment validated", true, $("env-gen-status").textContent);
   check("sandbox validation report displayed", /Sandbox validation: \d+ random episodes/.test($("env-validation").textContent), $("env-validation").textContent.slice(0, 90));
   await until(() => $("env-source-input").value.includes("Tic-Tac-Toe") && !$("run-training").disabled, 30000, "editable generated source");
   check("generated Python appears in an enabled editable textbox", $("env-source-input").value.includes("class Environment") && !$("env-source-input").disabled);

@@ -1,0 +1,41 @@
+{
+  "method": "NEAT+PPO (Lamarckian, preset lam)",
+  "population": 48,
+  "seed": 3,
+  "training": {
+    "turtlebot": {
+      "environment_steps": 25000000,
+      "environment_args": "rnoise=0.05,rdelay=2,rlag=1.5",
+      "heldout_episodes": 300,
+      "success_rate": 0.8633,
+      "mean_return": 3.1088,
+      "final_generation": 491,
+      "policy": "policies/turtlebot.json",
+      "sample_population_snapshot": "sample_snapshots/turtlebot/generation_491.json"
+    },
+    "arm2link": {
+      "environment_steps": 8000000,
+      "environment_args": "rnoise=0.05,rdelay=2,rlag=1.5,feat=3,fk=0.25",
+      "heldout_episodes": 300,
+      "success_rate": 0.89,
+      "mean_return": -2.9754,
+      "final_generation": 164,
+      "policy": "policies/arm2link.json",
+      "sample_population_snapshot": "sample_snapshots/arm2link/generation_164.json"
+    }
+  },
+  "notes": [
+    "Single-seed C++ surrogate results, not Gazebo or hardware validation.",
+    "The browser preview is a JavaScript mirror of the two surrogate environments.",
+    "Training jobs started from the frontend write full per-generation genome snapshots in robotics_sim/runs/<job-id>/genomes."
+  ],
+  "browser_preview_validation": {
+    "episodes_per_environment": 500,
+    "turtlebot_success_rate": 0.848,
+    "turtlebot_mean_return": 3.03,
+    "arm2link_success_rate": 0.854,
+    "arm2link_mean_return": -3.396,
+    "note": "500-episode JavaScript surrogate sanity check using a separate RNG stream. Slight differences from C++ are expected from JS float precision; this is not a replacement for the C++ held-out evaluation."
+  },
+  "fitness_evaluation_episodes_per_individual": 5
+}

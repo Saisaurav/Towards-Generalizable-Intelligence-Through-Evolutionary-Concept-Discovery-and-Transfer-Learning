@@ -19,6 +19,7 @@ from .generator import GameGenerationError, GameGenerator
 from .llm import LLMConfigurationError, LLMRequestError, OpenAICompatibleClient
 from .policy import GridPolicy, load_compatible_concepts
 from .runtime import RuntimeGenerationError, RuntimeGenerator, RuntimeSpec
+from .robotics_service import robotics_training
 from .sandbox import SandboxError
 from .spec import GameEnvironment, GameSpec
 from .trainer import BrainTrainer, BrainTrainingError
@@ -195,6 +196,48 @@ class GameRequestHandler(BaseHTTPRequestHandler):
     )
 
     def do_GET(self) -> None:
+        if self.path.startswith("/api/robotics/status?") or self.path == "/api/robotics/status":
+            try:
+                query = self.path.partition("?")[2]
+                params = dict(part.split("=", 1) for part in query.split("&") if "=" in part)
+                kind = params.get("kind", "")
+                self._send_json(200, robotics_training.status(kind))
+            except ValueError as error:
+                self._send_json(400, {"error": str(error)})
+            return
+        policy_match = re.fullmatch(r"/api/robotics/policy/(turtlebot|arm2link)", self.path)
+        if policy_match:
+            try:
+                self._send_json(200, robotics_training.policy(policy_match.group(1)))
+            except FileNotFoundError as error:
+                self._send_json(404, {"error": str(error)})
+            except (ValueError, OSError) as error:
+                self._send_json(500, {"error": str(error)})
+            return
+        if self.path == "/robotics_sim.js":
+            try:
+                body = (_WEB_ROOT / "robotics_sim.js").read_bytes()
+            except OSError:
+                self._send_json(404, {"error": "robotics simulator module is missing"})
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+            return
+        genome_match = re.fullmatch(r"/api/envs/([0-9a-f]{32})/genomes(?:/([A-Za-z0-9_-]+)/(\d+))?", self.path)
+        if genome_match:
+            try:
+                env_id, run, generation = genome_match.groups()
+                payload = (self.env_service.genome_manifest(env_id) if generation is None
+                           else self.env_service.generation_genomes(env_id, int(generation), run))
+                self._send_json(200, payload)
+            except KeyError as error:
+                self._send_json(404, {"error": str(error).strip("'")})
+            except (ValueError, RuntimeError) as error:
+                self._send_json(500, {"error": str(error)})
+            return
         if self.path == "/api/concepts":
             self._get_concepts()
             return
@@ -307,6 +350,12 @@ class GameRequestHandler(BaseHTTPRequestHandler):
             self._send_json(404, {"error": "not found"})
 
     def _post_env(self) -> None:
+        if self.path == "/api/envs/from_source":
+            body = self._read_json(max_bytes=220_000)
+            snapshot = self.env_service.create_from_source(body.get("source"), body.get("training_opponent", "random"))
+            self._send_json(202, snapshot)
+            self._submit_background(self._train_env, snapshot["id"])
+            return
         match = _ENV_PATH.fullmatch(self.path)
         if not match:
             self._send_json(404, {"error": "not found"})
@@ -349,6 +398,14 @@ class GameRequestHandler(BaseHTTPRequestHandler):
         self.env_service.train(self.env_service.get(env_id))
 
     def do_POST(self) -> None:
+        if self.path == "/api/robotics/train":
+            try:
+                body = self._read_json()
+                job = robotics_training.start(body.get("kind", ""), body.get("budget"), body.get("seed", 3))
+                self._send_json(202, job)
+            except (ValueError, RuntimeError) as error:
+                self._send_json(409 if "already running" in str(error) else 400, {"error": str(error)})
+            return
         if self.path.startswith("/api/envs"):
             self._guarded(self._post_env)
             return
@@ -495,6 +552,7 @@ def main() -> None:
         print("\nStopping game platform.")
     finally:
         GameRequestHandler.env_service.close_all()
+        robotics_training.close()
         server.server_close()
 
 

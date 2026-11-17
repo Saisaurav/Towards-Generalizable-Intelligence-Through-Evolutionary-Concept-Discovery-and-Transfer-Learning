@@ -5,7 +5,97 @@
 #include <atomic>
 #include <cstdio>
 #include <stdexcept>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
 #include "ppo.h"
+
+// Optional asynchronous generation recorder. It snapshots the already-evaluated population
+// before reproduction; it performs no extra rollouts, fitness evaluations, or optimizer updates.
+class GenomeRecorder {
+  struct Job { int generation; std::vector<Genome> population; };
+  std::filesystem::path directory;
+  std::mutex mutex;
+  std::condition_variable ready, space;
+  std::deque<Job> queue;
+  bool stopping = false;
+  std::thread worker;
+
+  static void write_job(const std::filesystem::path& dir, const Job& job) {
+    const auto final_path = dir / ("generation_" + std::to_string(job.generation) + ".json");
+    const auto temp_path = final_path.string() + ".tmp";
+    std::ofstream out(temp_path, std::ios::binary);
+    if (!out) throw std::runtime_error("cannot create genome snapshot");
+    out << std::setprecision(9) << "{\"generation\":" << job.generation << ",\"population\":[";
+    for (size_t i = 0; i < job.population.size(); ++i) {
+      if (i) out << ',';
+      const Genome& g = job.population[i];
+      out << "{\"index\":" << i << ",\"fitness\":" << g.fitness
+          << ",\"previous_fitness\":" << g.prev_fit << ",\"species\":" << g.species
+          << ",\"adam_t\":" << g.adam_t << ",\"nodes\":[";
+      for (size_t n = 0; n < g.nodes.size(); ++n) {
+        if (n) out << ',';
+        out << "{\"id\":" << g.nodes[n].id << ",\"type\":" << (int)g.nodes[n].type << '}';
+      }
+      out << "],\"connections\":[";
+      for (size_t c = 0; c < g.conns.size(); ++c) {
+        if (c) out << ',';
+        const Conn& x = g.conns[c];
+        out << "{\"innovation\":" << x.innov << ",\"from\":" << x.from
+            << ",\"to\":" << x.to << ",\"weight\":" << x.w
+            << ",\"enabled\":" << (x.en ? "true" : "false")
+            << ",\"adam_m\":" << x.am << ",\"adam_v\":" << x.av << '}';
+      }
+      out << "],\"logstd\":[";
+      for (size_t k = 0; k < g.logstd.size(); ++k) { if (k) out << ','; out << g.logstd[k]; }
+      out << "],\"logstd_m\":[";
+      for (size_t k = 0; k < g.ls_m.size(); ++k) { if (k) out << ','; out << g.ls_m[k]; }
+      out << "],\"logstd_v\":[";
+      for (size_t k = 0; k < g.ls_v.size(); ++k) { if (k) out << ','; out << g.ls_v[k]; }
+      out << "]}";
+    }
+    out << "]}\n";
+    out.close();
+    if (!out) throw std::runtime_error("failed writing genome snapshot");
+    std::filesystem::rename(temp_path, final_path);
+  }
+
+  void work() {
+    for (;;) {
+      Job job;
+      {
+        std::unique_lock<std::mutex> lock(mutex);
+        ready.wait(lock, [&] { return stopping || !queue.empty(); });
+        if (queue.empty() && stopping) return;
+        job = std::move(queue.front()); queue.pop_front();
+        space.notify_one();
+      }
+      try { write_job(directory, job); }
+      catch (const std::exception& e) { std::fprintf(stderr, "genome recorder: %s\n", e.what()); }
+    }
+  }
+public:
+  explicit GenomeRecorder(const std::filesystem::path& dir) : directory(dir) {
+    std::filesystem::create_directories(directory);
+    worker = std::thread([this] { work(); });
+  }
+  ~GenomeRecorder() {
+    { std::lock_guard<std::mutex> lock(mutex); stopping = true; }
+    ready.notify_one();
+    if (worker.joinable()) worker.join();
+  }
+  void submit(int generation, const std::vector<Genome>& population) {
+    std::unique_lock<std::mutex> lock(mutex);
+    // Bound queued snapshots so large populations cannot accumulate unbounded memory.
+    space.wait(lock, [&] { return queue.size() < 2 || stopping; });
+    if (stopping) return;
+    queue.push_back(Job{generation, population});
+    ready.notify_one();
+  }
+};
 
 struct NeatCfg {
   int pop = 48; uint64_t seed = 1; int threads = 0;
@@ -37,6 +127,8 @@ class Population {
 public:
   NeatCfg cfg; NetSpec spec; Innovations inns; std::vector<Genome> pop; Genome champion;
   Env* proto; Rng rng; int gen = 0; std::atomic<long> steps{0}, train_steps{0}, eval_steps{0};
+  std::unique_ptr<GenomeRecorder> genome_recorder;
+  void enable_genome_recording(const std::filesystem::path& directory) { genome_recorder = std::make_unique<GenomeRecorder>(directory); }
 
   // Constructing a Population always starts a fresh learner for this game:
   // new genomes/topologies and fresh PPO optimiser state. Cross-game transfer
@@ -79,6 +171,7 @@ public:
       for (int i = 0; i < N; i++) for (int j = i + 1; j < N; j++) { ds += distance(pop[i], pop[j], cfg.c_d, cfg.c_w); dn++; }
       s.diversity = dn ? (float)(ds / dn) : 0.f; }
     speciate(); s.species = (int)species.size();
+    if (genome_recorder) genome_recorder->submit(gen, pop);
     reproduce(); gen++;
     return s;
   }

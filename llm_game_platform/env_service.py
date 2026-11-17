@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -103,7 +104,34 @@ class EnvService:
         session.source_path = self.store.source_path(env_id)
         session.generation_status = "ready"
 
-    def prepare_training(self, env_id: str, source: object, training_opponent: object = "random") -> dict[str, Any]:
+    def create_from_source(self, source: object, training_opponent: object = "random") -> dict[str, Any]:
+        """Hand-written environment: validate in the sandbox, save it, then queue training (no LLM involved)."""
+        if not isinstance(source, str) or not source.strip():
+            raise ValueError("environment source must not be empty")
+        if len(source) > 50_000:
+            raise ValueError("environment source must be at most 50000 characters")
+        if not isinstance(training_opponent, str) or training_opponent not in TRAINING_OPPONENTS:
+            raise ValueError(f"training_opponent must be one of {', '.join(TRAINING_OPPONENTS)}")
+        report = validate_environment(source)
+        if not report.ok:
+            raise EnvSourceValidationError(report)
+        spec = report.spec or {}
+        if not spec.get("trainable"):
+            raise ValueError(spec.get("untrainable_reason") or "the environment is not trainable")
+        session = self.create_pending("(hand-written environment)", training_opponent)
+        try:
+            self.store.save(session.id, prompt=session.prompt, source=source, spec=spec,
+                            report=report.to_dict(), attempts=1, model=None)
+        except (EnvStoreError, OSError):
+            with self._lock:
+                self._sessions.pop(session.id, None)
+            raise
+        with session.lock:
+            self._adopt(session, session.id, spec, report.to_dict(), 1)
+        return self.prepare_training(session.id, source, training_opponent, report=report)
+
+    def prepare_training(self, env_id: str, source: object, training_opponent: object = "random",
+                         report: ValidationReport | None = None) -> dict[str, Any]:
         if not isinstance(source, str) or not source.strip():
             raise ValueError("environment source must not be empty")
         if len(source) > 50_000:
@@ -118,7 +146,7 @@ class EnvService:
             session.training_status = "validating"
 
         try:
-            report = validate_environment(source)
+            report = report or validate_environment(source)
             if not report.ok:
                 raise EnvSourceValidationError(report)
             spec = report.spec or {}
@@ -203,6 +231,7 @@ class EnvService:
                 session.training_error = (session.spec or {}).get("untrainable_reason")
                 return
         policy_dir = self.store.path(session.id) / "policies"
+        shutil.rmtree(policy_dir / "genomes", ignore_errors=True)
 
         def progress(point: dict[str, float]) -> None:
             with session.lock:
@@ -224,11 +253,13 @@ class EnvService:
                 result = self.trainer.train_self_play(
                     session.source_path, session.spec, policy_dir, rounds=2,
                     progress=progress, status=training_note,
+                    genome_output_dir=policy_dir / "genomes",
                 )[-1]
             else:
                 result = self.trainer.train_env(
                     session.source_path, session.spec, session.training_opponent,
                     progress=progress, status=training_note,
+                    genome_output_dir=policy_dir / "genomes",
                 )
             result.save_policy(policy_dir / "brain.json")
         except (BrainTrainingError, ValueError, SandboxError) as error:
@@ -316,6 +347,38 @@ class EnvService:
         session = self.get(env_id)
         self._ready(session)
         return session.source_path.read_text(encoding="utf-8")  # type: ignore[union-attr]
+
+    def genome_manifest(self, env_id: str) -> dict[str, Any]:
+        session = self.get(env_id)
+        directory = self.store.path(env_id) / "policies" / "genomes"
+        generations = []
+        if directory.is_dir():
+            for path in directory.rglob("generation_*.json"):
+                try:
+                    generation = int(path.stem.split("_")[-1])
+                    run = path.parent.relative_to(directory).as_posix()
+                    generations.append({"generation": generation, "run": "main" if run == "." else run,
+                                        "size_bytes": path.stat().st_size})
+                except (OSError, ValueError):
+                    continue
+        generations.sort(key=lambda item: (item["run"], item["generation"]))
+        return {"environment_id": session.id, "training_status": session.training_status,
+                "recording": True, "generations": generations}
+
+    def generation_genomes(self, env_id: str, generation: int, run: str = "main") -> dict[str, Any]:
+        self.get(env_id)
+        if generation < 0 or not run or any(part in (".", "..") for part in Path(run).parts):
+            raise ValueError("invalid generation snapshot selector")
+        directory = self.store.path(env_id) / "policies" / "genomes"
+        path = directory / ("generation_" + str(generation) + ".json") if run == "main" else directory / run / ("generation_" + str(generation) + ".json")
+        try:
+            import json
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            raise KeyError(f"genome snapshot for {run} generation {generation} is not available") from None
+        except json.JSONDecodeError as error:
+            raise RuntimeError(f"genome snapshot is invalid: {error}") from error
+        return data
 
     def snapshot(self, env_id: str) -> dict[str, Any]:
         session = self.get(env_id)

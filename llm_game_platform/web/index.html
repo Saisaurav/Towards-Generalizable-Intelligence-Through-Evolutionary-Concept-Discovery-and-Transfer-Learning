@@ -1,135 +1,1642 @@
-<!doctype html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111310">
-  <title>Frameforge — Reinforcement Learning Studio</title>
-  <style>
-    :root{color-scheme:dark;--bg:#111310;--panel:#181c16;--panel2:#20251d;--line:#30372b;--soft:#262d23;--text:#f0f2e9;--muted:#a0a69a;--dim:#737b6e;--lime:#c7f36b;--cyan:#38e1ff;--violet:#a78bfa;--mono:"DM Mono",Consolas,monospace;--sans:Manrope,Arial,sans-serif}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 var(--sans);-webkit-font-smoothing:antialiased}button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
-    .header{height:68px;position:sticky;top:0;z-index:10;background:#111310f2;border-bottom:1px solid var(--soft);display:flex;align-items:center;justify-content:space-between;padding:0 28px}.brand{display:flex;gap:10px;align-items:center;font-size:18px;font-weight:800;letter-spacing:-.7px}.brand-mark{display:grid;place-items:center;width:29px;height:29px;border-radius:8px;color:#151810;background:var(--lime);font-weight:900}.brand em{font-style:normal;color:var(--lime)}.header-actions{display:flex;gap:9px;align-items:center}
-    .workspace{display:flex;max-width:1600px;margin:auto;min-height:calc(100vh - 68px)}.sidebar{width:218px;flex:0 0 218px;border-right:1px solid var(--line);padding:25px 14px;display:flex;flex-direction:column;gap:6px}.side-label,.eyebrow,.kicker,.mono{font-family:var(--mono);letter-spacing:1px}.side-label{font-size:9px;color:var(--dim);margin:0 10px 14px}.side-link{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid transparent;border-radius:5px;color:var(--muted);font-size:12px}.side-link:hover,.side-link.active{background:#20251d;border-color:#343d2c;color:var(--lime)}.side-link .icon{width:22px;text-align:center;color:var(--lime)}.side-link[data-tab="gazebo"]{color:var(--cyan)}.side-link[data-tab="gazebo"] .icon{color:var(--cyan)}.sidebar-note{margin-top:auto;padding:14px;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:10px}.sidebar-note b{color:var(--text)}.sidebar-note p{margin:7px 0 0}
-    .main{flex:1;min-width:0}.tab{display:none}.tab.active{display:block}.page{max-width:1320px;margin:auto;padding:48px 30px 75px}.page-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:26px}.eyebrow{font-size:9px;color:var(--lime);text-transform:uppercase}.page-head h1{font-size:clamp(34px,4vw,48px);letter-spacing:-2px;line-height:1.1;margin:10px 0}.page-head p{max-width:680px;color:var(--muted);font-size:12px;margin:0}.status-pill,.tag{font:9px var(--mono);letter-spacing:.7px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;color:var(--muted);white-space:nowrap}.status-pill .dot{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--lime)}.status-pill.running .dot{animation:pulse 1.2s infinite}@keyframes pulse{50%{opacity:.3}}
-    .button{border:1px solid var(--line);border-radius:5px;background:#1a1e18;color:var(--text);padding:9px 13px;font-size:11px;font-weight:700}.button:hover{border-color:#788b56}.button.primary{background:var(--lime);border-color:var(--lime);color:#141810}.button.primary:hover{background:#d7ff83}.button:disabled{opacity:.45;cursor:not-allowed}.button.cyan{color:var(--cyan);border-color:#236170}.button.small{padding:7px 10px}
-    .grid{display:grid;gap:14px}.grid.two{grid-template-columns:minmax(260px,.78fr) minmax(0,1.22fr)}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.panel{min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:18px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.panel-head h2,.panel h2{font-size:16px;letter-spacing:-.4px;margin:3px 0}.kicker{font-size:8px;color:var(--dim);text-transform:uppercase}.muted{color:var(--muted)}.dim{color:var(--dim)}.field{display:block;margin:16px 0 7px;color:#89917f;font:9px var(--mono);letter-spacing:1px;text-transform:uppercase}.textarea,.input,.select{display:block;width:100%;padding:11px 12px;color:var(--text);background:#11150f;border:1px solid #3b4632;border-radius:5px;outline:none}.textarea{resize:vertical;min-height:116px;font-size:12px;line-height:1.7}.textarea:focus,.input:focus,.select:focus{border-color:var(--lime)}.form-row{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}.grow{flex:1;min-width:180px}.notice{min-height:24px;color:var(--muted);font-size:11px;white-space:pre-wrap}.notice.error{color:#ff9a9a}
-    .runtime{min-height:350px;background:#10160f;border:1px solid #3c4632;border-radius:5px;overflow:auto;display:grid;place-items:center}.runtime svg{width:100%;height:auto;display:block}.runtime-empty{color:var(--dim);font-size:12px;padding:24px;text-align:center}.spec-code{max-height:300px;overflow:auto;margin:0;padding:13px;border:1px solid var(--line);border-radius:5px;background:#10130f;color:#cbd4c1;font:10px/1.65 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
-    .game-controls{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}.game-controls button{min-width:44px}.hud{min-height:24px;color:var(--lime);font-size:11px;margin:10px 0}.saved-list{max-height:260px;overflow:auto;display:grid;gap:7px}.saved-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:5px;font-size:11px}.saved-item span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.saved-item button{flex:0 0 auto}
-    .metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.metric{padding:13px;background:#141912;border:1px solid var(--line);border-radius:5px}.metric span{display:block;color:var(--dim);font:8px var(--mono);letter-spacing:.7px;text-transform:uppercase}.metric b{display:block;margin-top:7px;font:18px var(--mono);color:var(--cyan);overflow-wrap:anywhere}.chart-wrap{height:280px;position:relative;background:#121610;border:1px solid var(--line);border-radius:5px;padding:8px}.chart-wrap svg{width:100%;height:100%;overflow:visible}.chart-legend{display:flex;gap:18px;color:var(--muted);font-size:10px;margin:9px 0}.chart-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.chart-legend .best{background:var(--lime)}.chart-legend .mean{background:var(--cyan)}.chart-legend .eval{background:var(--violet)}.table-wrap{overflow:auto}.data-table{width:100%;border-collapse:collapse;font:10px var(--mono)}.data-table th,.data-table td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.data-table th{color:var(--dim);font-weight:400}.empty{padding:38px 20px;text-align:center;color:var(--dim);border:1px dashed var(--line);border-radius:5px;font-size:11px}
-    .concept-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px}.concept-graph{height:490px;background:#121711;border:1px solid var(--line);border-radius:5px;overflow:hidden}.concept-graph canvas{width:100%;height:100%;display:block}.concept-list{max-height:490px;overflow:auto;display:grid;gap:5px}.concept-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font:9px var(--mono);cursor:pointer}.concept-row:hover,.concept-row.active{border-color:var(--violet);color:var(--text)}.concept-row .compat{margin-left:auto;color:var(--lime);font:8px var(--mono)}.concept-detail{min-height:160px}.concept-expression{font:11px/1.7 var(--mono);color:var(--cyan);overflow-wrap:anywhere}.pill-row{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0}.pill{font:8px var(--mono);padding:4px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted)}
-    .overview-hero{padding:34px;border:1px solid #3b4632;border-radius:8px;background:radial-gradient(ellipse at 85% 20%,#2b3520,#171c15 60%);margin-bottom:18px}.overview-hero h1{font-size:clamp(38px,6vw,67px);line-height:1.02;letter-spacing:-3px;margin:14px 0}.overview-hero h1 span{color:var(--lime)}.overview-hero p{max-width:650px;color:var(--muted);font-size:13px}.overview-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:19px}.overview-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.overview-summary .metric b{color:var(--lime)}.gazebo-notice{padding:20px;border:1px dashed #286171;background:#10191a;border-radius:6px;color:var(--muted);font-size:12px}.footer{padding:20px 30px;border-top:1px solid var(--soft);display:flex;justify-content:space-between;gap:12px;color:var(--dim);font-size:10px}
-    @media(max-width:900px){.sidebar{width:64px;flex-basis:64px;padding:18px 8px}.side-label,.side-link .label,.sidebar-note{display:none}.side-link{justify-content:center}.side-link .icon{font-size:16px}.grid.two{grid-template-columns:1fr}.grid.three{grid-template-columns:1fr 1fr}.concept-layout{grid-template-columns:1fr}.concept-list{max-height:280px}.page{padding:34px 18px}.header{padding:0 17px}}
-    @media(max-width:560px){.grid.three,.metric-grid,.overview-summary{grid-template-columns:1fr 1fr}.page-head{align-items:flex-start;flex-direction:column}.header-actions .button:not(.primary){display:none}.runtime{min-height:250px}.concept-graph{height:340px}.footer{flex-direction:column}}
-  </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="#10120f" name="theme-color"/>
+<title>Frameforge — Train agents on games and robotics tasks</title>
+<!-- <link rel="shortcut icon" href="images/fav.PNG" type="image/x-icon"> -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root{--bg:#111310;--bg-soft:#171a15;--panel:#1b1f19;--panel-2:#20251d;--line:#30372b;--line-soft:#262d23;--text:#f0f2e9;--muted:#a0a69a;--dim:#737b6e;--lime:#c7f36b;--lime-dark:#a7d94b;--mono:'DM Mono',monospace;--sans:'Manrope',Arial,sans-serif;--max:1160px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,textarea{font:inherit}.site-header{position:sticky;top:0;z-index:20;background:rgba(17,19,16,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line-soft)}.nav-wrap{max-width:var(--max);height:72px;margin:auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between}.brand{display:inline-flex;align-items:center;gap:10px;font-size:18px;font-weight:800;letter-spacing:-.8px}.brand-mark{width:29px;height:29px;display:grid;place-items:center;background:var(--lime);color:#151810;border-radius:8px}.brand-mark svg{width:21px;height:21px}.brand-period,.lime-period{color:var(--lime)}.primary-nav,.nav-links{display:flex;align-items:center}.primary-nav{gap:34px}.nav-links{gap:30px}.nav-links a{color:var(--muted);font-size:12px;transition:color .2s}.nav-links a:hover,.subnav a:hover{color:var(--text)}.button{display:inline-flex;align-items:center;justify-content:center;gap:18px;padding:12px 17px;border:1px solid transparent;border-radius:7px;font-size:12px;font-weight:800;transition:transform .2s,background .2s,border-color .2s;cursor:pointer}.button:hover{transform:translateY(-2px)}.button-lime{background:var(--lime);color:#151810}.button-lime:hover{background:#d4ff7b}.button-small{padding:9px 13px;font-size:11px}.button-outline{border-color:#566047;color:var(--lime);background:transparent}.button-outline:hover{background:#252d1d}.button-full{width:100%;margin-top:22px}.nav-toggle{display:none;background:none;border:0;padding:8px}.nav-toggle span{display:block;width:22px;height:2px;background:var(--text);margin:5px}.subnav{border-top:1px solid rgba(255,255,255,.025)}.subnav-inner{max-width:var(--max);height:48px;margin:auto;padding:0 28px;display:flex;align-items:center;gap:28px}.subnav a{font-size:11px;color:var(--muted);transition:color .2s;white-space:nowrap}.subnav a.active{color:var(--text)}.subnav-home{display:flex;align-items:center;gap:9px}.status-dot,.tiny-pulse{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px rgba(199,243,106,.7)}.subnav-divider{height:16px;width:1px;background:var(--line)}.subnav-spacer{flex:1}.subnav-note,.eyebrow,.panel-kicker,.card-index,.field-label,.page-status,.art-topline,.art-bottomline,.canvas-top,.canvas-bottom,.concept-art-label,.concept-meta,.result-count,.insight-label,.focus-number,.docs-num{font-family:var(--mono);letter-spacing:1px;font-size:9px;color:var(--dim)}.subnav-note{font-size:8px;letter-spacing:1.5px}.section-shell{max-width:var(--max);margin:0 auto;padding-left:28px;padding-right:28px}.hero{min-height:550px;display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;gap:55px;padding-top:65px;padding-bottom:72px}.eyebrow{display:flex;align-items:center;gap:10px;color:var(--lime);font-size:9px}.eyebrow-line{width:22px;height:1px;background:var(--lime)}h1,h2,h3,p{margin-top:0}.hero h1,.page-heading h1,.content-page h1{font-size:clamp(48px,6.3vw,78px);line-height:1.03;letter-spacing:-5px;margin:25px 0 20px;font-weight:800}.text-muted{color:#858d7d}.hero-lede{max-width:435px;color:var(--muted);font-size:14px;line-height:1.9}.hero-actions{display:flex;align-items:center;gap:25px;margin-top:30px}.text-link{font-size:12px;color:#dce2d3}.text-link span{color:var(--lime);margin-left:8px}.hero-meta{display:flex;align-items:center;gap:10px;margin-top:45px;color:var(--dim);font-size:10px}.tiny-pulse{width:5px;height:5px}.hero-art{height:365px;position:relative;overflow:hidden;border:1px solid #394130;border-radius:10px;background:radial-gradient(ellipse at 52% 28%,#343d28 0%,#1b2118 48%,#151914 100%);box-shadow:0 20px 70px rgba(0,0,0,.24)}.art-topline,.art-bottomline{position:absolute;z-index:5;left:20px;right:20px;display:flex;justify-content:space-between;color:#89917e;font-size:8px}.art-topline{top:17px}.art-bottomline{bottom:15px}.art-bottomline b{color:var(--lime);padding:0 5px}.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lime);margin-left:6px;box-shadow:0 0 9px var(--lime)}.scene-grid{position:absolute;inset:35% -10% -30%;background-image:linear-gradient(rgba(199,243,106,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(199,243,106,.12) 1px,transparent 1px);background-size:35px 35px;transform:perspective(260px) rotateX(58deg) scale(1.3);transform-origin:top}.scene-sun{position:absolute;width:95px;height:95px;border-radius:50%;background:linear-gradient(145deg,#d7f79b,#809e4e);right:21%;top:21%;box-shadow:0 0 70px rgba(199,243,106,.15)}.scene-platform{position:absolute;height:14px;background:#67754e;border:1px solid #a4bd69;transform:skewX(-28deg);box-shadow:0 10px 25px #0b0e09}.platform-one{width:40%;left:14%;top:58%}.platform-two{width:28%;right:12%;top:70%}.platform-three{width:19%;left:44%;top:83%}.scene-player{position:absolute;width:24px;height:34px;left:39%;top:45%;background:var(--lime);border-radius:5px 5px 2px 2px;box-shadow:0 0 25px rgba(199,243,106,.4);transform:rotate(-4deg)}.scene-player span{position:absolute;width:7px;height:7px;right:4px;top:7px;border-radius:50%;background:#26301b}.scene-orb{position:absolute;border:1px solid var(--lime);width:9px;height:9px;border-radius:50%;box-shadow:0 0 15px var(--lime)}.orb-one{top:37%;left:22%}.orb-two{top:57%;right:25%}.scene-label{position:absolute;padding:5px 8px;border:1px solid #59664a;background:#171d14;color:#c4ceae;font:8px var(--mono);letter-spacing:.5px}.label-a{top:42%;left:8%}.label-b{top:62%;right:8%}.label-marker{display:inline-block;width:5px;height:5px;background:#d4e4a5;border-radius:50%;margin-right:5px}.lime-marker{background:var(--lime)}.workspace-section{padding-top:40px;padding-bottom:95px}.section-heading{display:flex;align-items:end;justify-content:space-between;margin-bottom:25px}.section-heading h2,.focus-intro h2,.closing-cta h2{font-size:30px;letter-spacing:-1.5px;line-height:1.2;margin:10px 0 0}.section-heading>p{max-width:300px;color:var(--muted);font-size:12px;margin:0 0 3px}.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.tool-card{min-width:0;padding:18px;border:1px solid var(--line);background:linear-gradient(145deg,#1a1e18,#151813);border-radius:9px;transition:transform .25s,border-color .25s,background .25s}.tool-card:hover{transform:translateY(-5px);border-color:#68794b;background:#1d2319}.featured-card{border-color:#657747}.card-head{display:flex;justify-content:space-between;align-items:center}.card-index{color:#89917f}.card-arrow{color:var(--lime);font-size:18px}.mini-visual{height:135px;position:relative;margin:17px 0 20px;border:1px solid #30392a;border-radius:6px;overflow:hidden;background:#121710}.mini-builder{display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#2a3420,#131710 70%)}.mini-window{position:absolute;top:13px;left:13px;display:flex;gap:4px}.mini-window span{width:5px;height:5px;background:#59634c;border-radius:50%}.mini-prompt{padding:11px 15px;border:1px solid #65764b;background:#1c2517;color:#dce9c5;border-radius:5px;font-size:10px;box-shadow:0 0 25px rgba(199,243,106,.08)}.mini-bars{position:absolute;bottom:13px;left:15px;right:15px;display:flex;gap:5px}.mini-bars i{height:3px;background:#3a4431;flex:1}.mini-bars i:first-child{background:var(--lime)}.mini-training{background:linear-gradient(145deg,#1c2418,#111610)}.mini-training svg{position:absolute;inset:20px 0 10px;width:100%;height:100%}.chart-axis{position:absolute;inset:20px 15px 18px;border-left:1px solid #3c4734;border-bottom:1px solid #3c4734}.chart-chip{position:absolute;top:12px;right:12px;font:8px var(--mono);color:#8d9a7d}.mini-bank{display:flex;align-items:center;justify-content:center;gap:9px;background:radial-gradient(ellipse at center,#263020,#121710)}.bank-tile{width:65px;height:81px;border:1px solid #66774a;background:#29351e;transform:rotate(-8deg);position:relative}.bank-tile span{position:absolute;top:5px;left:7px;color:#b4c69a;font:8px var(--mono)}.bank-tile i{position:absolute;left:12px;right:12px;bottom:13px;height:25px;border:1px solid var(--lime);border-radius:50%}.tile-b{transform:translateY(-9px) rotate(4deg);background:#303b27}.tile-c{transform:rotate(10deg)}.tool-card-copy h3{font-size:17px;letter-spacing:-.5px;margin:7px 0}.tool-title-row{display:flex;align-items:center;gap:10px}.tag{font:8px var(--mono);letter-spacing:.7px;padding:4px 6px;border-radius:3px}.tag-lime{background:rgba(199,243,106,.12);color:var(--lime)}.tool-card-copy p{color:var(--muted);font-size:11px;line-height:1.8;min-height:40px;margin-bottom:17px}.card-cta{font-size:10px;font-weight:700;color:#e4eadb}.card-cta b{color:var(--lime);margin-left:8px}.focus-section{padding-top:60px;padding-bottom:90px;border-top:1px solid var(--line-soft);display:grid;grid-template-columns:.8fr 1.2fr;gap:90px}.focus-intro h2{font-size:37px;margin:18px 0}.focus-intro p{max-width:340px;color:var(--muted);font-size:12px;line-height:1.9}.focus-list{border-top:1px solid var(--line)}.focus-row{display:grid;grid-template-columns:35px 1fr 20px;gap:15px;padding:21px 0;border-bottom:1px solid var(--line);align-items:start}.focus-number{color:var(--lime);padding-top:4px}.focus-row h3{font-size:14px;margin:0 0 5px}.focus-row p{color:var(--muted);font-size:11px;margin:0}.focus-icon{color:var(--lime)}.closing-cta{border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding-top:36px;padding-bottom:36px;display:flex;align-items:center;justify-content:space-between}.closing-cta h2{font-size:26px}.closing-cta h2 span{color:var(--lime)}.site-footer{max-width:var(--max);margin:auto;padding:27px 28px;display:flex;align-items:center;justify-content:space-between;color:var(--dim);font-size:10px}.footer-brand{font-size:14px;color:var(--text)}.footer-brand .brand-mark{width:23px;height:23px;border-radius:6px}.footer-brand .brand-mark svg{width:17px;height:17px}
+/* Shared inner-page components */
+.tool-page{padding-top:55px;padding-bottom:85px}.page-heading{display:flex;align-items:end;justify-content:space-between;margin-bottom:30px}.page-heading h1{font-size:48px;letter-spacing:-2.5px;margin:13px 0 9px}.page-heading p{color:var(--muted);font-size:12px;margin:0;max-width:570px}.page-status{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:4px;white-space:nowrap}.page-status .live-dot{margin:0}.builder-layout,.visualizer-layout{display:grid;grid-template-columns:.78fr 1.22fr;gap:15px;align-items:stretch}.panel{border:1px solid var(--line);background:#181c16;border-radius:8px;padding:21px;min-width:0}.panel-heading,.preview-header{display:flex;align-items:start;justify-content:space-between;margin-bottom:25px}.panel-heading h2,.preview-header h2{font-size:17px;letter-spacing:-.5px;margin:5px 0 0}.panel-icon{font-size:20px;color:var(--lime)}.field-label{display:block;margin:20px 0 9px;color:#89917f;font-size:8px}.prompt-box{border:1px solid #46533a;background:#11150f;border-radius:6px;overflow:hidden}.prompt-box textarea{display:block;width:100%;min-height:155px;padding:14px;background:transparent;border:0;outline:0;resize:vertical;color:var(--text);font-size:12px;line-height:1.8}.prompt-box textarea::placeholder{color:#727b6a}.prompt-footer{padding:9px 12px;border-top:1px solid var(--line-soft);display:flex;justify-content:space-between;color:var(--dim);font-size:9px}.choice-chips{display:flex;flex-wrap:wrap;gap:7px}.choice-chip,.filter-chip{padding:7px 10px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font-size:10px}.choice-chip.selected,.filter-chip.active{border-color:#7e984e;color:var(--lime);background:rgba(199,243,106,.07)}.select-like{padding:11px 12px;border:1px solid var(--line);border-radius:5px;background:#121610;color:#dce2d4;font-size:11px;display:flex;justify-content:space-between}.fine-print{font-size:9px;color:var(--dim);line-height:1.6;margin:12px 0 0}.preview-panel{display:flex;flex-direction:column}.preview-header{margin-bottom:18px;align-items:center}.preview-tools{display:flex;gap:4px}.tool-pill{font:9px var(--mono);padding:6px 8px;border:1px solid var(--line);color:var(--dim);border-radius:4px}.tool-pill.active{color:var(--lime);border-color:#64774a}.game-canvas{flex:1;min-height:340px;border:1px solid #3c4632;border-radius:5px;background:#10160f;display:flex;flex-direction:column;overflow:hidden}.canvas-top,.canvas-bottom{display:flex;justify-content:space-between;padding:10px 12px;background:#171d14;color:#87917b;font-size:8px}.game-sky{position:relative;flex:1;min-height:280px;overflow:hidden;background:linear-gradient(180deg,#1c2a25 0%,#354b3b 55%,#172219 100%)}.game-sky:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(212,236,178,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(212,236,178,.08) 1px,transparent 1px);background-size:32px 32px;opacity:.45}.game-moon{position:absolute;width:50px;height:50px;border-radius:50%;right:15%;top:14%;background:#d5e6a6;box-shadow:0 0 35px rgba(213,230,166,.18)}.game-mountain{position:absolute;bottom:24%;width:0;height:0;border-left:150px solid transparent;border-right:150px solid transparent;border-bottom:180px solid #263c31}.mountain-back{left:2%;opacity:.8}.mountain-front{right:-2%;border-bottom-color:#1d3028;border-left-width:180px;border-right-width:180px}.game-platform{position:absolute;height:12px;background:#788d56;border:1px solid #b2cf79;transform:skewX(-24deg);z-index:2}.gp-one{width:35%;left:10%;bottom:31%}.gp-two{width:25%;right:9%;bottom:43%}.gp-three{width:17%;left:45%;bottom:22%}.game-character{position:absolute;z-index:3;left:32%;bottom:calc(31% + 12px);width:20px;height:30px;background:var(--lime);border-radius:5px 5px 2px 2px;box-shadow:0 0 20px rgba(199,243,106,.3)}.game-character i{position:absolute;width:5px;height:5px;background:#26321c;right:4px;top:7px;border-radius:50%}.game-coin{position:absolute;z-index:2;width:11px;height:11px;border:2px solid #d6ef9b;border-radius:50%;box-shadow:0 0 12px #d6ef9b}.coin-one{left:22%;bottom:48%}.coin-two{left:57%;bottom:55%}.coin-three{right:17%;bottom:55%}.game-ground{position:absolute;bottom:0;left:0;right:0;height:16%;background:#19251b;border-top:2px solid #60764a}.preview-caption{display:flex;justify-content:space-between;align-items:center;padding-top:14px}.preview-caption div{display:flex;flex-direction:column}.preview-caption b{font-size:10px}.preview-caption span{font-size:9px;color:var(--dim)}.preview-expand{font-size:17px;color:var(--lime)}
+/* Training visualizer */
+.visualizer-input .select-like{margin-bottom:4px}.note-box{padding:12px;background:#121610;border:1px solid var(--line);border-radius:5px;color:#aab19f;font-size:10px;line-height:1.8}.visualizer-output{display:flex;flex-direction:column}.chart-card{border:1px solid var(--line);background:#131710;border-radius:6px;padding:15px}.chart-legend{display:flex;gap:17px;font-size:9px;color:var(--muted);margin-bottom:15px}.chart-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.legend-lime{background:var(--lime)}.legend-grey{background:#697260}.chart-area{height:220px;display:flex;gap:12px}.chart-ylabels{display:flex;flex-direction:column;justify-content:space-between;padding:0 0 20px;color:var(--dim);font:8px var(--mono)}.chart-plot{position:relative;flex:1;margin-bottom:20px}.chart-gridline{position:absolute;left:0;right:0;border-top:1px dashed #30392b}.g1{top:0}.g2{top:50%}.g3{bottom:0}.chart-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.chart-xlabels{position:absolute;left:0;right:0;bottom:-20px;display:flex;justify-content:space-between;color:var(--dim);font:8px var(--mono)}.insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.insight-card{padding:12px;border:1px solid var(--line);border-radius:5px;background:#141912}.insight-label{font-size:8px}.insight-card b{display:block;font-size:11px;margin:7px 0 4px}.insight-card p{font-size:9px;line-height:1.6;color:var(--muted);margin:0}
+/* Concept bank and content pages */
+.bank-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}.bank-filters{display:flex;gap:7px;flex-wrap:wrap}.result-count{white-space:nowrap}.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.concept-card{border:1px solid var(--line);border-radius:7px;background:#181c16;overflow:hidden;transition:transform .2s,border-color .2s}.concept-card:hover{transform:translateY(-4px);border-color:#64774a}.concept-art{height:190px;position:relative;overflow:hidden;background:#1b261b}.concept-art-label{position:absolute;top:13px;left:14px;color:#b4c19f;z-index:3}.concept-art-one{background:radial-gradient(ellipse at center,#35452a,#172017)}.orbit{position:absolute;border:1px solid rgba(199,243,106,.5);border-radius:50%;left:50%;top:55%;transform:translate(-50%,-50%) rotate(-25deg)}.orbit-a{width:180px;height:75px}.orbit-b{width:135px;height:130px;transform:translate(-50%,-50%) rotate(55deg)}.orbit-core{position:absolute;width:27px;height:27px;left:50%;top:55%;transform:translate(-50%,-50%);background:var(--lime);border-radius:50%;box-shadow:0 0 35px rgba(199,243,106,.45)}.orbit-node{position:absolute;width:9px;height:9px;left:74%;top:27%;background:#d6ef9b;border-radius:50%;box-shadow:0 0 14px var(--lime)}.concept-art-two{background:linear-gradient(180deg,#24372f,#172019)}.env-sun{position:absolute;right:22%;top:26%;width:43px;height:43px;background:#c7d79c;border-radius:50%;box-shadow:0 0 35px rgba(199,243,106,.2)}.env-ridge{position:absolute;bottom:0;width:0;height:0;border-left:150px solid transparent;border-right:150px solid transparent;border-bottom:130px solid #314633}.ridge-one{left:-20px}.ridge-two{right:-50px;border-bottom-color:#24382a;border-left-width:180px;border-right-width:180px}.env-platform{position:absolute;z-index:2;bottom:33px;left:28%;width:45%;height:8px;background:#9ab86b;transform:skewX(-25deg)}.concept-art-three{background:radial-gradient(ellipse at center,#283326,#151b15)}.hud-frame{position:absolute;inset:45px 38px;border:1px solid #9dbb68;border-radius:5px;box-shadow:0 0 25px rgba(199,243,106,.08)}.hud-cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--lime);font-size:20px}.hud-bar{position:absolute;left:12px;bottom:12px;width:65px;height:5px;background:var(--lime);box-shadow:0 0 10px rgba(199,243,106,.3)}.hud-circle{position:absolute;right:12px;bottom:10px;width:17px;height:17px;border:1px solid var(--lime);border-radius:50%}.hud-readout{position:absolute;right:12px;top:10px;color:#c9d9ae;font:9px var(--mono)}.concept-card>h2,.concept-card>p,.concept-meta,.concept-bottom{margin-left:17px;margin-right:17px}.concept-meta{display:flex;justify-content:space-between;margin-top:16px;color:var(--lime);font-size:8px}.concept-card>h2{font-size:17px;letter-spacing:-.5px;margin-top:9px;margin-bottom:7px}.concept-card>p{font-size:10px;color:var(--muted);line-height:1.8;min-height:54px;margin-bottom:17px}.concept-bottom{display:flex;align-items:center;justify-content:space-between;padding:12px 0 16px;border-top:1px solid var(--line-soft)}.difficulty{font:8px var(--mono);color:var(--dim)}.concept-bottom a{font-size:9px;color:var(--lime)}.bank-note{display:flex;gap:14px;align-items:start;margin-top:22px;padding:17px;border:1px solid var(--line);border-radius:6px;background:#171c14}.note-symbol{color:var(--lime);font-size:18px}.bank-note b{font-size:11px}.bank-note p{font-size:10px;color:var(--muted);margin:4px 0 0}.narrow-shell{max-width:850px}.content-page{padding-top:75px;padding-bottom:100px}.content-page h1{font-size:60px;margin:22px 0}.content-lede{max-width:650px;font-size:15px;color:var(--muted);line-height:1.9;margin-bottom:60px}.about-block{padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.about-block h2{font-size:25px;letter-spacing:-1px;margin:13px 0}.about-block p{max-width:690px;color:var(--muted);font-size:12px;line-height:2}.about-values{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:35px 0}.about-values>div{border-top:1px solid #657747;padding-top:13px}.about-values span{font:9px var(--mono);color:var(--lime)}.about-values h3{font-size:14px;margin:12px 0 5px}.about-values p{font-size:10px;color:var(--muted);line-height:1.8}.docs-list{border-top:1px solid var(--line)}.docs-list>a{display:grid;grid-template-columns:45px 1fr 20px;gap:15px;padding:22px 0;border-bottom:1px solid var(--line);align-items:start}.docs-num{color:var(--lime);padding-top:5px}.docs-list h2{font-size:15px;margin:0 0 4px}.docs-list p{font-size:11px;color:var(--muted);margin:0}.docs-list>a>span:last-child{color:var(--lime)}.docs-callout{margin-top:28px;padding:18px;border:1px solid #566542;background:rgba(199,243,106,.045);border-radius:5px}.docs-callout b{font-size:11px;color:var(--lime)}.docs-callout p{font-size:10px;color:var(--muted);margin:5px 0 0}.examples-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.example-card{border:1px solid var(--line);background:#181c16;border-radius:7px;overflow:hidden}.example-art{height:205px;position:relative;overflow:hidden;background:#1b261b}.example-art>span{position:absolute;top:13px;left:14px;color:#b4c19f;font:8px var(--mono);letter-spacing:1px}.example-platform{background:linear-gradient(180deg,#253b33,#121a16)}.ex-platform{position:absolute;height:10px;background:#82995b;border:1px solid #c4e18a;transform:skewX(-25deg)}.p1{width:45%;left:10%;bottom:35%}.p2{width:28%;right:9%;bottom:58%}.ex-player{position:absolute;left:37%;bottom:calc(35% + 10px);width:18px;height:27px;background:var(--lime);border-radius:4px}.example-world{background:linear-gradient(180deg,#2b3a31,#182019)}.world-sun{position:absolute;right:22%;top:25%;width:45px;height:45px;border-radius:50%;background:#c6d99a}.world-shape{position:absolute;bottom:0;width:0;height:0;border-left:160px solid transparent;border-right:160px solid transparent;border-bottom:145px solid #304533}.ws1{left:-35px}.ws2{right:-80px;border-bottom-color:#203328}.example-hud{background:radial-gradient(ellipse at center,#34412d,#131a14)}.fake-hud{position:absolute;inset:38px 30px;border:1px solid #91ad62;border-radius:5px}.fake-hud i{position:absolute;left:15px;bottom:15px;width:65px;height:5px;background:var(--lime)}.fake-hud i:nth-child(2){left:15px;bottom:27px;width:38px;background:#65794a}.fake-hud b{position:absolute;right:14px;top:13px;font:9px var(--mono);color:#d4e5b5}.example-copy{padding:17px}.example-copy h2{font-size:16px;line-height:1.4;margin:9px 0}.example-copy p{font-size:10px;color:var(--muted);line-height:1.8;min-height:54px}.example-copy>a{font-size:9px;color:var(--lime)}
+@media(max-width:850px){.hero{gap:30px;grid-template-columns:1fr 1fr}.hero h1{font-size:58px}.focus-section{gap:40px}.subnav-inner{gap:19px}.subnav-note{display:none}.builder-layout,.visualizer-layout{grid-template-columns:1fr}.game-canvas{min-height:390px}.concept-grid,.examples-grid{grid-template-columns:repeat(2,1fr)}.concept-card:last-child,.example-card:last-child{grid-column:span 2}.concept-card:last-child{display:grid;grid-template-columns:1fr 1fr;align-items:center}.concept-card:last-child .concept-art{grid-row:span 4;height:100%}}
+@media(max-width:650px){.nav-wrap{height:64px;padding:0 18px}.nav-toggle{display:block}.primary-nav{display:none;position:absolute;top:63px;left:0;right:0;padding:18px;background:#171b15;border-bottom:1px solid var(--line);align-items:stretch;gap:17px}.primary-nav.open{display:flex;flex-direction:column}.nav-links{flex-direction:column;align-items:stretch;gap:0}.nav-links a{padding:12px 4px;border-bottom:1px solid var(--line-soft)}.primary-nav .button{align-self:flex-start}.subnav-inner{height:45px;padding:0 18px;gap:17px;overflow-x:auto;scrollbar-width:none}.subnav-inner::-webkit-scrollbar{display:none}.subnav a{font-size:10px}.subnav-divider,.subnav-spacer{display:none}.section-shell{padding-left:18px;padding-right:18px}.hero{padding-top:55px;padding-bottom:45px;grid-template-columns:1fr;gap:35px}.hero h1{font-size:62px;letter-spacing:-4px}.hero-lede{font-size:13px}.hero-meta{margin-top:27px}.hero-art{height:290px}.workspace-section{padding-top:25px;padding-bottom:65px}.section-heading{display:block}.section-heading h2{font-size:25px}.section-heading>p{margin-top:10px}.tool-grid{grid-template-columns:1fr}.tool-card{padding:16px}.mini-visual{height:125px}.tool-card-copy p{min-height:0}.focus-section{padding-top:45px;padding-bottom:60px;grid-template-columns:1fr;gap:25px}.focus-intro h2{font-size:32px}.closing-cta{align-items:flex-start;gap:20px;flex-direction:column}.closing-cta h2{font-size:23px}.site-footer{padding:23px 18px;gap:12px;flex-wrap:wrap}.site-footer>span:nth-child(2){display:none}.tool-page{padding-top:38px;padding-bottom:60px}.page-heading{display:block}.page-heading h1{font-size:39px;letter-spacing:-2px}.page-heading p{line-height:1.8}.page-status{display:inline-flex;margin-top:18px}.panel{padding:16px}.preview-header{align-items:flex-start;gap:12px;flex-direction:column}.preview-tools{align-self:flex-start}.game-canvas{min-height:300px}.game-sky{min-height:250px}.insight-grid{grid-template-columns:1fr}.bank-toolbar{display:block}.bank-filters{margin-bottom:13px}.concept-grid,.examples-grid{grid-template-columns:1fr}.concept-card:last-child,.example-card:last-child{grid-column:auto}.concept-card:last-child{display:block}.concept-card:last-child .concept-art{height:190px}.concept-card>p{min-height:0}.content-page{padding-top:55px;padding-bottom:70px}.content-page h1{font-size:46px;letter-spacing:-3px}.content-lede{font-size:13px;margin-bottom:40px}.about-values{grid-template-columns:1fr;gap:10px}.about-values>div{padding-bottom:10px}.docs-list>a{grid-template-columns:30px 1fr 15px}.example-art{height:180px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* Studio side navigation */
+.workspace-shell{max-width:1440px;margin:0 auto;display:flex;align-items:stretch;min-height:calc(100vh - 73px)}
+.studio-sidebar{width:226px;flex:0 0 226px;position:sticky;top:73px;height:calc(100vh - 73px);min-height:570px;padding:29px 16px 20px 24px;border-right:1px solid var(--line-soft);display:flex;flex-direction:column;background:rgba(20,23,18,.42)}
+.sidebar-label{font:9px var(--mono);letter-spacing:1.5px;color:var(--dim);padding:0 11px;margin-bottom:15px}
+.side-link{height:43px;padding:0 11px;display:flex;align-items:center;gap:11px;border:1px solid transparent;border-radius:6px;color:var(--muted);font-size:11px;transition:background .2s,border-color .2s,color .2s}
+.side-link:hover{background:#1b2118;color:var(--text)}
+.side-link.active{background:rgba(199,243,106,.085);border-color:#465536;color:var(--lime)}
+.side-icon{width:19px;height:19px;display:grid;place-items:center;border:1px solid #414a38;border-radius:5px;color:#aab49a;font-size:13px}
+.side-link.active .side-icon{border-color:#718b4b;color:var(--lime)}
+.side-arrow{margin-left:auto;color:#82916b;font-size:12px;opacity:0;transition:opacity .2s}
+.side-link:hover .side-arrow,.side-link.active .side-arrow{opacity:1}
+.sidebar-bottom{margin-top:auto;padding:14px 13px;border:1px solid var(--line);border-radius:7px;background:linear-gradient(145deg,#20271b,#171c15)}
+.sidebar-bottom-mark{display:grid;place-items:center;width:23px;height:23px;border-radius:6px;background:var(--lime);color:#151810;margin-bottom:12px;font-size:13px}
+.sidebar-bottom b{font-size:11px}
+.sidebar-bottom p{font-size:9px;color:var(--muted);line-height:1.7;margin:5px 0 10px}
+.sidebar-bottom a{font-size:9px;font-weight:700;color:var(--lime)}
+.sidebar-bottom a span{margin-left:5px}
+.main-content{flex:1;min-width:0}
+.main-content .section-shell{max-width:1160px}
+.main-content .hero{padding-top:65px}
+.site-footer{max-width:1160px}
+@media(max-width:850px){.studio-sidebar{width:195px;flex-basis:195px;padding-left:14px;padding-right:12px}.sidebar-bottom{padding:11px}.main-content .hero{grid-template-columns:1fr;gap:30px}.main-content .hero-art{height:310px}}
+@media(max-width:650px){
+  .workspace-shell{display:flex;flex-direction:column;min-height:0}
+  .studio-sidebar{position:sticky;top:64px;z-index:15;width:100%;height:auto;min-height:0;flex:0 0 auto;padding:9px 12px;display:flex;flex-direction:row;align-items:center;gap:5px;overflow-x:auto;white-space:nowrap;background:rgba(20,23,18,.97);border-right:0;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .studio-sidebar::-webkit-scrollbar{display:none}
+  .sidebar-label,.sidebar-bottom{display:none}
+  .side-link{height:36px;flex:0 0 auto;padding:0 10px;gap:7px;font-size:10px}
+  .side-icon{width:17px;height:17px;font-size:11px}
+  .side-arrow{display:none}
+  .main-content .hero{padding-top:42px}
+}
+
+
+/* =========================================================
+   FRAMEFORGE — ART DIRECTION PASS
+   Bigger type, stronger composition, fewer generic UI cards.
+   ========================================================= */
+:root{
+  --bg:#10120f;--bg-soft:#171a14;--panel:#1b2018;--panel-2:#252d20;
+  --line:#3a4432;--line-soft:#2a3125;--text:#f4f3e9;--muted:#b3b9a8;
+  --dim:#858d78;--lime:#d2ff62;--lime-dark:#b5e84c;
+  --sans:'Manrope',Arial,sans-serif;--max:1320px
+}
+body{font-size:15px;line-height:1.65;background:#10120f}
+.nav-wrap{max-width:1440px;height:82px;padding:0 42px}
+.brand{font-size:21px;gap:12px}
+.brand-mark{width:36px;height:36px;border-radius:9px}
+.brand-mark svg{width:25px;height:25px}
+.nav-links{gap:38px}
+.nav-links a{font-size:13px}
+.button{padding:15px 21px;border-radius:4px;font-size:13px}
+.button-small{padding:11px 16px}
+.section-shell{max-width:1320px;padding-left:48px;padding-right:48px}
+.workspace-shell{max-width:1600px;min-height:calc(100vh - 82px)}
+.studio-sidebar{top:82px;height:calc(100vh - 82px);width:250px;flex-basis:250px;padding:40px 22px 26px 30px;background:#151812}
+.sidebar-label{font-size:10px;letter-spacing:2px;margin-bottom:22px}
+.side-link{height:54px;padding:0 14px;gap:13px;font-size:13px;border-radius:4px}
+.side-icon{width:24px;height:24px;font-size:16px}
+.sidebar-bottom{padding:18px 16px;border-radius:4px}
+.sidebar-bottom b{font-size:13px}
+.sidebar-bottom p{font-size:11px}
+.sidebar-bottom a{font-size:11px}
+.main-content{padding-bottom:40px}
+.main-content .hero{max-width:1320px;min-height:660px;padding-top:82px;padding-bottom:90px;grid-template-columns:.88fr 1.12fr;gap:64px}
+.eyebrow{font-size:10px;letter-spacing:1.7px}
+.hero h1,.page-heading h1,.content-page h1{font-size:clamp(68px,8vw,112px);line-height:.94;letter-spacing:-7px;margin:28px 0 27px}
+.hero-lede{font-size:17px;line-height:1.8;max-width:490px;color:#b3b9a8}
+.hero-actions{gap:30px;margin-top:38px}
+.hero-meta{font-size:11px;margin-top:54px}
+.hero-art{height:490px;border:1px solid #53633e;border-radius:3px;background:radial-gradient(ellipse at 48% 35%,#3b4a29 0%,#20291b 42%,#151a12 100%);box-shadow:18px 18px 0 #29351c, 0 30px 90px #0008}
+.art-topline,.art-bottomline{left:25px;right:25px;font-size:10px}
+.scene-sun{width:130px;height:130px}
+.scene-player{width:32px;height:44px}
+.scene-platform{height:18px}
+.scene-label{font-size:10px;padding:7px 10px}
+.workspace-section{padding-top:62px;padding-bottom:120px}
+.section-heading{margin-bottom:34px}
+.section-heading h2,.focus-intro h2,.closing-cta h2{font-size:clamp(36px,4vw,54px);letter-spacing:-2.5px;line-height:1.06}
+.section-heading>p{font-size:14px;max-width:340px}
+.tool-grid{gap:18px}
+.tool-card{padding:0 0 26px;border:1px solid #394332;background:#171b14;border-radius:3px;overflow:hidden;transition:transform .25s,border-color .25s}
+.tool-card:hover{transform:translateY(-8px);border-color:var(--lime);background:#1c2317}
+.card-head{padding:20px 22px 0}
+.card-index{font-size:10px;letter-spacing:1.4px}
+.card-arrow{font-size:24px}
+.mini-visual{height:220px;margin:18px 0 24px;border:0;border-top:1px solid #303a29;border-bottom:1px solid #303a29;border-radius:0}
+.mini-prompt{font-size:13px;padding:15px 19px;border-radius:2px}
+.bank-tile{width:85px;height:108px}
+.tool-card-copy{padding:0 23px}
+.tool-card-copy h3{font-size:24px;letter-spacing:-1px;margin:10px 0}
+.tool-card-copy p{font-size:14px;line-height:1.8;color:#aeb5a2;min-height:75px}
+.tag{font-size:9px;padding:5px 8px}
+.card-cta{font-size:12px;margin-top:16px}
+.focus-section{padding-top:80px;padding-bottom:100px;gap:90px}
+.focus-intro h2{font-size:clamp(42px,5vw,66px)}
+.focus-intro p{font-size:15px;max-width:420px}
+.focus-row{padding:25px 0;grid-template-columns:50px 1fr 30px}
+.focus-number{font-size:12px}
+.focus-row h3{font-size:19px}
+.focus-row p{font-size:13px}
+.focus-icon{font-size:22px}
+.closing-cta{padding-top:45px;padding-bottom:60px;border-top:1px solid var(--line)}
+.closing-cta h2{font-size:clamp(38px,5vw,62px)}
+.site-footer{max-width:1440px;padding:28px 42px;font-size:12px}
+.page-heading{padding-top:65px;padding-bottom:35px}
+.page-heading h1{font-size:clamp(56px,7vw,88px)}
+/* Tool screens: give the work area a strong canvas identity */
+.tool-page{max-width:1320px;padding-top:56px}
+.tool-page .page-heading{padding-top:20px}
+.tool-page .page-heading p{font-size:16px;max-width:650px}
+.tool-layout,.builder-layout,.visualizer-layout{gap:24px}
+.prompt-panel,.preview-panel,.tool-panel,.concept-card,.docs-card,.example-card{border-radius:3px}
+.prompt-panel,.tool-panel{padding:26px}
+.preview-panel{min-height:480px}
+.field-label,.panel-kicker{font-size:10px;letter-spacing:1.5px}
+textarea,input,select{font-size:15px!important}
+@media(max-width:1000px){
+ .nav-wrap{padding:0 25px}
+ .main-content .hero{gap:35px}
+ .hero h1,.page-heading h1,.content-page h1{font-size:clamp(62px,8vw,90px)}
+ .section-shell{padding-left:30px;padding-right:30px}
+ .studio-sidebar{width:220px;flex-basis:220px}
+ .focus-section{gap:45px}
+}
+@media(max-width:760px){
+ .nav-wrap{height:70px;padding:0 18px}
+ .brand{font-size:19px}
+ .primary-nav{gap:14px}
+ .nav-links{gap:17px}
+ .nav-links a{font-size:11px}
+ .workspace-shell{min-height:0}
+ .studio-sidebar{top:70px;width:100%;height:auto;min-height:0;flex-basis:auto;padding:10px 14px;gap:6px}
+ .side-link{height:40px;font-size:11px;padding:0 11px}
+ .side-icon{width:20px;height:20px;font-size:13px}
+ .main-content .hero{min-height:0;padding:55px 24px 75px;grid-template-columns:1fr;gap:44px}
+ .hero h1,.page-heading h1,.content-page h1{font-size:clamp(60px,13vw,88px);letter-spacing:-5px}
+ .hero-lede{font-size:16px}
+ .hero-art{height:370px;box-shadow:9px 9px 0 #29351c}
+ .section-shell{padding-left:24px;padding-right:24px}
+ .workspace-section{padding-top:35px;padding-bottom:75px}
+ .section-heading{align-items:flex-start;flex-direction:column;gap:13px}
+ .section-heading h2{font-size:38px}
+ .tool-grid{grid-template-columns:1fr;gap:16px}
+ .mini-visual{height:210px}
+ .tool-card-copy p{min-height:0}
+ .focus-section{grid-template-columns:1fr;gap:35px;padding-top:45px;padding-bottom:65px}
+ .focus-intro h2{font-size:48px}
+ .focus-row{grid-template-columns:34px 1fr 20px;gap:12px}
+ .focus-row h3{font-size:17px}
+ .closing-cta{align-items:flex-start;flex-direction:column;gap:24px;padding-top:35px}
+ .site-footer{padding:25px 24px;gap:14px;flex-wrap:wrap}
+ .tool-page{padding-top:35px}
+}
+@media(max-width:480px){
+ .nav-links{gap:11px}
+ .nav-links a{font-size:10px}
+ .nav-wrap{padding:0 13px}
+ .nav-wrap>.brand{font-size:17px}
+ .nav-wrap .button{padding:9px 10px;font-size:10px}
+ .side-link{font-size:10px;gap:6px;padding:0 8px}
+ .side-icon{display:none}
+ .hero h1{font-size:59px}
+ .hero-art{height:300px}
+ .art-topline,.art-bottomline{left:14px;right:14px;font-size:8px}
+ .scene-label{font-size:8px}
+}
+
+
+/* ==========================================================================
+   Tool workspaces — shared navigation, individual page character
+   ========================================================================== */
+
+.tool-workspace {
+  --workspace-accent: var(--lime);
+  max-width: 1600px;
+  margin-inline: auto;
+  min-height: calc(100vh - 73px);
+}
+
+.tool-workspace .main-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.tool-workspace .tool-page {
+  width: 100%;
+  max-width: 1320px;
+  padding-top: 58px;
+  padding-bottom: 84px;
+}
+
+.tool-workspace .studio-sidebar {
+  align-self: stretch;
+}
+
+.tool-workspace .sidebar-label {
+  margin: 0 0 22px 11px;
+  color: var(--dim);
+  font: 9px/1.4 var(--mono);
+  letter-spacing: 1.6px;
+}
+
+.tool-workspace .side-link[aria-current="page"] {
+  position: relative;
+  isolation: isolate;
+}
+
+.tool-workspace .side-link[aria-current="page"]::after {
+  position: absolute;
+  inset: 7px auto 7px -1px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--workspace-accent);
+  content: "";
+}
+
+.tool-workspace .sidebar-bottom {
+  margin-top: auto;
+}
+
+/* The three workspaces share navigation but not their visual signature. */
+.tool-workspace[data-workspace="builder"] {
+  --workspace-accent: #c7f36b;
+}
+
+.tool-workspace[data-workspace="builder"] .page-heading {
+  border-left: 3px solid var(--workspace-accent);
+  padding-left: 20px;
+}
+
+.tool-workspace[data-workspace="training"] {
+  --workspace-accent: #8ed9c2;
+}
+
+.tool-workspace[data-workspace="training"] .side-link.active {
+  background: rgba(142, 217, 194, 0.09);
+  border-color: rgba(142, 217, 194, 0.34);
+  color: var(--workspace-accent);
+}
+
+.tool-workspace[data-workspace="training"] .side-link.active .side-icon {
+  color: var(--workspace-accent);
+  border-color: rgba(142, 217, 194, 0.55);
+}
+
+.tool-workspace[data-workspace="training"] .page-heading {
+  border-left: 3px solid var(--workspace-accent);
+  padding-left: 20px;
+}
+
+.tool-workspace[data-workspace="concepts"] {
+  --workspace-accent: #d5a8ff;
+}
+
+.tool-workspace[data-workspace="concepts"] .side-link.active {
+  background: rgba(213, 168, 255, 0.09);
+  border-color: rgba(213, 168, 255, 0.34);
+  color: var(--workspace-accent);
+}
+
+.tool-workspace[data-workspace="concepts"] .side-link.active .side-icon {
+  color: var(--workspace-accent);
+  border-color: rgba(213, 168, 255, 0.55);
+}
+
+.tool-workspace[data-workspace="concepts"] .page-heading {
+  border-left: 3px solid var(--workspace-accent);
+  padding-left: 20px;
+}
+
+/* Top navigation underline and clear focus feedback. */
+.nav-links a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+}
+
+.nav-links a::after {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  height: 2px;
+  background: var(--lime);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms ease;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: var(--text);
+}
+
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after,
+.nav-links a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+a:focus-visible,
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 4px;
+}
+
+.tool-card,
+.concept-card,
+.example-card,
+.button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 760px) {
+  .tool-workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .tool-workspace .studio-sidebar {
+    position: sticky;
+    top: 72px;
+    z-index: 15;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+
+  .tool-workspace .studio-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tool-workspace .sidebar-label,
+  .tool-workspace .sidebar-bottom {
+    display: none;
+  }
+
+  .tool-workspace .side-link {
+    flex: 0 0 auto;
+    height: 40px;
+    padding-inline: 11px;
+    font-size: 11px;
+  }
+
+  .tool-workspace .tool-page {
+    padding-top: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-links a::after {
+    transition: none;
+  }
+}
+
+
+/* =========================================================
+   COMPLEMENTARY ACCENT SYSTEM
+   Complementing --lime (#d2ff62) with electric cyber cyan (#38e1ff)
+   and cyber violet (#a78bfa) for dual-metric curves, neural graphs,
+   and robotics simulation telemetry.
+   ========================================================= */
+:root {
+  --cyan: #38e1ff;
+  --cyan-soft: rgba(56, 225, 255, 0.12);
+  --cyan-line: rgba(56, 225, 255, 0.4);
+  --violet: #a78bfa;
+  --violet-soft: rgba(167, 139, 250, 0.14);
+  --violet-line: rgba(167, 139, 250, 0.45);
+}
+
+.text-cyan { color: var(--cyan); }
+.text-violet { color: var(--violet); }
+.text-lime { color: var(--lime); }
+.tag-cyan { background: var(--cyan-soft); color: var(--cyan); border: 1px solid var(--cyan-line); }
+.tag-violet { background: var(--violet-soft); color: var(--violet); border: 1px solid var(--violet-line); }
+.button-cyan { background: var(--cyan); color: #0d1214; }
+.button-cyan:hover { background: #62e8ff; }
+.button-violet { background: var(--violet); color: #0d1214; }
+.button-violet:hover { background: #bba2ff; }
+
+/* Studio Top Action Bar */
+.workspace-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #141712;
+  border-bottom: 1px solid var(--line);
+}
+.workspace-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-action {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  background: #191e17;
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--mono);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-action:hover {
+  background: #22291f;
+  border-color: var(--dim);
+}
+.btn-action-primary {
+  background: var(--lime);
+  color: #11140e;
+  border-color: transparent;
+  font-weight: 700;
+}
+.btn-action-primary:hover {
+  background: #deff7f;
+}
+
+/* Tab 1: Agent Arena styles */
+.prompt-card {
+  background: #181c15;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.prompt-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.prompt-card-head span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: var(--dim);
+}
+.prompt-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #11140f;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+.prompt-input-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--sans);
+}
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover { color: var(--lime); }
+
+.code-editor-box {
+  background: #0f120e;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.code-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #161a13;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--dim);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.code-editor-body {
+  padding: 14px;
+  line-height: 1.7;
+  color: #c9d2bf;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.code-line { display: flex; }
+.code-ln { width: 30px; color: var(--dim); user-select: none; }
+.code-text { flex: 1; }
+.code-key { color: var(--cyan); }
+.code-str { color: var(--lime); }
+.code-num { color: #f59e0b; }
+
+.runtime-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #151913;
+  border-top: 1px solid var(--line-soft);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.runtime-turn-badge {
+  background: var(--cyan-soft);
+  color: var(--cyan);
+  border: 1px solid var(--cyan-line);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+/* Tab 2: Training Visualizer Styles matching image */
+.visualizer-top-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: #181c15;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 18px;
+}
+.stat-card-title {
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  color: var(--dim);
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 11px;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: var(--muted); }
+.stat-val { font-family: var(--mono); font-weight: 600; color: var(--text); }
+
+.details-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: 8px;
+}
+.details-tab {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.details-tab.active {
+  background: #232a1e;
+  border-color: var(--line);
+  color: var(--lime);
+}
+
+.weights-table {
+  max-height: 140px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.weights-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-bottom: 1px solid #1f251b;
+}
+.weights-row:nth-child(even) { background: rgba(255,255,255,0.015); }
+.weights-key { color: var(--cyan); }
+.weights-val { color: var(--text); }
+
+.gen-selector-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.gen-tab {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  background: #171b14;
+  color: var(--muted);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.gen-tab:hover { background: #20261c; color: var(--text); }
+.gen-tab.active {
+  background: rgba(210, 255, 98, 0.1);
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+.genomes-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+.genome-card {
+  background: #171c14;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.genome-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan);
+}
+.genome-card.active {
+  border-color: var(--cyan);
+  background: #1b2319;
+  box-shadow: 0 0 15px rgba(56, 225, 255, 0.15);
+}
+.genome-card-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-family: var(--mono);
+  margin-bottom: 8px;
+}
+.genome-card-canvas {
+  width: 100%;
+  height: 70px;
+  background: #10140e;
+  border: 1px solid #283322;
+  border-radius: 4px;
+}
+
+/* Concept Bank: quiet point field + contextual inspector */
+.concept-bank-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+.concept-bank-layout.inspector-open{grid-template-columns:minmax(0,1.65fr) minmax(280px,.85fr)}
+.concept-graph-panel{position:relative;min-height:560px;height:min(68vh,720px);background:#11160f;border:1px solid var(--line-soft);border-radius:7px;overflow:hidden}
+#concept-points{position:absolute;inset:0;overflow:hidden}
+.concept-point{position:absolute;width:7px;height:7px;padding:0;border:0;border-radius:50%;background:#8b9b78;opacity:.72;transform:translate(-50%,-50%);cursor:pointer;transition:transform .16s ease,opacity .16s ease,background .16s ease,box-shadow .16s ease}
+.concept-point:hover,.concept-point:focus-visible{opacity:1;transform:translate(-50%,-50%) scale(1.8);background:var(--lime);box-shadow:0 0 0 5px rgba(199,243,106,.08);outline:none}
+.concept-point.active{opacity:1;background:var(--lime);box-shadow:0 0 0 3px rgba(199,243,106,.13)}
+.concept-details-panel{position:sticky;top:96px;max-height:calc(100vh - 120px);overflow:auto;background:#151a13;border:1px solid var(--line);border-radius:7px;padding:18px}
+.concept-details-panel[hidden]{display:none}
+.concept-detail-name{overflow-wrap:anywhere}
+@media(max-width:850px){.concept-bank-layout.inspector-open{grid-template-columns:1fr}.concept-details-panel{position:relative;top:auto;max-height:none}}
+
+.concept-details-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--dim);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+.concept-detail-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cyan);
+  font-family: var(--mono);
+  margin-bottom: 8px;
+}
+.concept-detail-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.concept-code-block {
+  background: #0d100c;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: #cdd6c1;
+}
+
+/* Tab 4: Gazebo Sim Bridge Styles */
+.gazebo-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+.gazebo-intro-card {
+  background: #161b13;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cyan);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.gazebo-intro-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gazebo-audience-tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.audience-tag {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+}
+.audience-tag-game {
+  background: rgba(210, 255, 98, 0.1);
+  color: var(--lime);
+  border: 1px solid rgba(210, 255, 98, 0.3);
+}
+.audience-tag-robot {
+  background: var(--cyan-soft);
+  color: var(--cyan);
+  border: 1px solid var(--cyan-line);
+}
+
+.upload-dropzone {
+  border: 2px dashed #43523a;
+  background: #121610;
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+.upload-dropzone:hover, .upload-dropzone.dragover {
+  border-color: var(--cyan);
+  background: #151b14;
+}
+.upload-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--cyan-soft);
+  color: var(--cyan);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+  font-size: 20px;
+}
+.samples-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.sample-pill {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  background: #181d15;
+  color: var(--muted);
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sample-pill:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.model-synthesis-card {
+  background: #161b13;
+  border: 1px solid var(--cyan-line);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: none;
+}
+.model-synthesis-card.visible { display: block; }
+.pipeline-flow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.pipe-step {
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: #10140e;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.pipe-arrow { color: var(--cyan); }
+
+.gazebo-viewport-box {
+  background: #11150e;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.gazebo-viewport-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: #171c14;
+  border-bottom: 1px solid var(--line);
+}
+.gazebo-canvas-container {
+  position: relative;
+  height: 380px;
+  background: #0d110b;
+}
+.gazebo-telemetry-overlay {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(17, 22, 15, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  width: 200px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.telem-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+.telem-val { color: var(--cyan); font-weight: 600; }
+
+
+/* Custom enhancements for interactive workspace */
+.studio-tab-content {
+  display: none;
+}
+.studio-tab-content.active {
+  display: block;
+}
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #192016;
+  border: 1px solid var(--lime);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: none;
+  z-index: 100;
+  align-items: center;
+  gap: 10px;
+}
+.toast-notice.show {
+  display: flex;
+  animation: fadeIn 0.2s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+  
+.robot-upload-drop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;border:1px dashed var(--cyan-line);background:var(--cyan-soft);text-align:center;cursor:pointer;border-radius:8px;color:var(--text)}
+.robot-upload-drop span:last-of-type{font-size:11px;color:var(--muted)}.robot-upload-drop input{max-width:240px;font-size:11px;margin-top:8px}
+.robot-example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.robot-example{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:20px;background:#141a11;border:1px solid var(--line);border-radius:8px;color:var(--text);text-align:left;cursor:pointer;min-height:190px}.robot-example:hover,.robot-example.selected{border-color:var(--cyan);background:var(--cyan-soft)}.robot-example-icon{font-size:30px;color:var(--cyan)}.robot-example-kicker,.robot-example-meta{font:10px var(--mono);letter-spacing:.08em;color:var(--cyan)}.robot-example strong{font-size:20px}.robot-example>span:nth-of-type(3){font-size:12px;color:var(--muted);line-height:1.6}.robot-example-meta{color:var(--dim);margin-top:auto;font-size:9px}
+.robot-workspace[hidden]{display:none}.robot-workspace{margin-top:18px}.robot-training-grid{display:grid;grid-template-columns:minmax(220px,.75fr) minmax(0,1.7fr);gap:16px}.robot-config-card,.robot-runtime-card{background:#12170f;border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}.robot-config-card{display:flex;flex-direction:column;gap:9px}.robot-select,.robot-input{width:100%;padding:10px;background:#0c100a;border:1px solid var(--line);border-radius:5px;color:var(--text);font:12px var(--mono)}.robot-config-note,.robot-job-state,.robot-policy-meta{font-size:11px;line-height:1.6;color:var(--muted)}.robot-button-stack{display:grid;gap:8px;margin:8px 0}.button-secondary{background:#222b1d;border:1px solid var(--line);color:var(--text)}.robot-progress-track{height:5px;background:#252d20;border-radius:8px;overflow:hidden}.robot-progress-track>div{height:100%;width:0;background:var(--cyan);transition:width .2s}.robot-log{white-space:pre-wrap;overflow:auto;max-height:180px;min-height:70px;background:#090c08;border:1px solid var(--line);padding:10px;border-radius:5px;color:#aebba4;font:10px/1.5 var(--mono);margin:0}.robot-viewport-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.robot-viewport-head>div:first-child{display:flex;flex-direction:column;gap:5px}.robot-viewport-head strong{font-size:14px}.robot-runtime-controls{display:flex;gap:6px}.robot-canvas-wrap{position:relative;background:#0b100a;border:1px solid var(--line);border-radius:6px;overflow:hidden}.robot-canvas-wrap canvas{display:block;width:100%;height:auto;aspect-ratio:800/380}.robot-canvas-stamp{position:absolute;left:10px;bottom:8px;padding:4px 7px;background:#090c08cc;color:#a0b09a;font:9px var(--mono);letter-spacing:.06em}.robot-telemetry-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.robot-telemetry-grid>div{display:flex;flex-direction:column;gap:5px;padding:9px;background:#1a2116;border-radius:5px;min-width:0}.robot-telemetry-grid span{font:9px var(--mono);color:var(--dim)}.robot-telemetry-grid strong{font:11px var(--mono);color:var(--cyan);overflow-wrap:anywhere}.robot-disclaimer{font-size:10px;line-height:1.6;color:var(--dim);margin:14px 0 0}.robot-policy-meta{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+@media(max-width:900px){.robot-training-grid{grid-template-columns:1fr}.robot-example-grid{grid-template-columns:1fr}}@media(max-width:520px){.robot-telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.robot-viewport-head{align-items:flex-start;flex-direction:column}}
+
+</style>
+<style>
+#live-environment-panel .workspace-actions{display:flex;align-items:center;gap:10px}
+#live-environment-panel .select-like{min-width:140px}
+#env-scene svg{max-width:100%;max-height:440px}
+#env-scene .clickable{cursor:pointer}
+#env-scene .clickable:hover{filter:brightness(1.3)}
+#training-chart{width:100%;height:100%}
+#history-rows td,#history-rows th{padding:9px;border-bottom:1px solid var(--line-soft);text-align:left;color:var(--muted)}
+#history-rows th{color:var(--dim);font:9px var(--mono);letter-spacing:1px}
+@media(max-width:760px){#live-environment-panel .workspace-actions{align-items:stretch;flex-direction:column}#live-environment-panel .select-like{width:100%}}
+</style><style>
+#live-environment-panel .workspace-actions{display:flex;align-items:center;gap:10px}
+#live-environment-panel .select-like{min-width:140px}
+#env-scene svg{max-width:100%;max-height:440px}
+#env-scene .clickable{cursor:pointer}
+#env-scene .clickable:hover{filter:brightness(1.3)}
+#training-chart{width:100%;height:100%}
+#history-rows td,#history-rows th{padding:9px;border-bottom:1px solid var(--line-soft);text-align:left;color:var(--muted)}
+#history-rows th{color:var(--dim);font:9px var(--mono);letter-spacing:1px}
+@media(max-width:760px){#live-environment-panel .workspace-actions{align-items:stretch;flex-direction:column}#live-environment-panel .select-like{width:100%}}
+</style>
+<style>
+/* ---- Home: hero headline + project overview (scoped to .home-*) ---- */
+@media(min-width:851px){.main-content .hero{grid-template-columns:1.08fr .92fr;gap:56px}}
+.hero h1.hero-title{font-size:clamp(40px,4.7vw,72px);line-height:1.02;letter-spacing:-3.5px;margin:26px 0 26px;white-space:nowrap}
+.hero-copy{min-width:0}
+.hero .prompt-input-row input{min-width:0}
+.hero .prompt-input-row .button{white-space:nowrap;flex:none}
+.art-topline,.art-bottomline{white-space:nowrap;gap:12px}
+.home-section{padding-top:92px}
+.home-section h2{font-size:34px;line-height:1.15;letter-spacing:-1.4px;font-weight:800;margin:0 0 18px;max-width:640px}
+.home-section h3{margin:0 0 6px;font-size:16px;letter-spacing:-.2px}
+.home-sub{max-width:560px;margin:0 0 30px;color:var(--muted);font-size:15px;line-height:1.75}
+.home-about{display:grid;grid-template-columns:.85fr 1.15fr;gap:76px;align-items:start;border-top:1px solid var(--line-soft);margin-top:30px;padding-top:70px}
+.home-about h2{font-size:36px}
+.home-about-intro p{max-width:430px;margin:0;color:var(--muted);font-size:15px;line-height:1.85}
+.home-steps{list-style:none;margin:0;padding:0;border-top:1px solid var(--line);counter-reset:step}
+.home-steps li{counter-increment:step;display:grid;grid-template-columns:38px 1fr;gap:12px;padding:22px 0;border-bottom:1px solid var(--line)}
+.home-steps li::before{content:counter(step);font:500 12px/1.9 var(--mono);color:var(--lime)}
+.home-steps p{margin:0;max-width:540px;color:var(--muted);font-size:14px;line-height:1.75}
+.home-ledger{border-top:1px solid var(--line)}
+.home-row{display:grid;grid-template-columns:220px 1fr 72px;gap:28px;align-items:baseline;padding:24px 4px;border-bottom:1px solid var(--line);transition:background .2s}
+.home-row:hover{background:#161a13}
+.home-row strong{font-size:21px;letter-spacing:-.7px;font-weight:800;transition:color .2s}
+.home-row:hover strong{color:var(--lime)}
+.home-row span{max-width:560px;color:var(--muted);font-size:14px;line-height:1.7}
+.home-row em{font-style:normal;font-size:13px;font-weight:700;color:var(--lime);text-align:right}
+.home-table-wrap{overflow-x:auto;border-top:1px solid var(--line)}
+.home-table{width:100%;min-width:560px;border-collapse:collapse}
+.home-table th{padding:14px 18px 12px 0;text-align:left;font:400 11px var(--mono);letter-spacing:.6px;color:var(--dim);border-bottom:1px solid var(--line)}
+.home-table td{padding:15px 18px 15px 0;border-bottom:1px solid var(--line-soft);font-size:14px;color:var(--muted);vertical-align:top}
+.home-table td:first-child{color:var(--text);font-weight:700;white-space:nowrap}
+.home-table .is-new{margin-left:10px;padding:2px 6px;border-radius:3px;background:rgba(199,243,106,.12);color:var(--lime);font:500 10px var(--mono)}
+.home-dev{display:grid;grid-template-columns:repeat(3,1fr);gap:44px}
+.home-dev>div{border-top:1px solid var(--line);padding-top:18px}
+.home-dev p{margin:0;color:var(--muted);font-size:14px;line-height:1.75}
+.home-note{max-width:820px;padding:30px 34px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.home-note h2{font-size:26px;letter-spacing:-1px;margin-bottom:14px}
+.home-note p{margin:0 0 14px;color:#b3b9a8;font-size:15px;line-height:1.8}
+.home-note a{color:var(--lime);font-weight:700;font-size:14px}
+.home-cta{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:92px;padding:40px 0 20px;border-top:1px solid var(--line-soft)}
+.home-cta h2{margin:0;font-size:28px;letter-spacing:-1px}
+@media(min-width:851px) and (max-width:1100px){.main-content .hero{grid-template-columns:1fr 1fr;gap:34px}}
+@media(max-width:1100px){.hero h1.hero-title{font-size:clamp(34px,4vw,56px);letter-spacing:-2.8px}.art-topline,.art-bottomline{font-size:9px;letter-spacing:.5px}.art-bottomline span:last-child{display:none}.home-about{gap:44px}.home-dev{gap:28px}}
+@media(max-width:900px){.home-about{grid-template-columns:1fr;gap:36px}.home-dev{grid-template-columns:1fr;gap:26px}.home-row{grid-template-columns:170px 1fr 60px;gap:20px}}
+@media(max-width:850px){.main-content .hero{grid-template-columns:minmax(0,1fr)}.hero h1.hero-title{font-size:clamp(40px,7.5vw,64px);letter-spacing:-3px}.art-bottomline span:last-child{display:inline}}
+@media(max-width:650px){.hero h1.hero-title{font-size:clamp(34px,10vw,52px);letter-spacing:-2.5px;white-space:normal}.hero .prompt-input-row{flex-wrap:wrap;gap:8px;padding:8px}.hero .prompt-input-row input{flex:1 1 100%;padding:8px 6px}.hero .prompt-input-row .button{white-space:normal;flex:1 1 100%;text-align:center}.art-bottomline span:last-child{display:none}.home-section{padding-top:64px}.home-about{padding-top:48px;margin-top:10px}.home-about h2,.home-section h2{font-size:27px;letter-spacing:-1px}.home-row{grid-template-columns:1fr;gap:6px;padding:20px 2px}.home-row em{text-align:left}.home-cta{flex-direction:column;align-items:flex-start;margin-top:64px}.home-note{padding:22px 20px}}
+</style>
+<style>
+#tab-builder .builder-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+#tab-builder .workspace-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#tab-builder .select-like{min-width:140px}
+#tab-builder [hidden]{display:none!important}
+#tab-builder .notice{margin:10px 0 0}
+#tab-builder .source-box{display:block;width:100%;min-height:380px;resize:vertical;background:#0f120e;color:#c9d2bf;border:1px solid var(--line);padding:14px;border-radius:4px;font:11px/1.7 var(--mono)}
+#tab-builder .prompt-text{display:block;width:100%;min-height:64px;resize:vertical;background:#11140f;color:var(--text);border:1px solid var(--line);padding:12px;border-radius:4px}
+@media(max-width:850px){#tab-builder .builder-layout{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <header class="header">
-    <a class="brand" href="#" data-tab-link="overview"><span class="brand-mark">F</span><span>frameforge<em>.</em></span></a>
-    <div class="header-actions">
-      <a class="button" id="tab-research" href="/research" target="_blank" rel="noopener">Research results ↗</a>
-      <button class="button" id="header-build">New environment</button>
-      <button class="button primary" id="header-run" type="button" disabled>Run training</button>
+<header class="site-header">
+<div class="nav-wrap">
+<a aria-label="Frameforge home" class="brand" href="#" onclick="switchTab('overview'); return false;">
+<span class="brand-mark">
+<svg aria-hidden="true" viewbox="0 0 32 32"><path d="M5 5h9v5H10v5h4v5h-4v7H5V5Zm13 0h9v5h-9V5Zm0 9h9v13h-5v-8h-4v-5Z" fill="currentColor"></path></svg>
+</span>
+<span>frameforge<span class="brand-period">.</span></span>
+</a>
+<button aria-label="Open navigation" class="nav-toggle" type="button"><span></span><span></span></button>
+<nav class="primary-nav">
+<div class="nav-links">
+<a href="#" onclick="switchTab('overview'); return false;">Home</a>
+<a href="#" onclick="switchTab('builder'); return false;">Studio</a>
+<a href="/research">Research</a></div>
+</nav>
+</div>
+</header>
+<div class="workspace-shell tool-workspace">
+<aside aria-label="Studio navigation" class="studio-sidebar">
+<div class="sidebar-label">WORKSPACE</div>
+<a class="side-link active" data-tab-link="overview" href="#" id="nav-overview" onclick="switchTab('overview'); return false;">
+<i class="side-icon" data-lucide="layout-dashboard"></i>
+<span>Overview</span>
+</a>
+<a class="side-link" data-tab-link="builder" href="#" id="nav-builder" onclick="switchTab('builder'); return false;">
+<i class="side-icon" data-lucide="bot"></i>
+<span>Agent Arena</span>
+<span class="side-arrow">↗</span>
+</a>
+<a class="side-link" data-tab-link="training" href="#" id="nav-training" onclick="switchTab('training'); return false;">
+<i class="side-icon" data-lucide="activity"></i>
+<span>Training Visualizer</span>
+<span class="side-arrow">↗</span>
+</a>
+<a class="side-link" data-tab-link="concepts" href="#" id="nav-concepts" onclick="switchTab('concepts'); return false;">
+<i class="side-icon" data-lucide="library"></i>
+<span>Concept Bank</span>
+<span class="side-arrow">↗</span>
+</a>
+<a class="side-link" data-tab-link="gazebo" href="#" id="nav-gazebo" onclick="switchTab('gazebo'); return false;">
+<span class="side-icon" style="color: var(--cyan)">⌘</span>
+<span style="color: var(--cyan)">Robot Lab</span>
+<span class="side-arrow" style="color: var(--cyan)">↗</span>
+</a>
+<!-- <div class="sidebar-bottom">
+        
+        <span class="sidebar-bottom-mark">✳</span>
+        <b>Dual-Target Studio</b>
+        <p>Built for developers training agents on games and robotics tasks.</p>
+        <a href="#" onclick="switchTab('gazebo'); return false;">Try Gazebo Sim Upload <span style="color:var(--cyan)">→</span></a>
+      </div> -->
+</aside>
+<div class="main-content">
+<!-- ========================================== -->
+<!-- TAB 0: OVERVIEW / HOME                     -->
+<!-- ========================================== -->
+<div class="studio-tab-content active" id="tab-overview">
+<main class="section-shell">
+<section class="hero">
+<div class="hero-copy">
+<div class="eyebrow"><span class="eyebrow-line"></span> GENERATE · TRAIN · TRANSFER</div>
+<h1 class="hero-title">Describe a task<span class="lime-period">.</span><br/> <span class="text-muted">Train an agent<span class="lime-period">.</span></span></h1>
+<p class="hero-lede">Frameforge turns a plain-language description into a sandboxed environment, trains an agent on it with NEAT and PPO, and keeps the reusable concepts it finds so you can test whether they help on the next task.</p>
+<div class="prompt-input-row" style="max-width: 520px; margin: 28px 0;">
+<input id="hero-prompt-input" placeholder="Describe a game or task for an agent to learn…" type="text" value="Connect 4 for two players on a 7x6 board."/>
+<button class="button button-lime button-small" onclick="applyHeroPrompt()">Generate environment ↗</button>
+</div>
+<div class="hero-actions">
+<!-- <a class="button button-lime" href="#" onclick="switchTab('builder'); return false;">Open Agent Arena ↗</a> -->
+<!-- <a class="button button-cyan" href="#" onclick="switchTab('gazebo'); return false;">Open Gazebo Sim ↗</a> -->
+</div>
+</div>
+<div aria-label="Abstract preview of a generated environment with an agent" class="hero-art">
+<div class="art-topline"><span>ENV / 001</span><span>SANDBOXED <i class="live-dot"></i></span></div>
+<div class="scene-grid"></div>
+<div class="scene-sun"></div>
+<div class="scene-platform platform-one"></div>
+<div class="scene-platform platform-two"></div>
+<div class="scene-platform platform-three"></div>
+<div class="scene-player"><span></span></div>
+<div class="scene-orb orb-one"></div><div class="scene-orb orb-two"></div>
+<div class="scene-label label-a"><span class="label-marker"></span> AGENT</div>
+<div class="scene-label label-b"><span class="label-marker lime-marker"></span> REWARD +1</div>
+<div class="art-bottomline"><span>GENERATED ENVIRONMENT</span><span>OBSERVE <b>·</b> ACT <b>·</b> REWARD</span></div>
+</div>
+</section>
+<section class="home-about">
+<div class="home-about-intro">
+<h2>A testbed for agents that learn tasks, and carry ideas from one to the next.</h2>
+<p>Frameforge is a developer tool and a research prototype. You describe a game or task, an LLM writes the environment as Python, and a learner trains from scratch to solve it. Any reusable ideas it discovers are saved, so later tasks can try them as extra inputs.</p>
+</div>
+<ol class="home-steps">
+<li><div><h3>Describe the task</h3><p>Write a game or task in plain language, or load a built-in such as Chess, Connect 4, Snake, Pong or Tic-Tac-Toe. The environment is generated as readable Python that you can edit.</p></div></li>
+<li><div><h3>Validate it in a sandbox</h3><p>Each environment runs in an isolated process and is checked for legal actions, finite rewards, deterministic replay and a reward that separates good play from random play. Failures go back to the model to repair.</p></div></li>
+<li><div><h3>Train an agent</h3><p>A C++ learner evolves network topology with NEAT and tunes the policy with PPO. Follow fitness per generation and inspect every genome in the population.</p></div></li>
+<li><div><h3>Reuse concepts</h3><p>Genetic programming searches for small formulas over state and action that predict good moves. Kept in the concept bank, they are offered as inputs to the next task's fresh learner. Weights and network structure never carry over.</p></div></li>
+</ol>
+</section>
+
+<section class="home-section">
+<h2>The workspace</h2>
+<div class="home-ledger">
+<a class="home-row" href="#" data-tab-link="builder" onclick="switchTab('builder'); return false;"><strong>Agent Arena</strong><span>Generate an environment from a description, edit its source, play it yourself, then train an agent on it.</span><em>Open ↗</em></a>
+<a class="home-row" href="#" data-tab-link="training" onclick="switchTab('training'); return false;"><strong>Training Visualizer</strong><span>Watch the learning curve and open any generation to see each genome's nodes, connections, weights and species.</span><em>Open ↗</em></a>
+<a class="home-row" href="#" data-tab-link="concepts" onclick="switchTab('concepts'); return false;"><strong>Concept Bank</strong><span>Browse the reusable features found so far, check which environments each one is compatible with, and see how it was built.</span><em>Open ↗</em></a>
+<a class="home-row" href="#" data-tab-link="gazebo" onclick="switchTab('gazebo'); return false;"><strong>Robot Lab</strong><span>Train the same learner on TurtleBot navigation and a 2-link arm, then watch the policy in a browser simulation preview.</span><em>Open ↗</em></a>
+</div>
+</section>
+
+<section class="home-section">
+<h2>Built-in environments</h2>
+<p class="home-sub">The games load from the saved-environment menu in Agent Arena. The two robot tasks live in Robot Lab. Anything you describe is generated alongside them.</p>
+<div class="home-table-wrap">
+<table class="home-table">
+<thead><tr><th>Environment</th><th>Players</th><th>Timing</th><th>Actions</th></tr></thead>
+<tbody>
+<tr><td>Tic-Tac-Toe</td><td>2</td><td>Turn-based</td><td>9 cells</td></tr>
+<tr><td>Connect 4</td><td>2</td><td>Turn-based</td><td>7 columns</td></tr>
+<tr><td>Chess<span class="is-new">new</span></td><td>2</td><td>Turn-based</td><td>64 squares: pick a piece, then its destination</td></tr>
+<tr><td>Snake</td><td>1</td><td>Real-time</td><td>4 directions</td></tr>
+<tr><td>Pong</td><td>2</td><td>Real-time</td><td>3 (up, stay, down)</td></tr>
+<tr><td>TurtleBot navigation</td><td>1</td><td>10 Hz</td><td>2 continuous (linear and angular velocity)</td></tr>
+<tr><td>2-link arm</td><td>1</td><td>20 Hz</td><td>2 continuous (joint velocities)</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="home-section">
+<h2>Made for developers</h2>
+<div class="home-dev">
+<div><h3>Environments are plain Python</h3><p>A class with reset, observe, legal_actions, step and render. Edit the generated source in Agent Arena and it is validated again before you train.</p></div>
+<div><h3>Training runs locally</h3><p>The learner is a C++ program behind the platform's HTTP API. Per-generation genome snapshots are saved next to each environment.</p></div>
+<div><h3>Take the policy with you</h3><p>Trained robot policies are plain JSON, and the repository includes ROS 2 adapter examples for running one against a compatible Gazebo setup.</p></div>
+</div>
+</section>
+
+<section class="home-section">
+<div class="home-note">
+<h2>Where the research stands</h2>
+<p>Transfer between tasks is the open question here, not a result. In the experiments so far, concepts found on one game have not measurably improved learning on another. The gains we measured came from the lookahead features we supplied, not from discovery.</p>
+<p>Runs are preliminary (single core, ten seeds), and the Robot Lab numbers come from simulated stand-ins for the TurtleBot and arm tasks, not from Gazebo or hardware.</p>
+<a href="/research">Open the research view ↗</a>
+</div>
+</section>
+
+<section class="home-cta">
+<h2>Start with a built-in environment.</h2>
+<a class="button button-lime" href="#" data-tab-link="builder" onclick="switchTab('builder'); return false;">Open Agent Arena ↗</a>
+</section>
+</main>
+</div>
+<!-- ========================================== -->
+<!-- TAB 1: AGENT ARENA (id stays tab-builder) -->
+<!-- ========================================== -->
+<div class="studio-tab-content" id="tab-builder">
+<main class="tool-page section-shell">
+<div class="page-heading">
+<div>
+<div class="eyebrow">STUDIO / 01 — ENVIRONMENTS &amp; PLAY</div>
+<h1>Agent Arena<span class="lime-period">.</span></h1>
+<p>Write the environment as Python, or ask the model to draft it into the box and edit it. Press Send to validate it and train an agent, then play it or hand it to the brain on the right.</p>
+</div>
+</div>
+<div class="builder-layout">
+<!-- Left: environment code + LLM drafting -->
+<section class="panel">
+<div class="panel-heading">
+<div>
+<span class="panel-kicker">01 / SPECIFICATION</span>
+<h2>Environment Code</h2>
+</div>
+<button class="btn-action" id="env-clear" type="button">Clear</button>
+</div>
+<textarea class="source-box" id="env-source-input" placeholder="# Write the environment here: a SPEC dict and a class Environment (reset, observe, legal_actions, step, ...).&#10;# Or describe a game below and let the model write it for you." spellcheck="false"></textarea>
+<p class="notice" id="source-error"></p>
+<form id="env-form" style="margin-top:14px;">
+<label class="field-label" for="env-prompt" style="margin-top:0;">OR ASK THE MODEL TO WRITE IT</label>
+<textarea class="prompt-text" id="env-prompt" placeholder="Describe a game or task for an agent to learn…"></textarea>
+<div class="workspace-actions" style="margin-top:10px;">
+<button class="btn-action" id="env-create" type="submit">Generate into the box ↗</button>
+</div>
+</form>
+<p class="notice" id="env-gen-status"></p>
+<div class="workspace-actions" style="margin-top:14px;">
+<label class="field-label" for="env-train-opp" style="margin:0;">TRAINING OPPONENT</label>
+<select class="select-like" id="env-train-opp"><option value="random">Random</option><option value="self">Self-play</option></select>
+<select class="select-like" id="env-saved"><option value="">Load a saved environment…</option></select>
+<button class="btn-action" id="env-load" type="button">Load</button>
+</div>
+<button class="button button-lime button-full" disabled="" id="run-training" style="margin-top:18px;" type="button">Send ↗</button>
+<p aria-live="polite" class="notice" id="env-error"></p>
+</section>
+<!-- Right: live runtime -->
+<section class="panel preview-panel">
+<div class="preview-header">
+<div>
+<span class="panel-kicker">02 / RUNTIME</span>
+<h2 id="env-title">No environment loaded</h2>
+</div>
+<div class="workspace-actions">
+<span class="tag tag-cyan" id="builder-status">NO ENVIRONMENT</span>
+<button class="btn-action" disabled="" id="env-restart" type="button">Reset episode</button>
+</div>
+</div>
+<p class="muted" id="env-description"></p>
+<p class="muted" id="env-validation"></p>
+<p class="notice" id="env-run-status">Send an environment to train a brain.</p>
+<div class="workspace-actions" style="margin:12px 0;">
+<label class="field-label" for="env-seat" style="margin:0;">PLAYER</label>
+<select class="select-like" id="env-seat"><option value="0">Player 0</option></select>
+<label class="field-label" for="env-opp" style="margin:0;">OPPONENT</label>
+<select class="select-like" id="env-opp"><option value="random">Random</option><option value="brain">Trained brain</option></select>
+</div>
+<div class="game-canvas" id="env-scene" style="min-height:300px;padding:10px;display:grid;place-items:center;"></div>
+<p class="note-box" id="env-hud">No runtime observation yet.</p>
+<div class="workspace-actions" style="margin-top:12px;">
+<button class="btn-action" disabled="" id="env-play" type="button">Play frames</button>
+<button class="btn-action" disabled="" id="env-brain" type="button">Single brain step</button>
+<button class="btn-action" disabled="" id="env-auto" type="button">Let brain play</button>
+<label class="field-label" style="margin:0;display:flex;align-items:center;gap:7px;"><input id="env-textmode" type="checkbox"/> Text observation</label>
+</div>
+<pre class="code-editor-body" hidden="" id="env-text"></pre>
+<form class="workspace-actions" hidden="" id="env-textform" style="margin-top:10px;">
+<input class="select-like" id="env-textinput" placeholder="Action name or index"/>
+<button class="btn-action" type="submit">Send action</button>
+</form>
+<details style="margin-top:12px;"><summary class="field-label" style="cursor:pointer;">RAW ENVIRONMENT SPEC</summary><pre class="code-editor-body" id="env-spec">No environment loaded.</pre></details>
+</section>
+</div>
+</main>
+</div>
+<!-- ==================================================== -->
+<!-- TAB 2: TRAINING VISUALIZER (MATCHING IMAGE BOTTOM-L) -->
+<!-- ==================================================== -->
+<div class="studio-tab-content" id="tab-training">
+<main class="tool-page section-shell">
+<div class="page-heading">
+<div>
+<div class="eyebrow">STUDIO / 02 — POLICY EVOLUTION</div>
+<h1>Training Progress<span class="lime-period">.</span></h1>
+<p>Monitor fitness evaluation, generation population metrics, and weight distribution across neural genomes.</p>
+</div>
+<span class="page-status"><i class="live-dot"></i> ACTIVE TRAINING RUN</span>
+</div>
+<!-- Top Grid: Learning Curve, Gen Stats, Genome Details -->
+<div class="visualizer-top-grid">
+<!-- Learning Curve Card -->
+<div class="stat-card">
+<div class="stat-card-title">
+<span>LEARNING CURVE</span>
+<div style="display: flex; gap: 12px; font-size: 10px;">
+<span style="color: var(--cyan);"><i style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cyan); margin-right:4px;"></i> Train Return</span>
+<span style="color: var(--violet);"><i style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--violet); margin-right:4px;"></i> Eval Return</span>
+</div>
+</div>
+<div style="position: relative; height: 180px; width: 100%;">
+<svg id="training-chart" style="width: 100%; height: 100%; overflow: visible;" viewbox="0 0 450 180">
+<!-- Gridlines -->
+<line stroke="#2a3325" stroke-dasharray="3 3" x1="40" x2="440" y1="20" y2="20"></line>
+<line stroke="#2a3325" stroke-dasharray="3 3" x1="40" x2="440" y1="80" y2="80"></line>
+<line stroke="#2a3325" stroke-dasharray="3 3" x1="40" x2="440" y1="140" y2="140"></line>
+<!-- Y Axis labels -->
+<text fill="#75806e" font-family="'DM Mono'" font-size="9" x="15" y="24">1.0</text>
+<text fill="#75806e" font-family="'DM Mono'" font-size="9" x="15" y="84">0.5</text>
+<text fill="#75806e" font-family="'DM Mono'" font-size="9" x="15" y="144">0.0</text>
+<!-- Train Return Curve (Cyan) -->
+<path d="M40 140 Q80 80, 140 60 T240 45 T340 38 T440 32" fill="none" stroke="var(--cyan)" stroke-linecap="round" stroke-width="2.5"></path>
+<path d="M40 140 Q80 80, 140 60 T240 45 T340 38 T440 32 L440 140 L40 140 Z" fill="rgba(56,225,255,0.06)"></path>
+<!-- Eval Return Curve (Violet) -->
+<path d="M40 140 Q90 100, 140 82 T240 62 T340 50 T440 44" fill="none" stroke="var(--violet)" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- X Axis Labels -->
+<text fill="#75806e" font-family="'DM Mono'" font-size="8" x="40" y="165">0</text>
+<text fill="#75806e" font-family="'DM Mono'" font-size="8" x="135" y="165">25k</text>
+<text fill="#75806e" font-family="'DM Mono'" font-size="8" x="235" y="165">50k</text>
+<text fill="#75806e" font-family="'DM Mono'" font-size="8" x="335" y="165">75k</text>
+<text fill="#75806e" font-family="'DM Mono'" font-size="8" x="420" y="165">100k</text>
+</svg>
+</div>
+</div>
+<!-- Generation Stats Card -->
+<div class="stat-card">
+<div class="stat-card-title">
+<span>GENERATION STATS</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">Generation</span>
+<span class="stat-val" id="ui-generation" style="color: var(--cyan);">42 / 100</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">Species</span>
+<span class="stat-val" id="ui-population">24</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">Avg Fitness</span>
+<span class="stat-val" id="ui-mean">0.87</span>
+</div>
+<div class="stat-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
+<div style="display: flex; justify-content: space-between;">
+<span class="stat-label">Best Fitness</span>
+<span class="stat-val" id="ui-best" style="color: var(--lime);">0.94</span>
+</div>
+<div style="height: 6px; background: #121610; border-radius: 3px; overflow: hidden; border: 1px solid var(--line-soft);">
+<div style="width: 94%; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--lime));"></div>
+</div>
+</div>
+</div>
+<!-- Genome Details Card -->
+<div class="stat-card" id="genome-details-card">
+<div class="stat-card-title">
+<span id="detail-genome-title">SELECTED GENERATION</span>
+<span onclick="showToast('Genome pinned in inspector.')" style="color: var(--dim); cursor: pointer;">✕</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">Fitness</span>
+<span class="stat-val" id="detail-fitness" style="color: var(--cyan);">—</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">Architecture</span>
+<span class="stat-val" id="detail-arch">—</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">Nodes / Connections</span>
+<span class="stat-val"><span id="detail-nodes">—</span> / <span id="detail-conns">—</span></span>
+</div>
+<!-- Sub-tabs -->
+<p class="fine-print" id="selected-generation-note">Select a generation below to inspect its recorded metrics. Per-generation population snapshots are recorded directly from the evaluated NEAT population.</p></div>
+</div>
+<!-- Bottom: Generation Tabs & Genome Cards -->
+<div>
+</div>
+</main>
+<section class="panel" style="margin-top:24px;">
+<div class="panel-heading">
+<div><span class="panel-kicker">POPULATION INSPECTOR</span><h2>Generation &amp; Neural Network Inspection</h2></div>
+<span class="tag tag-cyan" id="generation-record-count">0 GENERATIONS</span>
+</div>
+<p class="fine-print">Every individual genome is captured once per generation before reproduction. Select a generation, then inspect its actual topology, weights, fitness, and species.</p>
+<div class="gen-selector-bar" id="generation-selector" style="display:flex;gap:8px;overflow-x:auto;padding:12px 0;"></div>
+<div class="genomes-grid" id="generation-network-grid" style="min-height:130px;">
+<div class="note-box">No generation data has been reported yet.</div>
+</div>
+</section>
+<section class="panel" style="margin-top:18px;">
+<div class="panel-heading"><div><span class="panel-kicker">TRAINING TELEMETRY</span><h2>Full generation history</h2></div><span class="tag" id="history-count">0 points</span></div>
+<p class="muted" id="env-training">Create or load an environment to inspect its learner.</p>
+<p class="notice" id="env-popinfo">No generation telemetry has been reported.</p>
+<p class="muted" id="training-note"></p>
+<div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr><th>Gen</th><th>Steps</th><th>Best</th><th>Mean</th><th>Species</th><th>Nodes</th><th>Connections</th></tr></thead><tbody id="history-rows"></tbody></table></div>
+</section>
+<div hidden="" id="legacy-training-metrics">
+<span id="training-status-pill">No active run</span><b id="metric-generation"></b><b id="metric-steps"></b><b id="metric-best"></b><b id="metric-mean"></b><b id="metric-species"></b><b id="metric-nodes"></b><b id="metric-conns"></b><b id="metric-heldout"></b>
+</div>
+</div>
+<!-- =============================================== -->
+<!-- TAB 3: CONCEPT BANK (MATCHING IMAGE BOTTOM-R)   -->
+<!-- =============================================== -->
+<div class="studio-tab-content" id="tab-concepts">
+<main class="tool-page section-shell">
+<div class="page-heading">
+<div>
+<div class="eyebrow">STUDIO / 03 — REUSABLE CONCEPTS</div>
+<h1>Concept Bank<span class="lime-period">.</span></h1>
+<p>Each point is one discovered concept. Select a point to inspect its expression and recorded evaluation metadata.</p>
+</div>
+<span class="page-status"><i class="live-dot"></i> CONCEPT REPOSITORY</span>
+</div>
+<div class="concept-bank-layout" id="concept-bank-layout">
+  <div class="concept-graph-panel">
+    <div style="position:absolute;z-index:2;top:16px;left:16px;right:16px;display:flex;gap:10px;align-items:center;pointer-events:none;">
+      <input class="select-like" id="concept-search" placeholder="Search concepts…" style="max-width:260px;pointer-events:auto;"/>
+      <span class="tag tag-cyan" id="concept-status">Loading concept bank</span>
     </div>
-  </header>
-  <div class="workspace">
-    <aside class="sidebar" aria-label="Workspace navigation">
-      <div class="side-label">WORKSPACE / TOOLS</div>
-      <a class="side-link active" href="#overview" data-tab-link="overview"><span class="icon">⌂</span><span class="label">Overview</span></a>
-      <a class="side-link" href="#builder" data-tab-link="builder"><span class="icon">✳</span><span class="label">Game Builder</span></a>
-      <a class="side-link" href="#training" data-tab-link="training"><span class="icon">⌁</span><span class="label">Training Visualizer</span></a>
-      <a class="side-link" href="#concepts" data-tab-link="concepts"><span class="icon">▦</span><span class="label">Concept Bank</span></a>
-      <a class="side-link" href="#gazebo" data-tab-link="gazebo"><span class="icon">⎈</span><span class="label">Gazebo Sim</span></a>
-      <div class="sidebar-note"><b>Live workspace</b><p>Games, learner progress, and reusable features are loaded from the local training service.</p></div>
-    </aside>
-    <main class="main">
-      <section class="tab active" id="tab-overview">
-        <div class="page">
-          <div class="overview-hero">
-            <div class="eyebrow">GENERATE · TRAIN · TRANSFER</div>
-            <h1>Turn ideas into<br><span>learnable games.</span></h1>
-            <p>Generate and validate a playable environment, train a fresh learner, then inspect measured training progress and the real concept bank used by policies.</p>
-            <div class="overview-actions"><button class="button primary" data-go="builder">Open Game Builder ↗</button><button class="button" data-go="training">View training data ↗</button><button class="button" data-go="concepts">Browse concepts ↗</button></div>
-          </div>
-          <div class="panel">
-            <div class="panel-head"><div><div class="kicker">LOCAL SERVICE</div><h2>Workspace status</h2></div><span class="status-pill" id="service-status"><i class="dot"></i>Connecting</span></div>
-            <div class="overview-summary">
-              <div class="metric"><span>Saved environments</span><b id="overview-saved">—</b></div>
-              <div class="metric"><span>Active environment</span><b id="overview-active">None</b></div>
-              <div class="metric"><span>Compatible concepts</span><b id="overview-concepts">—</b></div>
-            </div>
-          </div>
-          <div class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="kicker">PERSISTED ENVIRONMENTS</div><h2>Recent environments</h2></div><button class="button small" data-go="builder">Create environment</button></div><div class="saved-list" id="overview-environments"><div class="empty">Loading saved environments…</div></div></div>
-        </div>
-      </section>
-      <section class="tab" id="tab-builder">
-        <div class="page">
-          <div class="page-head"><div><div class="eyebrow">STUDIO / 01 — ENVIRONMENT BUILDER</div><h1>Game Builder<span style="color:var(--lime)">.</span></h1><p>Generate an environment, edit the LLM-authored Python, then validate and train that exact source. Its LLM-authored renderer drives the runtime.</p></div><span class="status-pill" id="builder-status"><i class="dot"></i>Ready</span></div>
-          <div class="grid two">
-            <section class="panel">
-              <div class="panel-head"><div><div class="kicker">ENVIRONMENT CONFIGURATION</div><h2>Describe your game</h2></div></div>
-              <form id="env-form">
-                <label class="field" for="env-prompt">Game or simulation</label>
-                <textarea class="textarea" id="env-prompt" required maxlength="4000" placeholder="Tic-tac-toe on a 3x3 board for two players; three in a row wins."></textarea>
-                <label class="field" for="env-train-opp">Training opponent</label>
-                <select class="select" id="env-train-opp"><option value="random">Random opponent</option><option value="rule_based">Rule-based opponent</option><option value="self_play">Staged self-play</option></select>
-                <div class="form-row"><button class="button primary" id="env-create" type="submit">Generate environment</button><select class="select grow" id="env-saved" aria-label="Saved environments"><option value="">Load a saved environment…</option></select><button class="button" id="env-load" type="button">Load</button></div>
-              </form>
-              <p class="notice" id="env-error" role="alert"></p>
-              <div class="panel-head" style="margin-top:22px"><div><div class="kicker">VALIDATED CONTRACT</div><h2 id="env-title">No environment loaded</h2></div></div>
-              <p class="muted" id="env-description">Create or load an environment to view its specification.</p>
-              <p class="notice" id="env-gen-status" aria-live="polite"></p><p class="muted" id="env-validation"></p>
-              <label class="field" for="env-source-input">GENERATED ENVIRONMENT · EDIT BEFORE TRAINING</label>
-              <textarea class="textarea spec-code" id="env-source-input" spellcheck="false" aria-label="Editable generated Python environment" placeholder="The LLM-generated Python environment will appear here after generation." disabled style="min-height:360px"></textarea>
-              <p class="muted" style="font-size:10px">Run Training sandbox-validates your edits, saves the accepted source, and trains with that same environment. The environment's <code>render()</code> implementation supplies its live runtime.</p>
-              <button class="button primary" id="run-training" type="button" disabled>Run Training</button>
-              <p class="notice" id="source-error" role="alert"></p>
-            </section>
-            <section class="panel">
-              <div class="panel-head"><div><div class="kicker">RUNTIME / ACTUAL OBSERVATION</div><h2>Interactive environment</h2></div><button class="button small" id="env-restart" type="button">Restart</button></div>
-              <div class="form-row"><label class="tag">Player seat <select class="select" id="env-seat" aria-label="Player seat"></select></label><label class="tag">Opponent <select class="select" id="env-opp" aria-label="Opponent"><option value="random">Random</option><option value="rule_based">Rule-based</option><option value="brain" disabled>Trained brain</option></select></label></div>
-              <div class="runtime" id="env-scene"><div class="runtime-empty">Generate or load an environment to see its real runtime view.</div></div>
-              <p class="hud" id="env-hud" aria-live="polite"></p>
-              <div class="game-controls"><button class="button" id="env-play" type="button" hidden disabled>Play frames</button><button class="button" id="env-brain" type="button" disabled>Brain move</button><button class="button" id="env-auto" type="button" disabled>Let brain play</button><label class="tag"><input type="checkbox" id="env-textmode"> Text view</label></div>
-              <pre class="spec-code" id="env-text" hidden></pre><form class="form-row" id="env-textform" hidden><input class="input grow" id="env-textinput" aria-label="Your move" autocomplete="off" placeholder="Enter an action name or index"><button class="button" type="submit">Send move</button></form>
-              <div class="panel-head" style="margin-top:17px"><div><div class="kicker">ENVIRONMENT CONTRACT</div><h2>Generated specification</h2></div></div><pre class="spec-code" id="env-spec">No environment loaded.</pre>
-            </section>
-          </div>
-        </div>
-      </section>
-      <section class="tab" id="tab-training">
-        <div class="page">
-          <div class="page-head"><div><div class="eyebrow">STUDIO / 02 — POLICY EVOLUTION</div><h1>Training Visualizer<span style="color:var(--cyan)">.</span></h1><p>Live best and population-mean fitness, generation telemetry, and held-out evaluation from the active learner.</p></div><span class="status-pill" id="training-status-pill"><i class="dot"></i>No active run</span></div>
-          <div class="metric-grid" id="training-metrics">
-            <div class="metric"><span>Generation</span><b id="metric-generation">—</b></div><div class="metric"><span>Environment steps</span><b id="metric-steps">—</b></div><div class="metric"><span>Best fitness</span><b id="metric-best">—</b></div><div class="metric"><span>Population mean</span><b id="metric-mean">—</b></div>
-          </div>
-          <div class="grid two" style="margin-top:14px">
-            <section class="panel"><div class="panel-head"><div><div class="kicker">MEASURED TRAINING HISTORY</div><h2>Fitness per generation</h2></div></div><div class="chart-legend"><span><i class="best"></i>Best</span><span><i class="mean"></i>Population mean</span></div><div class="chart-wrap"><svg id="training-chart" viewBox="0 0 800 260" role="img" aria-label="Measured training fitness by generation"></svg></div><p class="muted" id="env-training"></p><p class="notice" id="env-popinfo"></p></section>
-            <section class="panel"><div class="panel-head"><div><div class="kicker">LATEST POPULATION SNAPSHOT</div><h2>Generation telemetry</h2></div></div><div class="metric-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><span>Species</span><b id="metric-species">—</b></div><div class="metric"><span>Average nodes</span><b id="metric-nodes">—</b></div><div class="metric"><span>Average connections</span><b id="metric-conns">—</b></div><div class="metric"><span>Held-out return</span><b id="metric-heldout">—</b></div></div><p class="muted" id="training-note" style="margin-top:15px">Progress appears when a learner starts training. No demonstration values are shown.</p></section>
-          </div>
-          <section class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="kicker">GENERATION RECORDS</div><h2>Observed training data</h2></div><span class="tag" id="history-count">0 points</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>GEN</th><th>STEPS</th><th>BEST</th><th>MEAN</th><th>SPECIES</th><th>AVG NODES</th><th>AVG CONNECTIONS</th></tr></thead><tbody id="history-rows"><tr><td colspan="7" class="dim">No training records yet.</td></tr></tbody></table></div></section>
-        </div>
-      </section>
-      <section class="tab" id="tab-concepts">
-        <div class="page">
-          <div class="page-head"><div><div class="eyebrow">STUDIO / 03 — REUSABLE FEATURES</div><h1>Concept Bank<span style="color:var(--violet)">.</span></h1><p>Expressions from the configured concept bank with their compatibility and admission metadata. The active learner's concepts are highlighted when an environment is loaded.</p></div><span class="status-pill" id="concept-status"><i class="dot"></i>Loading bank</span></div>
-          <div class="metric-grid"><div class="metric"><span>Bank entries</span><b id="concept-total">—</b></div><div class="metric"><span>Compatible with learner</span><b id="concept-compatible">—</b></div><div class="metric"><span>Active policy features</span><b id="concept-active-count">—</b></div><div class="metric"><span>Bank version</span><b id="concept-version">—</b></div></div>
-          <div class="concept-layout" style="margin-top:14px">
-            <section class="panel"><div class="panel-head"><div><div class="kicker">EXPRESSION RELATIONSHIPS</div><h2>Dependency graph</h2></div><input class="input" style="max-width:250px" id="concept-search" type="search" placeholder="Filter expressions"></div><div class="concept-graph"><canvas id="concept-graph-canvas" width="900" height="490" aria-label="Concept expression graph"></canvas></div><p class="muted" style="font-size:10px">Edges connect expressions sharing primitive dependencies. Nodes are bank entries; lime outline marks a feature in the active learner.</p><div class="concept-list" id="concept-list"></div></section>
-            <aside class="panel"><div class="panel-head"><div><div class="kicker">SELECTED ENTRY</div><h2 id="concept-name">Select a bank entry</h2></div></div><div class="concept-detail" id="concept-detail"><p class="muted">Concept metadata will be loaded from the configured bank.</p></div><div class="field">ACTIVE POLICY FEATURES</div><div class="concept-list" id="active-concepts"><div class="empty">Load or train an environment to see the concepts used by its learner.</div></div></aside>
-          </div>
-          <p class="notice error" id="concept-error" role="alert"></p>
-        </div>
-      </section>
-      <section class="tab" id="tab-gazebo">
-        <div class="page">
-          <div class="page-head"><div><div class="eyebrow" style="color:var(--cyan)">STUDIO / 04 — GAZEBO ROBOTICS</div><h1>Gazebo Sim Bridge<span style="color:var(--cyan)">.</span></h1><p>Gazebo integration is not connected to this local game-training service.</p></div><span class="status-pill" style="color:var(--cyan)"><i class="dot" style="background:var(--cyan)"></i>Prototype</span></div>
-          <div class="gazebo-notice"><b>Gazebo support is a prototype only.</b><br>There is no Gazebo parser, ROS bridge, simulation runtime, or robotics policy synthesis endpoint in this application. No uploaded files are processed and no telemetry is simulated.</div>
-        </div>
-      </section>
-    </main>
+    <div id="concept-points" aria-label="Concept map. Select a point to inspect a concept."></div>
   </div>
-  <footer class="footer"><a class="brand" href="#" data-tab-link="overview"><span class="brand-mark">F</span><span>frameforge<em>.</em></span></a><span>Live game generation · training · concept transfer</span><span id="footer-service">Local service</span></footer>
-  <script>
+  <aside class="concept-details-panel" id="concept-inspector" hidden>
+    <div class="concept-details-title">
+      <span>INSPECTOR</span>
+      <button type="button" id="concept-inspector-close" aria-label="Close inspector" style="border:0;background:none;color:var(--dim);cursor:pointer;font-size:18px;">×</button>
+    </div>
+    <div class="concept-detail-name" id="concept-name">Concept</div>
+    <div class="field-label" style="margin-top:18px;">EXPRESSION</div>
+    <div class="concept-code-block" id="concept-detail"></div>
+    <div id="concept-metadata"></div>
+  </aside>
+</div>
+<p class="notice error" id="concept-error"></p>
+<div hidden><b id="concept-total">0</b><b id="concept-compatible"></b><b id="concept-active-count"></b><b id="concept-version"></b></div>
+</main>
+</div>
+<!-- TAB 4: ROBOTICS / GAZEBO BRIDGE -->
+<div class="studio-tab-content" id="tab-gazebo">
+  <main class="tool-page section-shell">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow" style="color:var(--cyan);"><span class="eyebrow-line" style="background:var(--cyan);"></span> STUDIO / 04 — ROBOTICS</div>
+        <h1>Robot Lab<span class="lime-period">.</span></h1>
+        <p>Train the same NEAT + PPO brain on two robotics tasks, then inspect its behaviour in a browser-based simulation preview.</p>
+      </div>
+      <span class="tag tag-cyan">C++ TRAINER · NEAT + PPO</span>
+    </div>
+
+    <section class="panel robot-upload-panel">
+      <div class="panel-heading"><div><span class="panel-kicker">CUSTOM SIMULATION INPUT</span><h2>Upload a Gazebo model</h2></div><span class="tag">PLACEHOLDER</span></div>
+      <label class="robot-upload-drop" for="robot-upload-input">
+        <span class="upload-icon">↑</span><strong>Choose a .world, .sdf, .urdf or .zip file</strong>
+        <span>Upload is a demo placeholder. Custom model parsing and Gazebo launching are not connected yet.</span>
+        <input id="robot-upload-input" type="file" accept=".world,.sdf,.urdf,.zip" />
+      </label>
+      <p id="robot-upload-note" class="muted" aria-live="polite">No file selected. The two built-in examples below are the working paths.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading"><div><span class="panel-kicker">BUILT-IN ENVIRONMENTS</span><h2>Choose a robot to train</h2></div><span class="tag tag-cyan">2 EXAMPLES</span></div>
+      <div class="robot-example-grid">
+        <button class="robot-example" id="robot-pick-turtlebot" type="button">
+          <span class="robot-example-icon">◉</span><span class="robot-example-kicker">MOBILE NAVIGATION</span>
+          <strong>TurtleBot</strong><span>Navigate a 4 × 4 m obstacle course using 24 simulated LiDAR rays.</span>
+          <span class="robot-example-meta">2 continuous actions · 10 Hz · differential drive</span>
+        </button>
+        <button class="robot-example" id="robot-pick-arm" type="button">
+          <span class="robot-example-icon">⌁</span><span class="robot-example-kicker">MANIPULATION</span>
+          <strong>2-Link Robotic Arm</strong><span>Move a planar two-joint arm to a randomly placed end-effector target.</span>
+          <span class="robot-example-meta">2 continuous actions · 20 Hz · filtered joint feedback</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel robot-workspace" id="robot-workspace" hidden>
+      <div class="panel-heading"><div><span class="panel-kicker">ACTIVE ROBOT ENVIRONMENT</span><h2 id="robot-active-title">Select a robot</h2><p id="robot-active-description" class="muted"></p></div><span class="tag tag-cyan" id="robot-active-tag">NOT SELECTED</span></div>
+      <div class="robot-training-grid">
+        <div class="robot-config-card">
+          <span class="panel-kicker">TRAINING CONFIGURATION</span>
+          <label class="field-label" for="robot-budget">Environment steps</label>
+          <select id="robot-budget" class="robot-select"><option value="8000000">8 million</option><option value="25000000">25 million</option><option value="4000000">4 million (quick test)</option></select>
+          <label class="field-label" for="robot-seed">Random seed</label>
+          <input id="robot-seed" class="robot-input" type="number" min="0" max="2147483647" value="3" />
+          <div class="robot-config-note" id="robot-config-note">NEAT population 48 · Lamarckian NEAT + PPO · domain randomization enabled.</div>
+          <div class="robot-button-stack">
+            <button class="button button-lime" id="robot-train-button" type="button">Train brain ↗</button>
+            <button class="button button-secondary" id="robot-load-button" type="button">Load saved demo policy</button>
+          </div>
+          <div class="robot-job-state" id="robot-job-state" aria-live="polite">Choose a robot, then load its saved policy or start training.</div>
+          <div class="robot-progress-track"><div id="robot-progress-bar"></div></div>
+          <pre class="robot-log" id="robot-training-log">Training output will appear here.</pre>
+        </div>
+        <div class="robot-runtime-card">
+          <div class="robot-viewport-head"><div><span class="panel-kicker">POLICY RUNTIME</span><strong id="robot-viewport-title">Simulation preview</strong></div><div class="robot-runtime-controls"><button class="btn-action" id="robot-play-button" type="button">Pause</button><button class="btn-action" id="robot-reset-button" type="button">Reset</button></div></div>
+          <div class="robot-canvas-wrap"><canvas id="robot-sim-canvas" width="800" height="380"></canvas><div class="robot-canvas-stamp">BROWSER SURROGATE · NOT LIVE GAZEBO</div></div>
+          <div class="robot-telemetry-grid">
+            <div><span>STATUS</span><strong id="robot-telemetry-status">WAITING</strong></div>
+            <div><span>POSITION / END EFFECTOR</span><strong id="robot-telemetry-position">—</strong></div>
+            <div><span>TARGET ERROR</span><strong id="robot-telemetry-error">—</strong></div>
+            <div><span>REWARD</span><strong id="robot-telemetry-reward">—</strong></div>
+            <div><span>SIM STEP</span><strong id="robot-telemetry-step">—</strong></div>
+            <div><span>POLICY</span><strong id="robot-telemetry-policy">NOT LOADED</strong></div>
+          </div>
+          <div class="robot-policy-meta" id="robot-policy-meta">Load a policy to start the autonomous demonstration.</div>
+        </div>
+      </div>
+      <p class="robot-disclaimer">The training environments are C++ physics surrogates. The canvas is a matching browser-side preview, not a live Gazebo instance. Upload parsing, ROS 2 topics and live Gazebo control are future integration work.</p>
+    </section>
+  </main>
+</div>
+</div>
+</div>
+</div>
+<footer class="site-footer">
+<a class="brand footer-brand" href="#" onclick="switchTab('overview'); return false;">
+<span class="brand-mark"><svg viewbox="0 0 32 32"><path d="M5 5h9v5H10v5h4v5h-4v7H5V5Zm13 0h9v5h-9V5Zm0 9h9v13h-5v-8h-4v-5Z" fill="currentColor"></path></svg></span>
+<span>frameforge<span class="brand-period">.</span></span>
+</a>
+<span>Train agents on games and robotics tasks</span>
+<span>© 2026 Frameforge</span>
+</footer>
+<!-- Toast Notification -->
+<div class="toast-notice" id="toast">
+<span style="color: var(--lime);">✳</span>
+<span id="toast-text">Notification message</span>
+</div>
+<!-- Interactive Logic -->
+<script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.studio-tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.side-link').forEach(el => el.classList.remove('active'));
+      
+      const target = document.getElementById('tab-' + tabId);
+      const navTarget = document.getElementById('nav-' + tabId);
+      if (target) target.classList.add('active');
+      if (navTarget) navTarget.classList.add('active');
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      const txt = document.getElementById('toast-text');
+      txt.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ==========================================
+    // TAB 2: GENOME SELECTION & MINI CANVASES
+    // ==========================================
+    function drawMiniGenome(canvasId, seed) {
+      const cv = document.getElementById(canvasId);
+      if (!cv) return;
+      const ctx = cv.getContext('2d');
+      const w = cv.width;
+      const h = cv.height;
+
+      ctx.fillStyle = '#0e120d';
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw 3 layers of nodes
+      const layers = [
+        [{ x: 20, y: 20 }, { x: 20, y: 35 }, { x: 20, y: 50 }],
+        [{ x: 70, y: 15 }, { x: 70, y: 30 }, { x: 70, y: 45 }, { x: 70, y: 60 }],
+        [{ x: 120, y: 25 }, { x: 120, y: 45 }]
+      ];
+
+      // Draw connections
+      ctx.lineWidth = 1;
+      layers[0].forEach((n1, i) => {
+        layers[1].forEach((n2, j) => {
+          const isAct = ((i + j + seed) % 2 === 0);
+          ctx.strokeStyle = isAct ? 'rgba(56, 225, 255, 0.45)' : 'rgba(255, 255, 255, 0.08)';
+          ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y); ctx.stroke();
+        });
+      });
+
+      layers[1].forEach((n2, j) => {
+        layers[2].forEach((n3, k) => {
+          const isAct = ((j + k + seed) % 3 === 0);
+          ctx.strokeStyle = isAct ? 'rgba(210, 255, 98, 0.5)' : 'rgba(255, 255, 255, 0.08)';
+          ctx.beginPath(); ctx.moveTo(n2.x, n2.y); ctx.lineTo(n3.x, n3.y); ctx.stroke();
+        });
+      });
+
+      // Draw nodes
+      layers.forEach(layer => {
+        layer.forEach(n => {
+          ctx.fillStyle = '#38e1ff';
+          ctx.beginPath(); ctx.arc(n.x, n.y, 3, 0, Math.PI * 2); ctx.fill();
+        });
+      });
+    }
+
+    for (let i = 1; i <= 6; i++) {
+      drawMiniGenome('genome-cv-' + i, i * 7);
+    }
+
+    function selectGenome(id, fit, arch, nodes, conns) {
+      document.querySelectorAll('.genome-card').forEach(el => el.classList.remove('active'));
+      const activeCard = event.currentTarget || event.target.closest('.genome-card');
+      if (activeCard) activeCard.classList.add('active');
+
+      document.getElementById('detail-genome-title').innerText = 'GENOME #' + id + ' DETAILS';
+      document.getElementById('detail-fitness').innerText = fit.toFixed(2);
+      document.getElementById('detail-arch').innerText = arch;
+      document.getElementById('detail-nodes').innerText = nodes;
+      document.getElementById('detail-conns').innerText = conns;
+      showToast('Loaded parameters for Genome #' + id);
+    }
+
+    function selectGen(gen) {
+      document.querySelectorAll('.gen-tab').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+      showToast('Loaded population generation ' + gen);
+    }
+
+    function switchDetailTab(type) {
+      document.querySelectorAll('.details-tab').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+      showToast('Switched to ' + type + ' view.');
+    }
+
+    // Robotics tab is implemented in robotics_sim.js and the following integration script.
+
+
+  
+
+  
+
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+      lucide.createIcons();
+    </script>
+<div hidden="" id="legacy-compatibility">
+<button id="header-build" type="button"></button><button disabled="" id="header-run" type="button"></button>
+<span id="service-status">Connecting</span><b id="overview-saved">0</b><b id="overview-active">—</b><b id="overview-concepts">0</b><div id="overview-environments"></div>
+<span id="footer-service"></span>
+</div>
+<script>
+
     (() => {
       const $ = (id) => document.getElementById(id);
       const SVG = "http://www.w3.org/2000/svg";
@@ -180,8 +1687,8 @@
       }
 
       function switchTab(name) {
-        document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.id === `tab-${name}`));
-        document.querySelectorAll(".side-link").forEach((link) => link.classList.toggle("active", link.dataset.tabLink === name));
+        document.querySelectorAll(".studio-tab-content").forEach((tab) => tab.classList.toggle("active", tab.id === `tab-${name}`));
+        document.querySelectorAll(".side-link").forEach((link) => link.classList.toggle("active", link.id === `nav-${name}`));
         if (name === "training") renderTraining();
         if (name === "concepts") renderConcepts();
       }
@@ -268,6 +1775,7 @@
         $("training-note").textContent = env && env.training_note ? env.training_note : "Fitness values and population statistics are read directly from the active training history.";
         $("env-popinfo").textContent = last ? `Latest record: generation ${last.gen}, ${Number(last.steps).toLocaleString()} environment steps, ${last.species} species.` : "No generation telemetry has been reported.";
         renderChart(history);
+        if (window.refreshGenomeInspector) window.refreshGenomeInspector(env && env.id);
         const rows = $("history-rows");
         rows.replaceChildren();
         if (!history.length) {
@@ -287,7 +1795,7 @@
       function renderChart(history) {
         const svg = $("training-chart");
         svg.replaceChildren();
-        const left = 54, right = 785, top = 18, bottom = 222;
+        const left = 40, right = 430, top = 20, bottom = 140;
         for (let i = 0; i <= 4; i++) {
           const y = top + (bottom - top) * i / 4;
           svg.append(svgEl("line", { x1: left, y1: y, x2: right, y2: y, stroke: "#30392b", "stroke-dasharray": "4 5" }));
@@ -308,11 +1816,11 @@
           if (history.length > 1) svg.append(svgEl("polyline", { points, fill: "none", stroke: color, "stroke-width": 2.5 }));
           history.forEach((point, index) => svg.append(svgEl("circle", { cx: px(index), cy: py(Number(point[key])), r: 2.5, fill: color })));
         }
-        const minLabel = svgEl("text", { x: 8, y: bottom, fill: "#737b6e", "font-size": 10 }); minLabel.textContent = number(min);
-        const maxLabel = svgEl("text", { x: 8, y: top + 4, fill: "#737b6e", "font-size": 10 }); maxLabel.textContent = number(max);
+        const minLabel = svgEl("text", { x: 4, y: bottom, fill: "#737b6e", "font-size": 10 }); minLabel.textContent = number(min);
+        const maxLabel = svgEl("text", { x: 4, y: top + 4, fill: "#737b6e", "font-size": 10 }); maxLabel.textContent = number(max);
         svg.append(minLabel, maxLabel);
-        const first = svgEl("text", { x: left, y: 247, fill: "#737b6e", "font-size": 9 }); first.textContent = `gen ${history[0].gen}`;
-        const final = svgEl("text", { x: right, y: 247, fill: "#737b6e", "font-size": 9, "text-anchor": "end" }); final.textContent = `gen ${history[history.length - 1].gen}`;
+        const first = svgEl("text", { x: left, y: 173, fill: "#737b6e", "font-size": 9 }); first.textContent = `gen ${history[0].gen}`;
+        const final = svgEl("text", { x: right, y: 173, fill: "#737b6e", "font-size": 9, "text-anchor": "end" }); final.textContent = `gen ${history[history.length - 1].gen}`;
         svg.append(first, final);
       }
 
@@ -329,114 +1837,117 @@
       }
       function renderConcepts() {
         const query = $("concept-search").value.trim().toLowerCase();
-        const filtered = bank.filter((item) => conceptExpression(item).toLowerCase().includes(query));
+        const filtered = bank.filter((item) => {
+          const expression = conceptExpression(item);
+          const id = item && typeof item === "object" ? String(item.id || "") : "";
+          return `${id} ${expression}`.toLowerCase().includes(query);
+        });
         setText("concept-total", bank.length);
         setText("concept-compatible", bank.filter((item) => item.compatible !== false).length);
         setText("concept-active-count", env && env.concepts ? env.concepts.length : 0);
         setText("concept-version", bankInfo.version == null ? "—" : bankInfo.version);
-        $("concept-status").lastChild.textContent = bank.length ? `${bank.length} entries` : "Empty bank";
-        const list = $("concept-list"); list.replaceChildren();
-        filtered.forEach((item) => {
-          const expression = conceptExpression(item);
-          const row = document.createElement("button");
-          row.type = "button"; row.className = "concept-row" + (item === selectedConcept ? " active" : "");
-          row.textContent = expression || "(missing expression)";
-          const compat = document.createElement("span"); compat.className = "compat";
-          compat.textContent = isActive(item) ? "ACTIVE" : item.compatible === false ? "INCOMPATIBLE" : "AVAILABLE";
-          row.append(compat);
-          row.addEventListener("click", () => { selectedConcept = item; renderConcepts(); });
-          list.append(row);
-        });
-        const active = $("active-concepts"); active.replaceChildren();
-        const activeExpressions = env && Array.isArray(env.concepts) ? env.concepts : [];
-        if (!activeExpressions.length) {
-          const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = "No active learner concepts are available until an environment is loaded and training starts."; active.append(empty);
-        } else activeExpressions.forEach((expression) => {
-          const item = document.createElement("div"); item.className = "concept-row"; item.textContent = expression; active.append(item);
-        });
-        renderConceptDetail();
+        $("concept-status").textContent = bank.length ? `${filtered.length} / ${bank.length} concepts` : "Empty bank";
+        if (selectedConcept && !filtered.includes(selectedConcept)) selectedConcept = null;
         drawConceptGraph(filtered);
+        renderConceptDetail();
       }
       function renderConceptDetail() {
         const item = selectedConcept;
-        setText("concept-name", item ? (item.id || conceptExpression(item).slice(0, 40)) : "Select a bank entry");
-        const panel = $("concept-detail"); panel.replaceChildren();
-        if (!item) {
-          const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = bank.length ? "Select an expression to inspect its stored metadata." : "No concept bank entries were returned by the service."; panel.append(empty); return;
+        const inspector = $("concept-inspector");
+        const layout = $("concept-bank-layout");
+        inspector.hidden = !item;
+        layout.classList.toggle("inspector-open", !!item);
+        if (!item) return;
+        setText("concept-name", item.id || conceptExpression(item).slice(0, 60) || "Unnamed concept");
+        const panel = $("concept-detail");
+        panel.textContent = conceptExpression(item) || "(no expression recorded)";
+        const metadataPanel = $("concept-metadata");
+        metadataPanel.replaceChildren();
+        const deps = dependencies(conceptExpression(item));
+        if (deps.length) {
+          const label = document.createElement("div"); label.className = "field-label"; label.style.marginTop = "18px"; label.textContent = "PRIMITIVE DEPENDENCIES"; metadataPanel.append(label);
+          const pills = document.createElement("div"); pills.className = "pill-row";
+          deps.forEach((dep) => { const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = dep; pills.append(pill); });
+          metadataPanel.append(pills);
         }
-        const expression = conceptExpression(item);
-        const formula = document.createElement("div"); formula.className = "concept-expression"; formula.textContent = expression || "(no expression)"; panel.append(formula);
-        const deps = dependencies(expression);
-        const depsLabel = document.createElement("div"); depsLabel.className = "field"; depsLabel.textContent = "Primitive dependencies"; panel.append(depsLabel);
-        const pills = document.createElement("div"); pills.className = "pill-row";
-        deps.forEach((dep) => { const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = dep; pills.append(pill); });
-        if (deps.length) panel.append(pills);
         const metadata = [
           ["Admission", item.admission_status || (item.admitted_into_target === true ? "admitted" : "not recorded")],
-          ["Source environment", item.source_environment || "not recorded"],
-          ["Target environment", item.evaluated_target_environment || "not recorded"],
-          ["Primitive contract", item.primitive_contract || bankInfo.primitive_contract || "not recorded"],
+          ["Source", item.source_environment || item.source_game || "not recorded"],
+          ["Target", item.evaluated_target_environment || item.target_game || "not recorded"],
           ["Output standard deviation", item.target_output_std == null ? "not measured" : number(item.target_output_std, 5)],
           ["Active in current learner", isActive(item) ? "yes" : "no"]
         ];
         metadata.forEach(([label, value]) => {
-          const p = document.createElement("p"); p.className = "muted"; p.style.fontSize = "10px"; p.textContent = `${label}: ${value}`; panel.append(p);
+          const row = document.createElement("p"); row.className = "muted"; row.style.cssText = "font-size:10px;margin:12px 0 0;"; row.textContent = `${label}: ${value}`; metadataPanel.append(row);
         });
         if (item.admission_reason) {
-          const reason = document.createElement("p"); reason.className = "muted"; reason.style.fontSize = "10px"; reason.textContent = `Admission note: ${item.admission_reason}`; panel.append(reason);
+          const reason = document.createElement("p"); reason.className = "muted"; reason.style.cssText = "font-size:10px;margin-top:12px;"; reason.textContent = item.admission_reason; metadataPanel.append(reason);
         }
       }
       function drawConceptGraph(items) {
-        const canvas = $("concept-graph-canvas"), ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        const width = canvas.width, height = canvas.height;
-        ctx.clearRect(0, 0, width, height); ctx.fillStyle = "#121711"; ctx.fillRect(0, 0, width, height);
-        const nodes = items.slice(0, 64).map((item, index, list) => {
-          const angle = 2 * Math.PI * index / Math.max(list.length, 1) - Math.PI / 2;
-          return { item, x: width / 2 + Math.cos(angle) * Math.min(width * .36, 330), y: height / 2 + Math.sin(angle) * Math.min(height * .36, 170), deps: new Set(dependencies(conceptExpression(item))) };
-        });
-        for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-          let shared = 0; nodes[i].deps.forEach((dependency) => { if (nodes[j].deps.has(dependency)) shared++; });
-          if (!shared) continue;
-          ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(56,225,255,${Math.min(.06 + shared * .07, .34)})`; ctx.lineWidth = 1; ctx.stroke();
+        const host = $("concept-points");
+        host.replaceChildren();
+        const count = items.length;
+        if (!count) {
+          const empty = document.createElement("div");
+          empty.textContent = bank.length ? "No concepts match this search." : "No concepts in the bank yet.";
+          empty.style.cssText = "position:absolute;inset:0;display:grid;place-items:center;color:var(--dim);font:11px var(--mono);";
+          host.append(empty); return;
         }
-        nodes.forEach(({ item, x, y }, index) => {
-          const active = isActive(item), selected = item === selectedConcept;
-          ctx.beginPath(); ctx.arc(x, y, selected ? 9 : 6, 0, Math.PI * 2);
-          ctx.fillStyle = active ? "#c7f36b" : "#38e1ff"; ctx.fill();
-          ctx.strokeStyle = active ? "#efffbf" : selected ? "#a78bfa" : "#14231e"; ctx.lineWidth = selected || active ? 2 : 1; ctx.stroke();
-          if (nodes.length <= 28) {
-            ctx.fillStyle = "#a0a69a"; ctx.font = "9px Consolas, monospace"; ctx.textAlign = "center";
-            ctx.fillText(`C${index + 1}`, x, y - 11);
-          }
+        // A quiet, deterministic scatter: points only, no invented links, labels, axes or chart data.
+        const golden = Math.PI * (3 - Math.sqrt(5));
+        const radius = Math.min(host.clientWidth, host.clientHeight) * .43;
+        items.forEach((item, index) => {
+          const angle = index * golden;
+          const spread = Math.sqrt((index + .5) / count);
+          const x = 50 + Math.cos(angle) * spread * 43;
+          const y = 52 + Math.sin(angle) * spread * Math.min(43, radius / Math.max(host.clientHeight, 1) * 100);
+          const point = document.createElement("button");
+          point.type = "button";
+          point.className = "concept-point" + (item === selectedConcept ? " active" : "");
+          point.style.left = `${x}%`; point.style.top = `${y}%`;
+          point.title = item.id || conceptExpression(item) || `Concept ${index + 1}`;
+          point.setAttribute("aria-label", `Inspect ${point.title}`);
+          if (isActive(item)) point.style.background = "var(--lime)";
+          point.addEventListener("click", () => { selectedConcept = item; renderConcepts(); });
+          host.append(point);
         });
-        canvas.onclick = (event) => {
-          const rect = canvas.getBoundingClientRect();
-          const x = (event.clientX - rect.left) * canvas.width / rect.width;
-          const y = (event.clientY - rect.top) * canvas.height / rect.height;
-          const hit = nodes.find((node) => Math.hypot(node.x - x, node.y - y) < 14);
-          if (hit) { selectedConcept = hit.item; renderConcepts(); }
-        };
-        if (!nodes.length) {
-          ctx.fillStyle = "#737b6e"; ctx.font = "13px Arial"; ctx.textAlign = "center";
-          ctx.fillText("No concept entries to visualize", width / 2, height / 2);
-        }
       }
+
+      let sending = false;
+      function updateSend() {
+        const own = env && editorEnvId === env.id;
+        const busy = sending || (env && ["queued", "running"].includes(env.generation_status)) ||
+          (own && ["validating", "queued", "running"].includes(env.training_status));
+        $("run-training").disabled = busy || !$("env-source-input").value.trim();
+        $("header-run").disabled = $("run-training").disabled;
+      }
+      $("env-source-input").addEventListener("input", updateSend);
+      $("env-clear").addEventListener("click", () => {
+        $("env-source-input").value = ""; $("source-error").textContent = "";
+        editorEnvId = null; updateSend(); $("env-source-input").focus();
+      });
 
       function renderEnv(snapshot) {
         env = snapshot;
         const ready = env.generation_status === "ready";
         setText("env-title", env.spec ? env.spec.name || env.spec.title || "Generated environment" : env.generation_status === "failed" ? "Generation failed" : "Generating environment…");
         setText("env-description", env.spec ? env.spec.description || "" : "");
-        $("env-gen-status").textContent = env.generation_status === "failed" ? `Generation failed: ${env.generation_error || "Unknown error."}` : ready ? "Environment generated and validated." : (env.generation_notes || []).slice(-1)[0] || `Generation ${env.generation_status}…`;
+        $("env-gen-status").textContent = env.generation_status === "failed" ? `Generation failed: ${env.generation_error || "Unknown error."}` : ready ? "Environment validated." : (env.generation_notes || []).slice(-1)[0] || `Generation ${env.generation_status}…`;
         $("env-validation").textContent = env.validation ? `Sandbox validation: ${env.validation.stats.episodes} random episodes; ${env.validation.stats.terminated} reached a terminal state; ${env.attempts} attempt${env.attempts === 1 ? "" : "s"}. ${env.validation.warnings.length ? `Warnings: ${env.validation.warnings.join("; ")}` : ""}` : "";
         $("builder-status").classList.toggle("running", ["queued", "running"].includes(env.generation_status) || ["queued", "running"].includes(env.training_status));
         $("builder-status").lastChild.textContent = `${env.generation_status} / training ${env.training_status}`;
-        $("env-create").disabled = ["queued", "running"].includes(env.generation_status);
-        const runDisabled = !ready || ["validating", "queued", "running"].includes(env.training_status);
-        $("run-training").disabled = runDisabled || !editorEnvId || editorEnvId !== env.id;
-        $("header-run").disabled = $("run-training").disabled;
+        const generating = ["queued", "running"].includes(env.generation_status);
+        $("env-create").disabled = generating;
+        $("env-source-input").disabled = generating;
+        const ts = env.training_status, tl = (env.training_history || []).slice(-1)[0];
+        $("env-run-status").textContent =
+          ts === "ready" ? `Brain trained (held-out return ${env.training_heldout == null ? "not reported" : number(env.training_heldout)}). Let it play below.` :
+          ts === "failed" ? `Training failed: ${env.training_error || "unknown error"}` :
+          ts === "skipped" ? `Training skipped: ${env.training_error || "not available for this environment"}` :
+          ["validating", "queued", "running"].includes(ts) ? `Training ${ts}${tl ? ` — generation ${tl.gen}, best ${number(tl.best)}` : ""}…` :
+          "Send the environment to train a brain.";
+        updateSend();
         $("env-restart").disabled = !ready;
         const view = env.view;
         const seat = $("env-seat");
@@ -592,12 +2103,10 @@
         $("env-error").textContent = ""; $("env-error").classList.remove("error");
         $("source-error").textContent = "";
         editorEnvId = null;
-        $("env-source-input").value = "";
         $("env-source-input").disabled = true;
-        $("run-training").disabled = true;
-        $("header-run").disabled = true;
+        updateSend();
         const prompt = $("env-prompt").value.trim();
-        if (!prompt) { $("env-error").textContent = "Enter a game or simulation description."; $("env-error").classList.add("error"); return; }
+        if (!prompt) { $("env-error").textContent = "Enter a game or simulation description."; $("env-error").classList.add("error"); $("env-source-input").disabled = false; updateSend(); return; }
         stopPlayback(); $("env-create").disabled = true;
         try {
           const snapshot = await request("/api/envs", { prompt, training_opponent: $("env-train-opp").value });
@@ -615,37 +2124,37 @@
         $("env-source-input").value = await response.text();
         $("env-source-input").disabled = false;
         editorEnvId = id;
+        updateSend();
       }
       async function runTraining() {
-        if (!env || env.generation_status !== "ready" || editorEnvId !== env.id) return;
+        const source = $("env-source-input").value;
+        if (!source.trim() || sending) return;
         $("env-error").textContent = "";
         $("env-error").classList.remove("error");
         $("source-error").textContent = "";
-        $("run-training").disabled = true;
-        $("header-run").disabled = true;
+        sending = true; updateSend();
         stopPlayback();
         try {
-          const snapshot = await request(`/api/envs/${env.id}/train`, {
-            source: $("env-source-input").value,
-            training_opponent: $("env-train-opp").value
-          });
+          const opponent = $("env-train-opp").value;
+          const snapshot = editorEnvId
+            ? await request(`/api/envs/${editorEnvId}/train`, { source, training_opponent: opponent })
+            : await request("/api/envs/from_source", { source, training_opponent: opponent });
+          editorEnvId = snapshot.id;
           renderEnv(snapshot);
-          switchTab("training");
-          void poll(env.id);
-          try { renderEnv(await request(`/api/envs/${env.id}/reset`, {})); }
+          void poll(snapshot.id);
+          try { renderEnv(await request(`/api/envs/${snapshot.id}/reset`, {})); }
           catch (error) {
             $("env-error").textContent = `Training started, but the runtime could not be initialized: ${error.message}`;
             $("env-error").classList.add("error");
           }
+          void loadSaved();
         } catch (error) {
           $("env-error").textContent = error.message;
           $("env-error").classList.add("error");
           if (error.payload && error.payload.validation) {
             $("source-error").textContent = error.payload.validation.errors.join("\n");
           }
-          $("run-training").disabled = false;
-          $("header-run").disabled = false;
-        }
+        } finally { sending = false; updateSend(); }
       }
       $("run-training").addEventListener("click", runTraining);
       $("header-run").addEventListener("click", runTraining);
@@ -719,6 +2228,7 @@
         if (action !== undefined && pressedAction === action) pressedAction = null;
       });
       $("concept-search").addEventListener("input", renderConcepts);
+      $("concept-inspector-close").addEventListener("click", () => { selectedConcept = null; renderConcepts(); });
 
       async function loadSaved() {
         const result = await request("/api/envs");
@@ -764,6 +2274,240 @@
       renderTraining();
       renderConcepts();
     })();
-  </script>
+  
+</script>
+<script>
+  window.switchTab = function(name) {
+    document.querySelectorAll(".studio-tab-content").forEach(tab => tab.classList.toggle("active", tab.id === "tab-" + name));
+    document.querySelectorAll(".side-link").forEach(link => link.classList.toggle("active", link.id === "nav-" + name));
+  };
+  window.applyHeroPrompt = function() {
+    const hero=document.getElementById("hero-prompt-input"), prompt=document.getElementById("env-prompt");
+    if(hero&&prompt&&hero.value.trim()) prompt.value=hero.value.trim();
+    window.switchTab("builder"); document.getElementById("env-form")?.requestSubmit();
+  };
+  document.addEventListener("DOMContentLoaded",()=>{
+    const hero=document.getElementById("hero-prompt-input");
+    if(hero) hero.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();window.applyHeroPrompt();}});
+  });
+</script>
+<script>
+(() => {
+  let activeEnvId = null;
+  let manifest = null;
+  let selectedGeneration = null;
+  let selectedGenome = null;
+  let loading = false;
+  let lastManifestFetch = 0;
+  const $ = (id) => document.getElementById(id);
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  async function loadGeneration(generation, run = 'main') {
+    if (!activeEnvId) return;
+    const host = $('generation-network-grid');
+    host.innerHTML = '<div class="note-box">Loading recorded genomes…</div>';
+    try {
+      const data = await fetch(`/api/envs/${activeEnvId}/genomes/${run}/${generation}`).then(async r => {
+        const body = await r.json(); if (!r.ok) throw new Error(body.error || 'Could not load generation'); return body;
+      });
+      selectedGeneration = { generation, run };
+      selectedGenome = null;
+      document.querySelectorAll('#generation-selector .gen-tab').forEach(b => b.classList.toggle('active', Number(b.dataset.generation) === generation && b.dataset.run === run));
+      host.replaceChildren();
+      const population = Array.isArray(data.population) ? data.population : [];
+      $('generation-record-count').textContent = `${population.length} INDIVIDUALS · GEN ${generation}`;
+      if (!population.length) { host.innerHTML = '<div class="note-box">This generation contains no recorded individuals.</div>'; return; }
+      for (const genome of population) {
+        const card = document.createElement('button');
+        card.type = 'button'; card.className = 'genome-card';
+        card.style.cssText = 'text-align:left;color:inherit;cursor:pointer;min-width:150px;';
+        const nodes = genome.nodes || [], conns = genome.connections || [];
+        card.innerHTML = `<div class="genome-card-header"><span style="font-weight:700">Genome #${genome.index + 1}</span><span style="color:var(--lime)">${Number(genome.fitness).toFixed(3)}</span></div><canvas width="140" height="70" style="width:100%;height:70px"></canvas><div class="fine-print">${nodes.length} nodes · ${conns.length} connections · species ${genome.species}</div>`;
+        drawGenome(card.querySelector('canvas'), genome);
+        card.addEventListener('click', () => selectIndividual(genome, card));
+        host.append(card);
+      }
+      const best = population.reduce((a,b) => !a || b.fitness > a.fitness ? b : a, null);
+      if (best) selectIndividual(best, host.firstElementChild);
+    } catch (error) {
+      host.innerHTML = `<div class="note-box">${esc(error.message)}</div>`;
+    }
+  }
+
+  function drawGenome(canvas, genome) {
+    const ctx = canvas.getContext('2d'), nodes = genome.nodes || [], conns = (genome.connections || []).filter(c => c.enabled);
+    const positions = new Map(), buckets = {0:[],1:[],2:[],3:[]};
+    nodes.forEach(n => (buckets[n.type] || (buckets[n.type]=[])).push(n));
+    const xFor = type => type === 2 ? 128 : (type === 3 ? 70 : 12);
+    nodes.forEach(n => {
+      const group = buckets[n.type] || [n], index = group.indexOf(n);
+      positions.set(n.id, {x:xFor(n.type), y:8 + (index + 1) * 54 / (group.length + 1)});
+    });
+    ctx.fillStyle = '#0e120d'; ctx.fillRect(0,0,140,70);
+    for (const c of conns) {
+      const a=positions.get(c.from), b=positions.get(c.to); if(!a||!b) continue;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle = c.weight >= 0 ? 'rgba(56,225,255,.52)' : 'rgba(255,130,110,.58)';
+      ctx.lineWidth = Math.max(.5, Math.min(2, Math.abs(c.weight)*.45)); ctx.stroke();
+    }
+    for (const n of nodes) { const p=positions.get(n.id); if(!p) continue; ctx.beginPath(); ctx.arc(p.x,p.y,n.type===1?2.5:3,0,Math.PI*2); ctx.fillStyle=n.type===2?'#c7f36a':n.type===3?'#b69cff':'#38e1ff'; ctx.fill(); }
+  }
+
+  function selectIndividual(genome, card) {
+    document.querySelectorAll('#generation-network-grid .genome-card').forEach(el => el.classList.remove('active'));
+    card?.classList.add('active'); selectedGenome = genome;
+    const nodes=genome.nodes||[], conns=genome.connections||[];
+    const inputs=nodes.filter(n=>n.type===0).length, hidden=nodes.filter(n=>n.type===3).length, outputs=nodes.filter(n=>n.type===2).length;
+    $('detail-genome-title').textContent = `GENOME #${genome.index+1} · GEN ${selectedGeneration}`;
+    $('detail-fitness').textContent = Number(genome.fitness).toFixed(5);
+    $('detail-arch').textContent = `${inputs} in → ${hidden} hidden → ${outputs} out`;
+    $('detail-nodes').textContent = nodes.length;
+    $('detail-conns').textContent = conns.length;
+    $('selected-generation-note').textContent = `Species ${genome.species} · ${conns.filter(c=>c.enabled).length} enabled / ${conns.length} total connections · optimizer timestep ${genome.adam_t}. The selected network is an actual saved population member.`;
+    let weights = $('weights-list');
+    if (!weights) { weights=document.createElement('div'); weights.id='weights-list'; weights.className='weights-table'; $('genome-details-card').append(weights); }
+    weights.replaceChildren();
+    conns.slice(0,120).forEach(c => {
+      const row=document.createElement('div'); row.className='weights-row';
+      row.innerHTML=`<span class="weights-key">${c.from} → ${c.to} ${c.enabled?'':'(disabled)'}</span><span class="weights-val">${Number(c.weight).toFixed(5)}</span>`;
+      weights.append(row);
+    });
+    if(conns.length>120){const note=document.createElement('p');note.className='fine-print';note.textContent=`Showing first 120 of ${conns.length} connections.`;weights.append(note);}
+  }
+
+  window.refreshGenomeInspector = async function(envId) {
+    if (!envId) {
+      activeEnvId=null; manifest=null; selectedGeneration=null;
+      $('generation-selector').replaceChildren(); $('generation-network-grid').innerHTML='<div class="note-box">Load or train an environment to inspect its genomes.</div>';
+      $('generation-record-count').textContent='0 GENERATIONS'; return;
+    }
+    if (activeEnvId !== envId) { manifest=null; selectedGeneration=null; lastManifestFetch=0; }
+    activeEnvId=envId;
+    if (loading || Date.now()-lastManifestFetch < 800) return;
+    loading=true; lastManifestFetch=Date.now();
+    try {
+      const response=await fetch(`/api/envs/${envId}/genomes`);
+      const data=await response.json(); if(!response.ok) throw new Error(data.error||'Genome manifest unavailable');
+      if(activeEnvId!==envId) return;
+      manifest=data; const generations=data.generations||[];
+      $('generation-selector').replaceChildren();
+      $('generation-record-count').textContent=`${generations.length} GENERATIONS`;
+      if(!generations.length) {
+        $('generation-network-grid').innerHTML='<div class="note-box">Waiting for the first generation snapshot. Snapshots are written in the background as training progresses.</div>';
+        return;
+      }
+      for(const item of generations) {
+        const button=document.createElement('button'); button.type='button'; button.className='gen-tab'; button.dataset.generation=item.generation; button.dataset.run=item.run || 'main';
+        button.textContent=`${item.run && item.run !== 'main' ? item.run.replaceAll('_', ' ' ) + ' · ' : ''}Gen ${item.generation}`; button.addEventListener('click',()=>loadGeneration(item.generation, item.run || 'main'));
+        $('generation-selector').append(button);
+      }
+      if(selectedGeneration===null || !generations.some(g=>g.generation===selectedGeneration.generation && (g.run || 'main')===selectedGeneration.run)) {
+        const latest=generations[generations.length-1]; await loadGeneration(latest.generation, latest.run || 'main');
+      }
+    } catch(error) {
+      $('generation-network-grid').innerHTML=`<div class="note-box">${esc(error.message)}</div>`;
+    } finally { loading=false; }
+  };
+})();
+</script>
+
+
+<script src="/robotics_sim.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = { kind: null, policy: null, sim: null, running: false, raf: 0, lastTick: 0, poll: 0, seed: 31 };
+  const configFor = kind => kind === 'turtlebot'
+    ? { rnoise: 0.05, rdelay: 2, rlag: 1.5, horizon: 300 }
+    : { rnoise: 0.05, rdelay: 2, rlag: 1.5, feat: 3, fk: 0.25, horizon: 100 };
+  const toast = msg => { const t=$('toast'), txt=$('toast-text'); if(t&&txt){txt.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);} };
+  function selectRobot(kind) {
+    state.kind=kind; state.policy=null; state.running=false;
+    document.querySelectorAll('.robot-example').forEach(el=>el.classList.remove('selected'));
+    $('robot-pick-'+(kind==='arm2link'?'arm':'turtlebot')).classList.add('selected');
+    $('robot-workspace').hidden=false;
+    $('robot-active-title').textContent=kind==='turtlebot'?'TurtleBot · Autonomous navigation':'2-Link Arm · Target reaching';
+    $('robot-active-description').textContent=kind==='turtlebot'?'A differential-drive robot navigates a randomized obstacle field using a 24-ray range sensor.':'A planar two-joint arm reaches a randomized target using joint feedback and a filtered Jacobian feature.';
+    $('robot-active-tag').textContent=kind==='turtlebot'?'MOBILE ROBOT':'MANIPULATOR';
+    $('robot-viewport-title').textContent=kind==='turtlebot'?'TurtleBot navigation preview':'2-link arm reaching preview';
+    $('robot-budget').value=kind==='turtlebot'?'25000000':'8000000';
+    $('robot-config-note').textContent=kind==='turtlebot'
+      ? 'NEAT population 48 · Lamarckian NEAT + PPO · 25M steps · noise / delay / actuator-lag randomization.'
+      : 'NEAT population 48 · Lamarckian NEAT + PPO · feat=3 filtered joint estimate · 8M steps · domain randomization.';
+    $('robot-policy-meta').textContent='Checking for a saved trained policy…';
+    $('robot-training-log').textContent='Choose “Load saved demo policy” to run the included checkpoint, or train a fresh brain.';
+    $('robot-job-state').textContent='Selected '+(kind==='turtlebot'?'TurtleBot':'2-Link Arm')+'.';
+    $('robot-progress-bar').style.width='0%';
+    state.sim=RobotSim.create(kind,configFor(kind),state.seed++);
+    draw(); updateTelemetry(); refreshStatus();
+    if(state.raf) cancelAnimationFrame(state.raf); state.raf=requestAnimationFrame(loop);
+  }
+  async function api(url, options) { const r=await fetch(url,options); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error||('HTTP '+r.status)); return data; }
+  async function loadPolicy(showToast=true) {
+    if(!state.kind) return;
+    try {
+      const json=await api('/api/robotics/policy/'+state.kind);
+      state.policy=new RobotSim.Policy(json); state.sim=RobotSim.create(state.kind,configFor(state.kind),state.seed++);
+      $('robot-telemetry-policy').textContent='LOADED';
+      $('robot-policy-meta').textContent=`Loaded ${json.env} policy · ${json.input_ids.length} inputs · ${json.nodes.length} nodes · ${json.connections.filter(c=>c.enabled).length} enabled connections · ${json.env_args}`;
+      $('robot-job-state').textContent='Policy ready. Press Pause/Run to start the autonomous preview.';
+      state.running=true; $('robot-play-button').textContent='Pause';
+      if(showToast) toast('Saved '+(state.kind==='turtlebot'?'TurtleBot':'arm')+' policy loaded.');
+      updateTelemetry();
+    } catch(e) { $('robot-telemetry-policy').textContent='NOT LOADED'; $('robot-policy-meta').textContent=e.message; if(showToast) toast(e.message); }
+  }
+  async function refreshStatus() {
+    if(!state.kind) return;
+    try {
+      const data=await api('/api/robotics/status?kind='+state.kind);
+      const j=data.job;
+      if(j) {
+        if(['queued','building','running'].includes(j.status) && !state.poll) state.poll=setInterval(refreshStatus,1200);
+        if(['completed','failed'].includes(j.status) && state.poll) { clearInterval(state.poll); state.poll=0; }
+        const pct=Math.max(0,Math.min(100,100*(j.steps||0)/(j.budget||1)));
+        $('robot-progress-bar').style.width=pct.toFixed(1)+'%';
+        $('robot-job-state').textContent=`${j.status.toUpperCase()} · generation ${j.generation||0} · ${(j.steps||0).toLocaleString()} / ${(j.budget||0).toLocaleString()} steps`+(j.success==null?'':` · held-out success ${(j.success*100).toFixed(1)}%`);
+        $('robot-training-log').textContent=(j.log||[]).slice(-14).join('\n')||'Waiting for trainer output…';
+        if(j.status==='failed') $('robot-job-state').textContent+=' · '+j.error;
+        if(j.status==='completed') {
+          $('robot-progress-bar').style.width='100%';
+          $('robot-job-state').textContent+=` · final success ${j.success==null?'not reported':(j.success*100).toFixed(1)+'%'}`;
+          if(!state.policy || state.policy.json?.env!==state.kind || state._loadedJob!==j.id) { state._loadedJob=j.id; await loadPolicy(false); toast('Training finished. New policy loaded.'); }
+        }
+      }
+      if(data.policy_available && !state.policy && (!j || ['completed','failed'].includes(j.status))) await loadPolicy(false);
+    } catch(e) { $('robot-job-state').textContent='Trainer status unavailable: '+e.message; }
+  }
+  async function train() {
+    if(!state.kind) return;
+    $('robot-train-button').disabled=true;
+    try {
+      const job=await api('/api/robotics/train',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:state.kind,budget:Number($('robot-budget').value),seed:Number($('robot-seed').value)})});
+      state.policy=null;state.running=false;$('robot-play-button').textContent='Run';$('robot-telemetry-policy').textContent='TRAINING';
+      $('robot-job-state').textContent='Training queued…';$('robot-training-log').textContent='';$('robot-progress-bar').style.width='0%';
+      if(state.poll)clearInterval(state.poll);state.poll=setInterval(refreshStatus,1200);await refreshStatus();toast('Training started.');
+    } catch(e) { $('robot-job-state').textContent=e.message; toast(e.message); }
+    finally { $('robot-train-button').disabled=false; }
+  }
+  function drawGrid(ctx,w,h){ctx.fillStyle='#0b100a';ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(56,225,255,.07)';ctx.lineWidth=1;for(let x=0;x<w;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}for(let y=0;y<h;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}}
+  function drawTurtle(ctx,sim){const sx=x=>400+x*170,sy=y=>190-y*85;ctx.strokeStyle='#4d6440';ctx.lineWidth=2;ctx.strokeRect(60,20,680,340);ctx.fillStyle='#d2ff62';ctx.beginPath();ctx.arc(sx(sim.gx),sy(sim.gy),7,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(210,255,98,.45)';ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(sx(sim.gx),sy(sim.gy),18,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    for(const o of sim.obstacles){ctx.fillStyle='#26331f';ctx.strokeStyle='#60784e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(o.x),sy(o.y),o.r*170,0,Math.PI*2);ctx.fill();ctx.stroke();}
+    for(let i=0;i<24;i++){const a=sim.th+Math.PI*2*i/24,d=sim.cast(a),ex=sx(sim.x+Math.cos(a)*d),ey=sy(sim.y+Math.sin(a)*d);ctx.strokeStyle='rgba(56,225,255,.23)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx(sim.x),sy(sim.y));ctx.lineTo(ex,ey);ctx.stroke();}
+    ctx.save();ctx.translate(sx(sim.x),sy(sim.y));ctx.rotate(-sim.th);ctx.fillStyle='#1c2618';ctx.strokeStyle='#38e1ff';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-18,-13,36,26,5);ctx.fill();ctx.stroke();ctx.fillStyle='#d2ff62';ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(5,-6);ctx.lineTo(5,6);ctx.closePath();ctx.fill();ctx.restore();}
+  function drawArm(ctx,sim){const sx=x=>400+x*500,sy=y=>330-y*500,base={x:0,y:0},el={x:.30*Math.cos(sim.q1),y:.30*Math.sin(sim.q1)},ee=sim.fkPos(sim.q1,sim.q2);ctx.strokeStyle='#596b4b';ctx.lineWidth=9;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx(base.x),sy(base.y));ctx.lineTo(sx(el.x),sy(el.y));ctx.lineTo(sx(ee.x),sy(ee.y));ctx.stroke();ctx.strokeStyle='#38e1ff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx(base.x),sy(base.y));ctx.lineTo(sx(el.x),sy(el.y));ctx.lineTo(sx(ee.x),sy(ee.y));ctx.stroke();for(const p of [base,el,ee]){ctx.fillStyle='#c7f36b';ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),8,0,Math.PI*2);ctx.fill();}ctx.strokeStyle='#d2ff62';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx(sim.tx),sy(sim.ty),11,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(sx(sim.tx)-15,sy(sim.ty));ctx.lineTo(sx(sim.tx)+15,sy(sim.ty));ctx.moveTo(sx(sim.tx),sy(sim.ty)-15);ctx.lineTo(sx(sim.tx),sy(sim.ty)+15);ctx.stroke();ctx.fillStyle='#73816a';ctx.font='11px monospace';ctx.fillText('BASE',sx(0)+12,sy(0)+18);}
+  function draw(){const canvas=$('robot-sim-canvas');if(!canvas)return;const ctx=canvas.getContext('2d');drawGrid(ctx,canvas.width,canvas.height);if(!state.sim){ctx.fillStyle='#aab69f';ctx.fillText('Choose a robot example to begin',24,30);return;}if(state.kind==='turtlebot')drawTurtle(ctx,state.sim);else drawArm(ctx,state.sim);if(!state.policy){ctx.fillStyle='#d2ff62';ctx.font='12px monospace';ctx.fillText('NO POLICY LOADED — LOAD OR TRAIN A BRAIN',24,28);}}
+  function updateTelemetry(){if(!state.sim)return;const t=state.sim.telemetry();$('robot-telemetry-status').textContent=t.status;$('robot-telemetry-position').textContent=state.kind==='turtlebot'?`${t.x.toFixed(2)}, ${t.y.toFixed(2)} m`:`${t.x.toFixed(3)}, ${t.y.toFixed(3)} m`;$('robot-telemetry-error').textContent=t.goal.toFixed(3)+' m';$('robot-telemetry-reward').textContent=t.reward.toFixed(2);$('robot-telemetry-step').textContent=`${t.step} / ${t.horizon}`;}
+  function loop(now){if(state.running&&state.policy&&state.sim){const interval=state.kind==='turtlebot'?100:50;if(!state.lastTick||now-state.lastTick>=interval){state.lastTick=now;try{const action=state.policy.act(state.sim.obs());state.sim.step(action);if(state.sim.done){state.running=false;$('robot-play-button').textContent='Run';toast(state.sim.telemetry().status);}}catch(e){state.running=false;$('robot-job-state').textContent='Policy runtime error: '+e.message;}}}draw();updateTelemetry();state.raf=requestAnimationFrame(loop);}
+  $('robot-pick-turtlebot').addEventListener('click',()=>selectRobot('turtlebot'));
+  $('robot-pick-arm').addEventListener('click',()=>selectRobot('arm2link'));
+  $('robot-train-button').addEventListener('click',train);
+  $('robot-load-button').addEventListener('click',()=>loadPolicy(true));
+  $('robot-play-button').addEventListener('click',()=>{if(!state.sim||!state.policy){toast('Load or train a policy first.');return;}if(state.sim.done){state.sim=RobotSim.create(state.kind,configFor(state.kind),state.seed++);}state.running=!state.running;state.lastTick=0;$('robot-play-button').textContent=state.running?'Pause':'Run';});
+  $('robot-reset-button').addEventListener('click',()=>{if(!state.kind)return;state.sim=RobotSim.create(state.kind,configFor(state.kind),state.seed++);state.running=!!state.policy;$('robot-play-button').textContent=state.running?'Pause':'Run';draw();updateTelemetry();});
+  $('robot-upload-input').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(f){$('robot-upload-note').textContent=`Selected ${f.name} (${Math.round(f.size/1024)} KB). File upload is currently a UI placeholder; it is not parsed or executed.`;toast('Upload preview only — choose one of the two built-in examples.');}});
+  const drop=$('robot-upload-input').closest('.robot-upload-drop');drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('selected');});drop.addEventListener('dragleave',()=>drop.classList.remove('selected'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('selected');const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f){$('robot-upload-note').textContent=`Selected ${f.name}. Custom model upload is a placeholder and is not parsed.`;}});
+  window.addEventListener('beforeunload',()=>{if(state.raf)cancelAnimationFrame(state.raf);if(state.poll)clearInterval(state.poll);});
+})();
+</script>
 </body>
 </html>

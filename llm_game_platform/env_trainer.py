@@ -195,6 +195,7 @@ class EnvTrainer(BrainTrainer):
         concepts: list[str] | None = None,
         status: Callable[[str], None] | None = None,
         _allow_concept_refresh: bool = True,
+        genome_output_dir: Path | None = None,
     ) -> EnvTrainResult:
         if not spec.get("trainable"):
             raise BrainTrainingError(spec.get("untrainable_reason") or "environment is not trainable")
@@ -216,11 +217,9 @@ class EnvTrainer(BrainTrainer):
         generation_limit_reached = False
         errors: list[str] = []
         workers: dict[int, SandboxProcess] = {}
-        # The generation-60 GP concept refresh is for the per-action head. The fixed (real-time) head drops every
-        # action-dependent concept and reaches its target well before that, so the refresh is not armed for it.
         refresh_at = (
             self.concept_refresh_generation
-            if _allow_concept_refresh and head != "fixed" else 0
+            if _allow_concept_refresh else 0
         )
         with tempfile.TemporaryDirectory(prefix="env-training-") as directory:
             workdir = Path(directory)
@@ -241,6 +240,9 @@ class EnvTrainer(BrainTrainer):
                 command += ["--target-stop-generation", str(max(1, (refresh_at + 1) // 2))]
             if min_gens:
                 command += ["--min-generations", str(min_gens)]
+            if genome_output_dir is not None:
+                genome_output_dir.mkdir(parents=True, exist_ok=True)
+                command += ["--genome-dir", str(genome_output_dir)]
             if self.imitation is not None:
                 command += ["--imitation", str(self.imitation)]
             brain = subprocess.Popen(command, cwd=workdir, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -455,6 +457,7 @@ class EnvTrainer(BrainTrainer):
             concepts=combined_concepts,
             status=status,
             _allow_concept_refresh=False,
+            genome_output_dir=(genome_output_dir / "stage_2") if genome_output_dir is not None else None,
         )
         restarted_history = []
         for point in restarted.history:
@@ -506,6 +509,7 @@ class EnvTrainer(BrainTrainer):
         progress: Callable[[dict[str, float]], None] | None = None,
         concepts: list[str] | None = None,
         status: Callable[[str], None] | None = None,
+        genome_output_dir: Path | None = None,
     ) -> list[EnvTrainResult]:
         """Round 1 trains against ``first_opponent``; each later round starts a FRESH learner
         that trains against the frozen champion of the previous round (staged self-play)."""
@@ -513,7 +517,8 @@ class EnvTrainer(BrainTrainer):
         opponent: dict[str, Any] | str = first_opponent
         for index in range(rounds):
             result = self.train_env(
-                source_path, spec, opponent, progress=progress, concepts=concepts, status=status
+                source_path, spec, opponent, progress=progress, concepts=concepts, status=status,
+                genome_output_dir=(genome_output_dir / f"round_{index + 1}") if genome_output_dir is not None else None,
             )
             path = result.save_policy(policy_dir / f"selfplay_round_{index + 1}.json")
             results.append(result)

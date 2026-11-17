@@ -34,3 +34,46 @@ Perturbation tables (obs noise 0.05/0.1/0.2, delay 1/2/4, mass x0.5/1.5/2, force
 - One task, one dynamics model, 2-D. Not a robot.
 - The 3-frame stack uses gain 10 on deltas, chosen by reasoning, not tuned.
 - Untested: truncation-aware bootstrapping, reward/observation normalization, domain randomization during training, higher-dimensional tasks, evolving log-std/architecture.
+
+---
+# Addendum: domain randomization (4M env steps, 5 seeds)
+Training env samples per episode: obs noise ~U(0,0.15), delay ~U{0..3}, mass log-uniform in [1/2,2], force noise ~U(0,0.3).
+Evaluation points are fixed (never randomized), so noise 0.2 and delay 4 are *outside* the training range. Configs `*_dr` in the harness; `python3 robotics/run_reliability.py summary --steps 4000000` prints all tables.
+
+Worst seed on any perturbation point (mean return, higher is better; PD = -1.3, do-nothing = -10):
+
+| config | nominal (median) | worst seed, worst perturbation |
+|---|---|---|
+| neat_full | -1.71 | -8.23 (delay 4) |
+| neat_full_dr | -2.32 | -3.30 (noise 0.2) |
+| ppo_full | -1.66 | -8.88 (delay 4) |
+| ppo_full_dr | -2.83 | -4.78 (delay 4) |
+
+- Randomization removes the catastrophic cases for full-observation policies: delay-4 return goes from -5.5/-6.3 (NEAT/PPO median) to -2.7/-3.4, and NEAT success at delay 4 from 0.00 to 0.93. Noise 0.2 return improves from -3.8/-4.6 to -3.2/-3.6.
+- The price is nominal precision: about 0.6 to 1.2 return worse on the unperturbed env. The sparse success flag (within 0.1 and slow) collapses for the hedged policies (e.g. ppo_full_dr train success 0.00 despite return -2.8), so use returns for these.
+- NEAT solves 5/5 (return > -3) with randomization, PPO 3/5; the same split as without. n = 5, so only suggestive.
+- **Randomization hurts the velocity-hidden, frame-delta policies badly** (neat_pos_s3_dr 1/5 solved, ppo_pos_s3_dr 0/5; without randomization 5/5 and 3/5). Differencing positions with gain 10 turns noise up to 0.15 into delta noise of about 1.5, larger than the signal. Velocity-from-history needs filtering (longer stack, smoothed deltas, or a recurrent state), not more training. Not tried.
+- Not done: separate randomization ranges per channel, curriculum, matched hyperparameters, more than 5 seeds.
+
+---
+# Addendum 2: velocity from history under noise (velocity hidden, with domain randomization, 4M steps, 5 seeds)
+`FilterEnv` (src/robotics_env.h, `--filt MASK`, `--filt-k K`) replaces the raw frame deltas. bit0 = two EMAs (alpha 0.5 / 0.1) of the observation deltas; bit1 = leaky integral of the *commanded actions* (u_t = 0.99 u_{t-1} + k a_t, an efference copy that never touches the noisy observation). `k` = 0.2 is the unscaled version, `*k` configs use `--filt-k 0.02` so the input stays in about [-2,2].
+
+Mean return on the unperturbed env (median [worst seed]), then perturbation points; solved = return > -3:
+
+| config | train | obs noise 0.1 | obs noise 0.2 | delay 4 | mass x2 | solved |
+|---|---|---|---|---|---|---|
+| neat_full_dr (velocity *observed*, reference) | -2.32 [-2.55] | -2.58 | -3.20 | -2.72 | -2.79 | 5/5 |
+| neat raw 3-frame deltas | -3.47 [-4.19] | -5.82 | -8.14 | -7.27 | -4.21 | 1/5 |
+| neat EMA deltas | -3.01 [-3.31] | -3.66 | -4.88 | -4.79 | -3.80 | 2/5 |
+| neat action integral (k=0.2) | -2.52 [-3.01] | -2.78 | -3.52 | -2.92 | -3.65 | 4/5 |
+| **neat action integral (k=0.02)** | **-2.15 [-2.41]** | -2.54 | -3.35 | -3.14 | -2.85 | **5/5** |
+| neat both (k=0.02) | -2.43 [-2.53] | -3.19 | -4.51 | -3.68 | -3.00 | 5/5 |
+| ppo action integral (k=0.02) | -3.43 [-24.22] | -3.60 | -4.03 | -3.84 | -4.07 | 2/5 |
+| ppo both (k=0.02) | -25.61 [-26.60] | -25.34 | -24.65 | -24.97 | -23.76 | 0/5 |
+| ppo raw 3-frame deltas | -7.09 [-8.52] | -7.44 | -10.13 | -9.20 | -7.22 | 0/5 |
+
+- **With the action integral, NEAT with velocity hidden matches NEAT with velocity observed** under randomization, including at noise 0.2 and delay 4, which are outside the training ranges. Filtering the observation deltas helps only partly; the integral of past commands is what carries the signal.
+- **Scale matters.** The unscaled integral reaches +-20 (it tracks velocity, top speed 4/0.2 = 20) and PPO collapsed to a saturated policy on all 10 seeds (return about -23 to -28; lowering lr to 5e-4 did not help). Scaling to +-2 fixed NEAT's residual failures and let PPO learn on some seeds. The input-scale explanation is my inference from this pattern, not isolated by a dedicated ablation.
+- **PPO is unstable with these inputs even after scaling** (ppo action integral: 2/5 seeds learn, the other 3 sit at about -24; with both filters 0/5). I did not diagnose why. NEAT's selection discards the collapsing genomes; PPO has no such guard.
+- Caveats: n = 5. The leak 0.99 was chosen from the plant's known damping (drag 0.2 x dt 0.05), so this uses a model assumption; it still held at mass x2 and delay 4, but it is open-loop and would drift where the true velocity is changed by contact (here only the arena walls). A learned recurrent state would not need that assumption and is untested.

@@ -1,6 +1,7 @@
 """Validate the hand-written environments in builtin_envs/ and install them into generated_envs/.
 
-    python install_builtin_envs.py            # install (or refresh) all four
+    python install_builtin_envs.py            # install (or refresh) all six
+    python install_builtin_envs.py chess_kqk  # install just one
     python install_builtin_envs.py --list     # show the ids
 
 They are saved in the normal EnvStore format (env.py + meta.json, no policies/), so the website's
@@ -24,6 +25,8 @@ BUILTIN = {
     "connect4": "Connect 4, two players, 7 columns by 6 rows",
     "snake": "Snake, real-time, single player",
     "pong": "Pong, real-time, two paddles",
+    "chess_kqk": "Chess endgame: king and queen vs king (checkmate)",
+    "chess_krk": "Chess endgame: king and rook vs king (checkmate)",
 }
 
 
@@ -33,10 +36,13 @@ def env_id(name: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("names", nargs="*", help="only these environments (default: all)")
     parser.add_argument("--list", action="store_true")
     args = parser.parse_args()
     store = EnvStore()
     for name, prompt in BUILTIN.items():
+        if args.names and name not in args.names:
+            continue
         if args.list:
             print(name, env_id(name))
             continue

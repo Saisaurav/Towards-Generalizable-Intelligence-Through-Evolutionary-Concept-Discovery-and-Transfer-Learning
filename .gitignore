@@ -12,6 +12,12 @@ generated_envs/*
 !generated_envs/09afe11ba8547c9c2a839c7a5b95a751/
 !generated_envs/17ffba293c93ff640467eaa3e6e197cd/
 !generated_envs/806b58aee103d0989ac9180249565f9f/
+!generated_envs/1bf79dcba4eca8c221dd8b6ac6e7816c/
 node_modules/
 src/brain
 src/runner
+src/brain_robotics
+src/brain_robotics.exe
+robotics_sim/runs/
+robotics_sim/ros2/__pycache__/
+src/robot_envs_smoke_test

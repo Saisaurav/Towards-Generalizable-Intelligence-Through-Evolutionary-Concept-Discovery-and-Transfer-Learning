@@ -4,6 +4,7 @@
 #include "external_env.h"
 #include "fixed_head_env.h"
 #include "robotics_env.h"
+#include "robot_envs.h"
 #include <fstream>
 #include <cstdlib>
 #include <iomanip>
@@ -16,60 +17,78 @@ static std::vector<std::string> load_concepts(const char* path) {
   return out;
 }
 
-static void save_policy(const char* path, const Genome& genome, const Env& env, bool action_onehot) {
+static std::string turtlebot_obs_names(int n) {
+  std::string s = "[";
+  for (int i = 0; i < TurtleBotNav::NR; ++i) s += std::string(i ? "," : "") + "\"lidar" + std::to_string(i) + "\"";
+  for (auto k : {"goal_dist", "goal_sin", "goal_cos", "v", "w", "prev_a0", "prev_a1"}) s += std::string(",\"") + k + "\"";
+  if (n > TurtleBotNav::NR + 7) s += ",\"t_frac\"";
+  return s + "]";
+}
+static std::string arm_obs_names(const std::string& args) {
+  auto kv = parse_kv(args); int feat = (int)kvget(kv, "feat", 0); bool tf = kvget(kv, "tfeat", 1) != 0;
+  std::string s = "["; bool first = true;
+  for (auto k : {"sin_q1", "cos_q1", "sin_q2", "cos_q2", "dq1", "dq2", "err_x", "err_y", "prev_a0", "prev_a1"}) {
+    s += std::string(first ? "" : ",") + "\"" + k + "\""; first = false;
+  }
+  if (feat >= 1) s += ",\"err_x_fine\",\"err_y_fine\"";
+  if (feat >= 2) s += ",\"jt_e1\",\"jt_e2\"";
+  if (tf) s += ",\"t_frac\"";
+  return s + "]";
+}
+
+static void save_policy(const char* path, const Genome& genome, const Env& env, bool action_onehot,
+                        const std::string& env_name = "", const std::string& env_args = "") {
   std::ofstream out(path);
   if (!out) throw std::runtime_error(std::string("cannot write policy: ") + path);
   out << std::setprecision(9);
   const char* head = env.act_dim() > 0 ? "continuous" : (env.per_action() ? "per_action" : "fixed");
   out << "{\"n_logit\":" << env.n_logit() << ",\"head\":\"" << head
-      << "\",\"action_onehot\":"
-      << (action_onehot ? "true" : "false") << ",\"input_ids\":[";
+      << "\",\"action_onehot\":" << (action_onehot ? "true" : "false") << ",\"input_ids\":[";
   bool first = true;
   for (const auto& node : genome.nodes) if (node.type == N_IN) {
     if (!first) out << ",";
     out << node.id;
     first = false;
   }
-  out << "],\"nodes\":[";
-  first = true;
-  for (const auto& node : genome.nodes) {
-    if (!first) out << ",";
-    out << "{\"id\":" << node.id << ",\"type\":" << (int)node.type << "}";
-    first = false;
-  }
-  out << "],\"connections\":[";
-  first = true;
-  for (const auto& connection : genome.conns) {
-    if (!std::isfinite(connection.w))
-      throw std::runtime_error("cannot export a policy with non-finite weights");
-    if (!first) out << ",";
-    out << "{\"from\":" << connection.from << ",\"to\":" << connection.to
-        << ",\"weight\":" << connection.w << ",\"enabled\":"
-        << (connection.en ? "true" : "false") << "}";
-    first = false;
-  }
   out << "]";
   if (env.act_dim() > 0) {
-    out << ",\"action_dim\":" << env.act_dim() << ",\"logstd\":[";
-    for (size_t i = 0; i < genome.logstd.size(); i++) {
-      if (!std::isfinite(genome.logstd[i]))
-        throw std::runtime_error("cannot export a policy with non-finite log-standard-deviation");
-      if (i) out << ",";
-      out << genome.logstd[i];
+    out << ",\"act_dim\":" << env.act_dim() << ",\"action_dim\":" << env.act_dim() << ",\"logstd\":[";
+    for (int i = 0; i < env.act_dim(); ++i) {
+      if (!std::isfinite(genome.logstd.size() == (size_t)env.act_dim() ? genome.logstd[i] : -0.7f)) throw std::runtime_error("non-finite logstd");
+      out << (i ? "," : "") << (genome.logstd.size() == (size_t)env.act_dim() ? genome.logstd[i] : -0.7f);
     }
-    out << "]";
+    out << "],\"deterministic_action\":\"mean_output_clipped_to_unit\",\"env\":\"" << env_name
+        << "\",\"env_args\":\"" << env_args << "\"";
+    if (env_name == "turtlebot") out << ",\"obs_names\":" << turtlebot_obs_names(env.n_state())
+        << ",\"action_scale\":{\"linear_x_mps\":0.22,\"angular_z_radps\":2.0},\"rate_hz\":10";
+    if (env_name == "arm2link") out << ",\"obs_names\":" << arm_obs_names(env_args)
+        << ",\"action_scale\":{\"joint_vel_radps\":2.0},\"rate_hz\":20";
   }
-  out << "}\n";
+  out << ",\"nodes\":["; first = true;
+  for (const auto& node : genome.nodes) {
+    if (!first) out << ",";
+    out << "{\"id\":" << node.id << ",\"type\":" << (int)node.type << "}"; first = false;
+  }
+  out << "],\"connections\":["; first = true;
+  for (const auto& connection : genome.conns) {
+    if (!std::isfinite(connection.w)) throw std::runtime_error("cannot export policy with non-finite weights");
+    if (!first) out << ",";
+    out << "{\"from\":" << connection.from << ",\"to\":" << connection.to
+        << ",\"weight\":" << connection.w << ",\"enabled\":" << (connection.en ? "true" : "false") << "}"; first = false;
+  }
+  out << "]}\n";
   if (!out) throw std::runtime_error("failed while writing policy");
 }
 
 int main(int argc,char**argv){
+  // Keep generation telemetry streaming when the browser launches the trainer through a pipe.
+  std::setvbuf(stdout, nullptr, _IOLBF, 0);
   if(argc==2 && std::string(argv[1])=="--primitive-contract"){
     std::printf("%s\n",kConceptPrimitiveContract);
     return 0;
   }
   try {
-    if(argc<5){std::fprintf(stderr,"usage: %s <game> <concept-file> <budget> <seed> [pop] [model-output] [options]\n       %s ext <concept-file> <budget> <seed> [pop] [model-output] [--head fixed|per_action --max-episode-steps N --target-win-rate F --target-stop-generation N --max-generations N --max-seconds S]\n       %s pointmass <concept-file> <budget> <seed> [pop] [model-output] [--env-args key=value,... --stack N --robust N]\n       %s grid <grid-spec-file> <concept-file> <budget> <seed> [pop] [model-output]\n",argv[0],argv[0],argv[0],argv[0]);return 2;}
+    if(argc<5){std::fprintf(stderr,"usage: %s <game> <concept-file> <budget> <seed> [pop] [model-output] [options]\n       %s ext <concept-file> <budget> <seed> [pop] [model-output] [--head fixed|per_action --max-episode-steps N --target-win-rate F --target-stop-generation N --max-generations N --max-seconds S --genome-dir DIR]\n       %s pointmass <concept-file> <budget> <seed> [pop] [model-output] [--env-args key=value,... --stack N | --filt MASK --filt-k K --robust N]\n       %s <turtlebot|arm2link> <concept-file> <budget> <seed> [pop] [model-output] [--preset lam --env-args key=value,... --genome-dir DIR]\n       %s grid <grid-spec-file> <concept-file> <budget> <seed> [pop] [model-output]\n",argv[0],argv[0],argv[0],argv[0],argv[0]);return 2;}
     std::string game=argv[1];
     int arg=2;
     std::unique_ptr<Env> base;
@@ -78,7 +97,7 @@ int main(int argc,char**argv){
       base=std::make_unique<GridWorld>(GridWorld::from_file(argv[arg++]));
     } else if(game=="ext") {
       base=std::make_unique<ExternalEnv>(std::make_shared<ExtChannel>());
-    } else if(game=="pointmass") {
+    } else if(game=="pointmass" || game=="turtlebot" || game=="arm2link") {
       // Configured after command-line options are parsed.
     } else if(game=="ttt"){auto e=std::make_unique<TicTacToe>();e->nf=0;base=std::move(e);}
     else if(game=="connect_four") base=std::make_unique<ConnectFour>();
@@ -98,15 +117,18 @@ int main(int argc,char**argv){
       c.ppo.greedy_eval = true;
       c.ppo.imitation = 1.f;
     }
-    c.pop=argc>arg && argv[arg][0]!='-'?std::atoi(argv[arg++]):24;
+    const bool pop_arg_set = argc > arg && argv[arg][0] != '-';
+    const int requested_pop = pop_arg_set ? std::atoi(argv[arg++]) : 24;
+    c.pop = requested_pop;
     const char* model_path=argc>arg && argv[arg][0]!='-'?argv[arg++]:nullptr;
     double target_win_rate = -1.0;
     int eval_episodes = 100, eval_interval = 5, fitness_eps = -1, stack_k = 1, robust_eps = 0;
     int max_episode_steps = 0;
-    int iters = -1, rollout = -1, train_fitness = -1, persist_adam = -1;
-    float carry = -1.f, ent = -1.f, lr = -1.f, imitation = -1.f;
+    int iters = -1, rollout = -1, train_fitness = -1, persist_adam = -1, filt_mask = 0;
+    float carry = -1.f, ent = -1.f, lr = -1.f, imitation = -1.f, filt_k = 0.2f;
     std::string head = "per_action", preset_name, hidden, env_args;
     StopLimits limits;
+    std::string genome_dir;
     while (arg < argc) {
       std::string option = argv[arg++];
       if (arg >= argc) throw std::runtime_error("missing value for " + option);
@@ -118,6 +140,8 @@ int main(int argc,char**argv){
       else if (option == "--hidden") hidden = argv[arg++];
       else if (option == "--fitness-episodes") fitness_eps = std::atoi(argv[arg++]);
       else if (option == "--env-args") env_args = argv[arg++];
+      else if (option == "--filt") filt_mask = std::atoi(argv[arg++]);
+      else if (option == "--filt-k") filt_k = (float)std::atof(argv[arg++]);
       else if (option == "--stack") stack_k = std::atoi(argv[arg++]);
       else if (option == "--robust") robust_eps = std::atoi(argv[arg++]);
       else if (option == "--iters") iters = std::atoi(argv[arg++]);
@@ -133,6 +157,7 @@ int main(int argc,char**argv){
       else if (option == "--target-stop-generation") limits.target_stop_generation = std::atoi(argv[arg++]);
       else if (option == "--max-seconds") limits.max_seconds = std::atof(argv[arg++]);
       else if (option == "--max-episode-steps") max_episode_steps = std::atoi(argv[arg++]);
+      else if (option == "--genome-dir") genome_dir = argv[arg++];
       else throw std::runtime_error("unknown option: " + option);
     }
     if (!preset_name.empty()) {
@@ -141,6 +166,9 @@ int main(int argc,char**argv){
       c = preset(preset_name);
       c.seed = configured_seed;
       c.threads = configured_threads;
+      // An explicit positional population size must survive preset selection.
+      // Without one, keep the preset's own population (e.g. the MLP preset uses pop=1).
+      if (pop_arg_set) c.pop = requested_pop;
     }
     if (fitness_eps >= 0) c.eval_episodes = fitness_eps;
     if (iters >= 0) c.ppo.iters = iters;
@@ -168,6 +196,10 @@ int main(int argc,char**argv){
     if (head == "fixed" && game != "ext")
       throw std::runtime_error("--head fixed is only supported for ext environments");
     if (stack_k < 1 || stack_k > 32) throw std::runtime_error("--stack must be in 1..32");
+    if (filt_mask < 0 || filt_mask > 3 || !std::isfinite(filt_k) || filt_k <= 0.f)
+      throw std::runtime_error("--filt must be in 0..3 and --filt-k must be positive");
+    if ((filt_mask > 0 || stack_k > 1) && game != "pointmass")
+      throw std::runtime_error("--filt and --stack are only supported for pointmass");
     if (robust_eps < 0 || max_episode_steps < 0 || limits.max_gens < 0 || limits.min_gens < 0 ||
         limits.target_stop_generation < 0 ||
         !std::isfinite(limits.max_seconds) || limits.max_seconds < 0.0)
@@ -188,13 +220,26 @@ int main(int argc,char**argv){
       static_cast<ExternalEnv*>(base.get())->set_episode_step_limit(max_episode_steps);
     }
     const bool action_onehot = game == "ext" && head == "per_action";
-    PMCfg pm_cfg = parse_pm_args(env_args);
+    PMCfg pm_cfg;
+    if (game == "pointmass") pm_cfg = parse_pm_args(env_args);
+    RobotCfg robot_cfg;
+    const bool robot = game == "turtlebot" || game == "arm2link";
+    if (robot) robot_cfg = RobotCfg::parse(env_args, game == "turtlebot" ? 300 : 100);
+    auto build_robot = [&](const RobotCfg& cfg) -> std::unique_ptr<Env> {
+      if (game == "turtlebot") return std::make_unique<TurtleBotNav>(cfg);
+      return std::make_unique<Arm2Link>(cfg);
+    };
+    auto build_pm = [&](const PMCfg& cfg) -> std::unique_ptr<Env> {
+      std::unique_ptr<Env> inner = std::make_unique<PointMass>(cfg);
+      if (filt_mask > 0) return std::make_unique<FilterEnv>(std::move(inner), filt_mask, 10.f, 0.99f, filt_k);
+      if (stack_k > 1) return std::make_unique<StackEnv>(std::move(inner), stack_k);
+      return inner;
+    };
     std::unique_ptr<Env> wrapped;
-    if (game == "pointmass") {
-      std::unique_ptr<Env> pointmass = std::make_unique<FixedHeadEnv>(
-          std::make_unique<PointMass>(pm_cfg), ex);
-      if (stack_k > 1) pointmass = std::make_unique<StackEnv>(std::move(pointmass), stack_k);
-      wrapped = std::move(pointmass);
+    if (robot) {
+      wrapped = build_robot(robot_cfg);
+    } else if (game == "pointmass") {
+      wrapped = std::make_unique<FixedHeadEnv>(build_pm(pm_cfg), ex);
       if (train_fitness < 0) c.ppo.train_fitness = true;
       if (persist_adam < 0) c.ppo.persist_adam = true;
       c.eval_episodes = 1;
@@ -219,6 +264,7 @@ int main(int argc,char**argv){
     }
     Env& e = *wrapped;
     Population p(e,c);
+    if (!genome_dir.empty()) p.enable_genome_recording(genome_dir);
     std::string csv=game+"_concept_seed"+std::to_string(c.seed)+".csv";
     if (target_win_rate >= 0.0) {
       if (game != "ext") throw std::runtime_error("win-rate stopping is only supported for ext environments");
@@ -226,14 +272,18 @@ int main(int argc,char**argv){
     } else {
       p.run(budget,csv.c_str(),limits);
     }
-    const int heldout_episodes = target_win_rate >= 0.0 || game == "ext" ? eval_episodes : 1000;
-    std::printf("HELDOUT return %.6f episodes %d\n",
-                p.evaluate_champion(heldout_episodes,c.seed^0xD1B54A32D192ED03ULL), heldout_episodes);
+    const int heldout_episodes = robot ? 300 : (target_win_rate >= 0.0 || game == "ext" ? eval_episodes : 1000);
+    if (robot) {
+      Trainer heldout(build_robot(robot_cfg), c.ppo);
+      auto d = heldout.evaluate_detail(p.champion, heldout_episodes, c.seed ^ 0xD1B54A32D192ED03ULL, true);
+      std::printf("HELDOUT success %.4f mean_return %.4f episodes %d\n", (double)d.wins / std::max(1, d.episodes), d.mean, heldout_episodes);
+    } else {
+      std::printf("HELDOUT return %.6f episodes %d\n",
+                  p.evaluate_champion(heldout_episodes,c.seed^0xD1B54A32D192ED03ULL), heldout_episodes);
+    }
     if (game == "pointmass" && robust_eps > 0) {
       auto evaluate_robustness = [&](const PMCfg& config, const char* label) {
-        std::unique_ptr<Env> env = std::make_unique<FixedHeadEnv>(
-            std::make_unique<PointMass>(config), ex);
-        if (stack_k > 1) env = std::make_unique<StackEnv>(std::move(env), stack_k);
+        std::unique_ptr<Env> env = std::make_unique<FixedHeadEnv>(build_pm(config), ex);
         Trainer evaluator(std::move(env), c.ppo);
         Trainer::EvalDetail detail = evaluator.evaluate_detail(
             p.champion, robust_eps, c.seed ^ 0xABCDEF12345ULL, true);
@@ -254,7 +304,20 @@ int main(int argc,char**argv){
       PMCfg noisy_force = pm_cfg; noisy_force.fnoise = 0.3f;
       evaluate_robustness(noisy_force, "fnoise");
     }
-    if(model_path) save_policy(model_path,p.champion,e,action_onehot);
+    if (robot && robust_eps > 0) {
+      auto rgrid = [&](RobotCfg cfg, const char* tag) {
+        cfg.rnoise = 0.f; cfg.rdelay = 0; cfg.rlag = 1.f;
+        Trainer ev(build_robot(cfg), c.ppo);
+        auto d = ev.evaluate_detail(p.champion, robust_eps, c.seed ^ 0xABCDEF12345ULL, true);
+        std::printf("ROBUST %s noise %.3f delay %d lag %.2f success %.4f mean_return %.4f\n", tag,
+                    cfg.noise, cfg.delay, cfg.lag, (double)d.wins / std::max(1, d.episodes), d.mean);
+      };
+      rgrid(robot_cfg, "train");
+      for (float n : {0.02f, 0.05f, 0.1f}) { RobotCfg q = robot_cfg; q.noise = n; rgrid(q, "noise"); }
+      for (int dl : {1, 2, 3}) { RobotCfg q = robot_cfg; q.delay = dl; rgrid(q, "delay"); }
+      for (float lg : {0.5f, 2.f}) { RobotCfg q = robot_cfg; q.lag = lg; rgrid(q, "lag"); }
+    }
+    if(model_path) save_policy(model_path,p.champion,e,action_onehot,robot ? game : "",env_args);
   } catch (const std::exception& error) {
     std::fprintf(stderr,"brain error: %s\n",error.what());
     return 1;

@@ -1,6 +1,6 @@
 # Cross-game concept transfer prototype
 
-This package contains an experimental NEAT+PPO learner and GP concept-transfer pipeline. It includes Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, generated Python environments, and a standalone PointMass robotics proxy.
+This package contains an experimental NEAT+PPO learner and GP concept-transfer pipeline. It includes Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, generated Python environments, and continuous-control robotics surrogates for PointMass, TurtleBot navigation and a planar two-link arm.
 
 ## Current status (audited and re-run)
 
@@ -11,7 +11,7 @@ See `RESEARCH_REPORT.md` for the full audit, standalone-learner results, transfe
 - **Cross-game transfer was not demonstrated.** Source-discovered GP concepts did not improve CartPole learning over scratch or random features, and raw state x action features beat them; the Connect Four to Nim pair is uninformative.
 - v9 concept generator (richer primitives, oracle teacher) was merged and evaluated with the audited learner (`RESEARCH_REPORT.md` section J): still no measurable source-to-target transfer; only target-game concepts helped, and only on Nim.
 - With action-conditioned primitives (`generic_state_action_v8`: supplied win-now / block-opponent lookahead) TTT-discovered concepts improve Connect Four from 0.79 to 0.97 (`RESEARCH_REPORT.md` section K), but a primitives-only control matches them, so the gain comes from the primitives, not from GP discovery.
-- Supported environments: Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, LLM-authored Python game environments, and the standalone PointMass robotics research proxy.
+- Supported environments: Tic-Tac-Toe, CartPole, Connect Four, Nim, LineWorld, LLM-authored Python game environments, PointMass, TurtleBot navigation and a planar two-link arm.
 - Known limitations: single-core experiments, 10 seeds, pilots only for the grid demos, concept primitives are state aggregates, transfer recorded at pair level.
 
 Reproduce (from the repo root):
@@ -74,9 +74,23 @@ supported environments listed below.
 | `nim` | Single heap, 10–21 objects at reset; take 1–3, then a random opponent takes 1–3; taking the last object wins | Take 1, 2, or 3 (illegal takes are masked) |
 | `lineworld` | Deterministic 11-position line; start at positions 0–4, reach position 10 within 30 steps | Move left or right (moves off the line are masked) |
 | LLM-authored Python games | Sandboxed, validated environments, including multi-agent and real-time games | Discrete actions; real-time games use a fixed action-output head |
-| `pointmass` | Standalone 2D continuous-control robotics research proxy; not Gazebo/ROS or a physical robot | Gaussian continuous actions |
+| `pointmass` | Standalone 2D continuous-control research proxy | Gaussian continuous actions |
+| `turtlebot` | TurtleBot3-Burger-like differential-drive navigation with 24-ray simulated LiDAR, obstacles, actuator lag/delay and domain randomization | Linear and angular velocity commands |
+| `arm2link` | Planar two-link arm reaching a target; supports fine end-effector/Jacobian features and a complementary-filtered joint estimate (`feat=3`) | Two joint-velocity commands |
 
 These are controlled experimental environments, not claims of broad game coverage. Connect Four and Nim use random opponents; their results measure learning against those opponents, not optimal play.
+
+## Robotics Lab and Gazebo bridge
+
+The Robot Lab is an additive robotics demo path. It includes trained TurtleBot and 2-link arm policies, C++ NEAT+PPO training jobs, a browser-side surrogate preview, generation genome snapshots, and example ROS 2 policy bridge nodes. The custom Gazebo file upload in the frontend is a placeholder: URDF/SDF parsing and launching a live Gazebo world are not implemented. The included policy scores are single-seed results on the C++ surrogate, not Gazebo or physical-robot validation. See [`robotics_sim/README.md`](robotics_sim/README.md) and [`robotics_sim/ENV_SPECS.md`](robotics_sim/ENV_SPECS.md).
+
+Train a robot policy directly with the C++ learner:
+
+```bash
+cd src
+./brain turtlebot ../robotics_sim/none.txt 25000000 3 48 ../robotics_sim/policies/turtlebot.json --preset lam --env-args "rnoise=0.05,rdelay=2,rlag=1.5"
+./brain arm2link ../robotics_sim/none.txt 8000000 3 48 ../robotics_sim/policies/arm2link.json --preset lam --env-args "rnoise=0.05,rdelay=2,rlag=1.5,feat=3,fk=0.25"
+```
 
 ## Exact oracle teacher datasets (v9)
 
@@ -256,6 +270,7 @@ Quick start (from this directory):
 ```bash
 python3 -m pip install -r requirements.txt
 cd src && make brain runner && cd ..          # builds the learner (now with `ext` mode) and the experiment runner
+# Rebuild the brain after updating sources; generation-level genome recording is included.
 export LLM_API_KEY=...  LLM_MODEL=...         # any OpenAI-compatible endpoint (see llm_game_platform/llm.py)
 python3 -m llm_game_platform.server           # http://127.0.0.1:8000  (default tab: "Any game (generated Python)")
                                               # http://127.0.0.1:8000/research  -> cached research results viewer
